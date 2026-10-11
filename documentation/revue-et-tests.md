@@ -45,7 +45,7 @@ Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw
 | Étape | Résultat observé | Limite de la preuve |
 | --- | --- | --- |
 | Application et passerelle | 16 tests Node réussis ; compilation réussie | Inclut idempotence, refus d'auto-approbation, requête modifiée/expirée et concurrence entre instances ; aucun audit exhaustif des images |
-| Sauvegarde, routage, infrastructure et reprise Telegram | 21 tests Python réussis | Fixtures déterministes et contrôles de frontières de déploiement, sans fournisseur externe |
+| Sauvegarde, routage, infrastructure et reprise Telegram | 22 tests Python réussis | Fixtures déterministes, frontières de déploiement et reprise d'un rollback partiel sans effacer les nouvelles dépenses Windows |
 | Sauvegarde Windows | Archive chiffrée vérifiée, SQLite intègre, 38 sessions OpenCode, PostgreSQL restauré dans une base temporaire de 91 tables | La reprise sur un PC neuf n'a pas été simulée |
 | Migration PostgreSQL | 91 tables dans la cible distincte ; rôle applicatif non superutilisateur | Aucun fichier de cluster Windows monté dans Linux |
 | Accès LiteLLM/OpenClaw | Absence/mauvaise clé refusée ; droits administrateur refusés aux trois agents ; modèle inconnu refusé | Interfaces locales, pas d'essai depuis le téléphone |

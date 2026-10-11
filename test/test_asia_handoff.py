@@ -2,6 +2,8 @@ import importlib.util
 import json
 from pathlib import Path
 import unittest
+from unittest.mock import Mock, patch
+import tempfile
 
 ROOT = Path(__file__).resolve().parents[1]
 spec = importlib.util.spec_from_file_location('asia_handoff', ROOT / 'infra/activate-asia.py')
@@ -10,6 +12,20 @@ spec.loader.exec_module(module)
 
 
 class AsiaHandoffTests(unittest.TestCase):
+    def test_retry_of_partial_rollback_preserves_new_windows_expenditure(self):
+        with tempfile.TemporaryDirectory(prefix='asia-rollback-test-') as temp:
+            runtime = Path(temp)
+            journal = runtime / 'journal.json'
+            journal.write_text(json.dumps({'status': 'applying', 'legacy': {'spend': 1, 'max_budget': 20}, 'opencode_base': 'http://127.0.0.1:4000/v1'}))
+            services = Mock(legacy_key='synthetic-key', private={})
+            services.team.return_value = {'spend': 3}
+            services.key.return_value = {'spend': 7}  # Windows resumed during an earlier rollback attempt.
+            with patch.object(module, 'JOURNAL', journal), patch.object(module, 'RUNTIME', runtime), patch.object(module, 'docker'), patch.object(module.subprocess, 'run', return_value=Mock(returncode=0)):
+                module.rollback(services)
+            update = next(call for call in services.api.call_args_list if call.args[:2] == ('old', '/key/update'))
+            self.assertEqual(update.args[2]['spend'], 7)
+            self.assertEqual(json.loads(journal.read_text())['status'], 'rolled-back')
+
     def current(self):
         config = json.loads((ROOT / 'infra/openclaw.example.json').read_text())
         config['channels']['telegram'] = {'enabled': True, 'accounts': {'developpement': {'enabled': True, 'custom': 'preserve'}}}

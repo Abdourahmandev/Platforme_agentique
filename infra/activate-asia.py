@@ -147,7 +147,10 @@ def rollback(services):
     services.api('new', '/team/update', {'team_id': TEAM, 'max_budget': max(team_spend, 0.00000001)})
     services.api('new', '/key/block', {'key': services.legacy_key})
     services.code('/global/config', {'provider': {'litellm': {'options': {'baseURL': journal['opencode_base']}}}})
-    services.api('old', '/key/update', {'key': services.legacy_key, 'spend': old_spend + team_spend,
+    # A retry after a partial rollback must not erase Windows usage recorded
+    # since the previous attempt re-enabled its key.
+    current_old_spend = float(services.key('old', services.legacy_key).get('spend') or 0)
+    services.api('old', '/key/update', {'key': services.legacy_key, 'spend': max(current_old_spend, old_spend + team_spend),
                                       'max_budget': journal['legacy']['max_budget']})
     services.api('old', '/key/unblock', {'key': services.legacy_key})
     # Remove the Asia binding while the container is stopped, using a temporary
