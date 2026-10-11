@@ -60,7 +60,8 @@ def create():
         # credentials. Never include the recovery key in its own encrypted archive.
         private = stage / 'runtime'
         private.mkdir()
-        for filename in ('litellm.env','openclaw.env','speaches.env','runtime-private.json','gateway-test-device.json'):
+        for filename in ('litellm.env','openclaw.env','speaches.env','runtime-private.json','gateway-test-device.json',
+                         'asia-handoff-private.json'):
             if (RUNTIME / filename).exists():
                 shutil.copy2(RUNTIME / filename, private / filename)
         shutil.copytree(RUNTIME / 'secrets', private / 'secrets')
@@ -113,6 +114,10 @@ def verify(archive, restore=False):
                 raise ValueError('Unsafe manifest path')
             if hashlib.sha256(candidate.read_bytes()).hexdigest() != digest:
                 raise ValueError('Archive hash mismatch')
+        runtime = json.loads((base / 'runtime/runtime-private.json').read_text())
+        handoff = base / 'runtime/asia-handoff-private.json'
+        if runtime.get('phase') == 'asia-pilot' and not handoff.exists():
+            raise ValueError('Active Asia recovery point is missing its rollback journal')
         # docker cp creates root-owned files in /tmp; write as the service user
         # so verification and guaranteed cleanup retain the right permissions.
         compose('exec','-T','openclaw','node','-e',
@@ -120,6 +125,7 @@ def verify(archive, restore=False):
                 remote,data=(base / 'openclaw.tar.gz').read_bytes())
         compose('exec','-T','openclaw','node','dist/index.js','backup','verify',remote,'--json')
         result = {'archive':str(archive),'files_verified':len(manifest['files']),
+                  'handoff_journal_preserved':handoff.exists(),
                   'openclaw_native_verify':True,'openclaw_restored':False,'postgres_restored':False}
         if restore:
             compose('exec','-T','openclaw','node','dist/index.js','backup','restore',remote,

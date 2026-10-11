@@ -2,11 +2,11 @@
 
 ## État de cette étape
 
-Asia Telegram est encore servi par OpenCode Windows. Le bot Développement reste actif dans OpenClaw. La préparation ci-dessous ne démarre jamais un deuxième consommateur du token Asia. Google Workspace est exclu à la demande du propriétaire : il n'était pas connecté.
+**Bascule réalisée le 11 octobre 2026.** Asia Telegram est désormais servi par OpenClaw avec le même token et le même bot. Développement reste actif. Le superviseur et l'ancien bot Windows sont arrêtés ; le marqueur persistant empêche leur relance. Google Workspace est exclu à la demande du propriétaire : il n'était pas connecté.
 
 Dans le candidat, les appels réels ont validé Tavily (recherche et extraction), Playwright (navigation et capture de structure) et la mémoire MCP (écriture, lecture et persistance après redémarrage du serveur). Un tour réel d'Asia a utilisé les trois connecteurs ; ses appels et leurs résultats ont été contrôlés dans son historique de test. La transcription, les images et l'isolation des espaces/sessions ont également été revérifiées. Les essais n'ont envoyé aucun message Telegram.
 
-**Blocage actuel : Windows refuse à cette session l'arrêt du superviseur et du bot existants, exécutés avec des droits supérieurs.** Le précontrôle et la tentative d'activation contrôlée refusent donc la bascule. Les processus Windows sont toujours présents ; aucun token Asia n'est activé dans OpenClaw.
+L'utilisateur a exécuté la pause administrateur Windows. Le contrôle d'absence des processus et du verrou a ensuite permis l'activation. Les deux comptes Telegram sont connectés, sans conflit de polling observé ; une inférence réelle d'Asia a réussi. Le runtime est `asia-pilot` et le journal `active`. Le test complet de passerelle Windows a été rejoué avec le nouveau LiteLLM : déduplication, attente, refus sans exécution et accord unique réussis. **Restent à valider par le propriétaire : texte, photo, vocal et boutons d'approbation dans Telegram.**
 
 ## Connecteurs et périmètre
 
@@ -43,11 +43,11 @@ La passerelle conserve un journal privé `asia-opencode/tasks.json`. Une soumiss
 
 `infra/test-mcp-transports.mjs` s'exécute par entrée standard avec `docker exec -i ... node --input-type=module`. Il utilise le SDK MCP présent dans l'image pour valider les transports sans modèle, puis supprime ses seules données artificielles. Les diagnostics restent privés. L'API HTTP `/tools/invoke` n'est pas une preuve positive des outils MCP différés : le test d'agent contrôle leurs véritables appels via `tool_call` et leurs résultats.
 
-Le plan privé `AsiaDocker/asia-handoff-plan.json` confirme l'identité, le maintien du bot Développement et le plafond calculé. Il indique actuellement `legacy_stopped: false` et `new_consumer_started: false`.
+Le plan privé `AsiaDocker/asia-handoff-plan.json` est un instantané avant mutation : il confirme `legacy_stopped: true` et conserve `new_consumer_started: false` par définition. L'état final est dans `asia-handoff-private.json` (`active`) et `asia-post-handoff-result.json` (dix contrôles réussis). Le plan seul ne décrit pas l'état courant du bot.
 
 ## Transfert du consommateur
 
-Lorsque les écarts du tableau sont traités ou acceptés pour l'essai, et après vérification d'une archive récente, ouvrir **PowerShell en administrateur avec le même compte Windows** et exécuter depuis le dépôt :
+Les commandes suivantes documentent le transfert déjà réalisé ; ne pas les rejouer sur le pilote actif. Pour reproduire cette étape depuis un état de préparation validé et une archive récente, ouvrir **PowerShell en administrateur avec le même compte Windows** et exécuter depuis le dépôt :
 
 ```powershell
 ./infra/control-legacy-telegram.ps1 -Mode Pause
@@ -81,6 +81,6 @@ Le retour arrière arrête OpenClaw, fige l'enveloppe Docker, conserve ses nouve
 
 Un échec pendant l'activation déclenche cette procédure. Une impossibilité de retour arrière laisse le nouveau consommateur arrêté et exige une inspection du journal privé ; elle ne justifie jamais deux consommateurs du même token.
 
-**Validation réalisée :** préparation, refus du double consommateur, tests unitaires de fusion et de budget, restaurations isolées Windows/Docker. **Non réalisée à ce stade :** bascule effective, scénario d'échec réel de cette transaction, redémarrage complet de Windows, veille/réveil et essais utilisateur Telegram Asia.
+**Validation réalisée :** préparation, refus du double consommateur, tests unitaires de fusion et de budget, restaurations isolées Windows/Docker, bascule effective, contrôle des deux comptes et de la réponse Asia, passerelle Windows via le nouveau budget. **Non réalisée à ce stade :** scénario d'échec réel de cette transaction, redémarrage complet de Windows, veille/réveil et essais utilisateur Telegram Asia.
 
 Références : [MCP OpenClaw](https://docs.openclaw.ai/cli/mcp/registry), [Tavily](https://docs.tavily.com/documentation/mcp), [Playwright MCP](https://github.com/microsoft/playwright-mcp), [mémoire MCP](https://github.com/modelcontextprotocol/servers/tree/main/src/memory).

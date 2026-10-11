@@ -1,16 +1,16 @@
 # Guide du code et des composantes
 
-## Services actuels et remplacement prévu
+## Services pendant le pilote
 
-| Composante | Fonction actuelle | Candidat Docker |
+| Composante | Fonction historique | État Docker / pilote |
 | --- | --- | --- |
 | Asia Web, `src/`, `public/` | Interface française, thèmes clair/sombre, sessions, approbations, différences de fichiers | Conservée côté Windows ; future application distincte |
 | `server.mjs` | Accès local/Tailscale propriétaire, CSRF, API de façade, flux OpenCode | API Gateway OpenClaw pour la future application |
 | `request-journal.mjs` | Journal SQLite et réconciliation des envois incertains, sans répétition aveugle | Idempotence et historique Gateway testés ; garanties après crash à approfondir |
 | OpenCode et `integrations/opencode/` | Exécution d'agent et outils MCP | OpenClaw pour la conversation ; `infra/opencode-bridge/` conserve les tâches Windows d'Asia via OpenCode et ses permissions. Le spécialiste n'a pas cette passerelle |
-| `integrations/telegram/` | Bot unique, correctif autorisant seulement les conversations privées | Comptes Telegram natifs, un bot distinct par agent |
+| `integrations/telegram/` | Bot unique, correctif autorisant seulement les conversations privées | Ancien consommateur arrêté ; comptes natifs Asia et Développement actifs, un bot distinct par agent |
 | `integrations/speech/` | Transcription Whisper dans un service Python Windows | Image Speaches et volume de modèles |
-| `gateway/` | LiteLLM, catalogue et routage économique | Même configuration fonctionnelle dans l'image LiteLLM |
+| `gateway/` | LiteLLM, catalogue et routage économique | Même configuration dans l'image LiteLLM, désormais utilisée par OpenClaw et OpenCode avec le budget commun |
 | PostgreSQL Windows | Clés, limites et comptabilité LiteLLM | PostgreSQL 17.11, migration logique de 91 tables |
 | OpenChamber | Interface alternative d'OpenCode | Conservée pendant le retour arrière |
 | Tailscale | Accès privé à la machine | Service Windows conservé ; aucun nouveau port public |

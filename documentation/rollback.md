@@ -1,11 +1,11 @@
 # Retour arrière
 
-## État actuel : candidat distinct
+## État actuel : Asia dans OpenClaw
 
-L'ancien bot, OpenCode, LiteLLM Windows et PostgreSQL Windows restent en place. Les ports, secrets administrateur et volumes du candidat sont distincts. Le rollback immédiat consiste à arrêter le candidat, sans supprimer ses données :
+L'ancien bot est arrêté mais ses fichiers sont conservés. OpenCode utilise maintenant LiteLLM Docker ; arrêter Docker seul interromprait donc aussi ses appels de modèles. **Utiliser la transaction de retour arrière**, qui restaure également le fournisseur, la clé, les dépenses et le consommateur Telegram Windows :
 
 ```powershell
-& ./infra/compose.ps1 --profile audio stop
+python infra/activate-asia.py --rollback
 Invoke-RestMethod 'http://127.0.0.1:3210/api/bootstrap' | Select-Object healthy,version
 ```
 
@@ -26,9 +26,9 @@ Contrôler que ce compte est arrêté. En cas de doute ou d'absence de réponse 
 
 ## Après un transfert de token Telegram
 
-La procédure exécutable, ses préconditions et ses limites de validation sont dans [bascule-asia.md](bascule-asia.md). Après création du journal de transfert, utiliser `python infra/activate-asia.py --rollback` : l'arrêt d'OpenClaw précède la reprise Windows, les dépenses Docker sont reportées, la clé et l'URL OpenCode sont restaurées. La tâche de démarrage Docker refuse ensuite un état de rollback ou un journal incomplet. Cette transaction n'a pas encore été exécutée en production ; les restaurations isolées et les gardes ont été testés.
+La procédure exécutable, ses préconditions et ses limites de validation sont dans [bascule-asia.md](bascule-asia.md). Le journal de transfert existe et indique `active`. Avec `--rollback`, l'arrêt d'OpenClaw précède la reprise Windows, les dépenses Docker sont reportées, la clé et l'URL OpenCode sont restaurées. Développement est également suspendu. La tâche de démarrage Docker refuse ensuite un état de rollback ou un journal incomplet. L'activation réelle a réussi ; le rollback de cette transaction n'a pas été déclenché en production. Les restaurations isolées et les gardes ont été testés.
 
-Asia réutilisera le token du bot actuel. La copie préparée sous `AsiaDocker/secrets/asia.token` ne change pas son propriétaire d'exécution : jusqu'à la bascule, seul le service Windows reçoit les messages. Garder le fichier de credentials Windows pour pouvoir revenir à ce service avec la même identité Telegram.
+Asia réutilise le token du bot habituel ; seul OpenClaw reçoit actuellement ses messages. Garder le fichier de credentials Windows et le journal privé pour pouvoir revenir à cet ancien service avec la même identité Telegram. La sauvegarde chiffrée Docker inclut désormais ce journal de retour arrière.
 
 L'ordre est impératif :
 
@@ -38,7 +38,7 @@ L'ordre est impératif :
 4. Vérifier qu'un seul consommateur tourne, puis envoyer un nouveau message de contrôle depuis le compte propriétaire.
 5. Contrôler les éventuels messages en attente avant toute répétition d'une action. Une absence de réponse ne prouve pas qu'une action n'a pas été exécutée.
 
-La tâche `OpenCode Web` peut démarrer le superviseur Telegram comme compagnon. La bascule doit donc neutraliser aussi son démarrage automatique du bot, et restaurer cette configuration lors du rollback. Arrêter uniquement le processus Node du bot ne suffit pas : son superviseur peut le relancer.
+La tâche `OpenCode Web` peut invoquer le superviseur Telegram comme compagnon. Le garde installé dans son lanceur vérifie `migration-paused` et empêche de recréer le bot. Le rollback retire ce marqueur seulement après l'arrêt du consommateur Docker. Arrêter uniquement le processus Node du bot ne suffirait pas : son superviseur pourrait le relancer.
 
 Les conversations créées dans OpenClaw restent dans ses sauvegardes ; elles ne réapparaissent pas automatiquement dans OpenCode. Les réponses et dépenses produites pendant la fenêtre Docker doivent être conservées. Ne pas restaurer un ancien dump par-dessus les nouvelles données pour revenir à un ancien logiciel.
 

@@ -1,15 +1,24 @@
 """Recovery failures must fail closed and leave no decrypted material behind."""
 import importlib.util
+import hashlib
+import json
 import os
 from pathlib import Path
+import shutil
+import sys
 import tempfile
 import unittest
+import zipfile
 from unittest.mock import patch
 
 os.environ.setdefault('LOCALAPPDATA', tempfile.gettempdir())
 spec = importlib.util.spec_from_file_location('backup', Path(__file__).parents[1] / 'ops/backup.py')
 backup = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(backup)
+docker_spec = importlib.util.spec_from_file_location('backup_docker', Path(__file__).parents[1] / 'ops/backup-docker.py')
+backup_docker = importlib.util.module_from_spec(docker_spec)
+with patch.dict(sys.modules, {'backup': backup}):
+    docker_spec.loader.exec_module(backup_docker)
 
 
 class BackupTests(unittest.TestCase):
@@ -64,6 +73,26 @@ class BackupTests(unittest.TestCase):
             item.chmod(0o444)
             backup.safe_remove(stage)
             self.assertFalse(stage.exists())
+
+    def test_pilot_archive_without_rollback_journal_is_rejected(self):
+        # Hashes alone cannot prove recovery: this archive is structurally
+        # intact but lacks the state needed to return its active bot to Windows.
+        payload = self.root / 'incomplete.zip'
+        files = {'runtime/runtime-private.json': b'{"phase":"asia-pilot"}'}
+        manifest = {'kind': 'asia-docker', 'files': {
+            name: hashlib.sha256(data).hexdigest() for name, data in files.items()}}
+        with zipfile.ZipFile(payload, 'w') as archive:
+            for name, data in files.items():
+                archive.writestr(name, data)
+            archive.writestr('manifest.json', json.dumps(manifest))
+        with patch.object(backup, 'STATE', self.root), \
+             patch.object(backup, 'decrypt', side_effect=lambda source, target: shutil.copyfile(payload, target)), \
+             patch.object(backup_docker, 'compose') as compose, \
+             patch.object(backup_docker, 'remove_container_temp'):
+            with self.assertRaisesRegex(ValueError, 'rollback journal'):
+                backup_docker.verify(self.archive)
+            compose.assert_not_called()
+        self.assertEqual(list(self.root.glob('stage-*')), [])
 
 
 if __name__ == '__main__':
