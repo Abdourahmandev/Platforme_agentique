@@ -1162,6 +1162,7 @@ litellm_settings:
   turn_off_message_logging: true
 general_settings:
   master_key: os.environ/LITELLM_MASTER_KEY
+  trusted_proxy_ranges: []
   disable_spend_logs: false
   store_prompts_in_spend_logs: false
   database_connection_pool_limit: 10

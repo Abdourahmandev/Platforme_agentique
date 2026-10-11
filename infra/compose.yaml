@@ -1,0 +1,163 @@
+name: asia-platform-staging
+
+x-logging: &logging
+  driver: json-file
+  options:
+    max-size: 10m
+    max-file: '3'
+
+services:
+  speaches:
+    profiles: [audio]
+    image: ghcr.io/speaches-ai/speaches@sha256:21e3df06d842fb7802ab470dd77c25f0e8c0d22950e8d8c6ae886e851af53ef8
+    restart: unless-stopped
+    env_file:
+      - path: ${ASIA_RUNTIME_DIR}/speaches.env
+        required: true
+    environment:
+      WHISPER__INFERENCE_DEVICE: cpu
+      WHISPER__COMPUTE_TYPE: int8
+      WHISPER__CPU_THREADS: '2'
+      STT_MODEL_TTL: '60'
+      ENABLE_UI: 'false'
+      LOG_LEVEL: warning
+    volumes:
+      - speech-models:/home/ubuntu/.cache/huggingface/hub
+    ports:
+      - '127.0.0.1:18000:8000'
+    networks: [agents, outbound]
+    healthcheck:
+      test: [CMD, python, -c, 'import os, urllib.request; urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8000/health", headers={"Authorization": "Bearer " + os.environ["API_KEY"]}), timeout=4)']
+      interval: 20s
+      timeout: 5s
+      retries: 10
+      start_period: 60s
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    mem_limit: 1024m
+    cpus: 2.0
+    pids_limit: 150
+    logging: *logging
+
+  openclaw-init:
+    profiles: [bootstrap]
+    image: ghcr.io/openclaw/openclaw@sha256:97a692e91a99b514318dd43e7925dffdacfc7499f401f842912bf15ccbf083ff
+    user: '0:0'
+    network_mode: none
+    entrypoint: [node, /opt/init-openclaw.mjs]
+    volumes:
+      - ${ASIA_RUNTIME_DIR}/openclaw:/seed:ro
+      - ./init-openclaw.mjs:/opt/init-openclaw.mjs:ro
+      - openclaw-state:/state
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, FOWNER, DAC_OVERRIDE]
+    mem_limit: 256m
+    logging: *logging
+
+  postgres:
+    # PostgreSQL 17.11 (bookworm), multi-architecture manifest.
+    image: postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+    secrets: [postgres_password]
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d postgres']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 150
+    logging: *logging
+
+  litellm:
+    image: ghcr.io/berriai/litellm@sha256:501909ec6f504551f263f82fe8c53cfa34679d5753de507a2df69680a6021ad8
+    restart: unless-stopped
+    env_file:
+      - ${ASIA_RUNTIME_DIR:?Set ASIA_RUNTIME_DIR outside the repository}/litellm.env
+    environment:
+      PYTHONPATH: /opt/asia
+      ASIA_USAGE_PATH: /var/lib/asia/usage.jsonl
+      LITELLM_TELEMETRY: 'False'
+      DO_NOT_TRACK: '1'
+    command: [--config, /opt/asia/config.yaml, --host, 0.0.0.0, --port, '4000']
+    volumes:
+      - ../gateway:/opt/asia:ro
+      - litellm-metrics:/var/lib/asia
+    ports:
+      - '127.0.0.1:${ASIA_LITELLM_PORT:-14000}:4000'
+    networks: [database, agents, outbound]
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:4000/health/liveliness", timeout=4)']
+      interval: 20s
+      timeout: 5s
+      retries: 12
+      start_period: 90s
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    mem_limit: 1536m
+    cpus: 2.0
+    pids_limit: 200
+    logging: *logging
+
+  openclaw:
+    # Official browser image; digest fixes the complete runtime, no local build.
+    image: ghcr.io/openclaw/openclaw@sha256:97a692e91a99b514318dd43e7925dffdacfc7499f401f842912bf15ccbf083ff
+    init: true
+    restart: unless-stopped
+    # Respect the gateway's maximum 330-second graceful drain on shutdown.
+    stop_grace_period: 6m
+    env_file:
+      - ${ASIA_RUNTIME_DIR:?Set ASIA_RUNTIME_DIR outside the repository}/openclaw.env
+    environment:
+      HOME: /home/node
+      OPENCLAW_HOME: /home/node
+      OPENCLAW_STATE_DIR: /home/node/.openclaw
+      OPENCLAW_CONFIG_PATH: /home/node/.openclaw/openclaw.json
+      OPENCLAW_GATEWAY_PORT: '18789'
+      OPENCLAW_DISABLE_BONJOUR: '1'
+      OPENCLAW_NO_RESPAWN: '1'
+      NODE_COMPILE_CACHE: /tmp/openclaw-compile-cache
+      TZ: America/New_York
+    volumes:
+      - openclaw-state:/home/node/.openclaw
+    command: [node, dist/index.js, gateway, --bind, lan, --port, '18789']
+    ports:
+      - '127.0.0.1:${ASIA_OPENCLAW_PORT:-18789}:18789'
+    networks: [agents, outbound]
+    depends_on:
+      litellm: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, dist/docker-healthcheck.js]
+      interval: 20s
+      timeout: 5s
+      retries: 12
+      start_period: 60s
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    mem_limit: 1536m
+    cpus: 2.0
+    pids_limit: 250
+    logging: *logging
+
+networks:
+  database: {internal: true}
+  agents: {internal: true}
+  outbound: {}
+
+volumes:
+  postgres-data:
+  litellm-metrics:
+  openclaw-state:
+  speech-models:
+
+secrets:
+  postgres_password:
+    file: ${ASIA_RUNTIME_DIR}/secrets/postgres-password

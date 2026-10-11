@@ -1,6 +1,6 @@
 # Plan de migration Docker et application de gestion des agents
 
-Mis à jour le 11 octobre 2026. Statut : plan de réalisation, sans activation de la nouvelle infrastructure.
+Mis à jour le 11 octobre 2026. Statut : candidat Docker installé et en validation, bot Windows encore en production. Voir [le bilan courant](../documentation/revue-et-tests.md) et [les procédures d'exploitation](../documentation/README.md) pour distinguer ce qui est installé de ce qui reste à valider.
 
 La plateforme hébergera plusieurs agents persistants, accessibles d'abord chacun par leur propre bot Telegram, puis depuis une application commune. Asia restera l'agent personnel. Les autres agents auront leurs identités, instructions, conversations, outils et limites propres. La future application retrouvera ces agents et leurs sessions côté serveur.
 

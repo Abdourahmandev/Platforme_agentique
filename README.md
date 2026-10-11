@@ -2,7 +2,9 @@
 
 Assistant personnel accessible depuis un téléphone ou un ordinateur, avec une interface web en français et une intégration Telegram. OpenCode exécute les tâches ; LiteLLM route les appels vers DeepSeek et Gemini. L'interface propose des thèmes clair et sombre.
 
-Évolution prévue : [plan Docker, un bot Telegram par agent et future application commune](docs/plan-plateforme-agents.md). Ce plan décrit la cible ; l'architecture ci-dessous reste celle de l'installation actuelle.
+**Migration Docker en validation.** OpenClaw, LiteLLM, PostgreSQL et Speaches sont installés dans un environnement distinct, avec trois agents. L'ancien bot reste en production jusqu'aux essais des nouveaux bots et à la validation des écarts fonctionnels.
+
+Consulter la **[documentation du projet](documentation/README.md)** : architecture, composantes, modèles, installation, exploitation, retour arrière et résultats des tests. Le [plan de migration](docs/plan-plateforme-agents.md) explique la cible. Le diagramme ci-dessous décrit l'installation Windows conservée pendant la transition.
 
 ```mermaid
 flowchart LR
@@ -27,6 +29,8 @@ flowchart LR
 | `gateway/` | Modèles, routage économique, métriques et lancement LiteLLM/PostgreSQL |
 | `integrations/` | Scripts Windows OpenCode, Telegram, audio et OpenChamber ; exemple de politique OpenCode/MCP |
 | `ops/` | Sauvegardes chiffrées et vérification de restauration |
+| `infra/` | Images Docker officielles figées, configuration OpenClaw, trois agents et tests de migration |
+| `documentation/` | Guide GitHub de la plateforme et bilan de validation |
 | `test/` | Tests d'accès, de soumission et de reprise après incident |
 | `docs/operations.md` | État de l'installation de référence et exploitation |
 | `.github/workflows/ci.yml` | Vérification des fichiers suivis, tests, compilation et syntaxe |

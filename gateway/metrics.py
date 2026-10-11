@@ -33,12 +33,12 @@ class LocalMetrics(CustomLogger):
             'cost_usd': cost if isinstance(cost, (int, float)) else None,
             'error_type': type(kwargs['exception']).__name__ if kwargs.get('exception') else None,
         }
-        folder = Path(os.environ['LOCALAPPDATA']) / 'AsiaLiteLLM'
-        folder.mkdir(exist_ok=True)
-        target = Path(os.environ.get('ASIA_USAGE_PATH', str(folder / 'usage.jsonl')))
+        default = Path(os.environ.get('LOCALAPPDATA', '/var/lib')) / 'AsiaLiteLLM' / 'usage.jsonl'
+        target = Path(os.environ.get('ASIA_USAGE_PATH', str(default)))
+        target.parent.mkdir(parents=True, exist_ok=True)
         with self.lock:
             if target.exists() and target.stat().st_size > 10_000_000:
-                target.replace(folder / 'usage.previous.jsonl')
+                target.replace(target.with_name('usage.previous.jsonl'))
             with target.open('a', encoding='utf-8') as handle:
                 handle.write(json.dumps(event, ensure_ascii=False) + '\n')
 

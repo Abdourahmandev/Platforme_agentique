@@ -1,5 +1,5 @@
 """Encrypted snapshots. Restore checks only ever extract to a private staging folder."""
-import argparse,hashlib,json,os,secrets,shutil,sqlite3,subprocess,tempfile,zipfile
+import argparse,hashlib,json,os,secrets,shutil,sqlite3,stat,subprocess,tempfile,zipfile
 from datetime import datetime,timezone
 from pathlib import Path
 from contextlib import closing
@@ -7,7 +7,7 @@ from cryptography.hazmat.primitives.ciphers import Cipher,algorithms,modes
 
 APP=Path(__file__).resolve().parents[1];HOME=Path.home();LOCAL=Path(os.environ['LOCALAPPDATA'])
 STATE=LOCAL/'AsiaBackup';DEST=Path('D:/AsiaBackups');PG=LOCAL/'Programs/AsiaPostgreSQL/pgsql/bin'
-EXCLUDE={'node_modules','venv','__pycache__','.playwright-mcp','dist'}
+EXCLUDE={'node_modules','venv','__pycache__','.playwright-mcp','dist','.git'}
 def private(path):
  path.mkdir(parents=True,exist_ok=True)
  who=subprocess.check_output(['whoami'],text=True).strip()
@@ -21,7 +21,13 @@ def pg(args,**kwargs):
 PGCON=['-h','127.0.0.1','-p','55432','-U','postgres']
 def safe_remove(path):
  if path.resolve().parent!=STATE.resolve() or not path.name.startswith('stage-'):raise RuntimeError('Unsafe cleanup path')
- shutil.rmtree(path)
+ def writable_retry(function,name,error):
+  if not isinstance(error,PermissionError):raise error
+  candidate=Path(name)
+  if not candidate.resolve().is_relative_to(path.resolve()):raise RuntimeError('Unsafe cleanup entry')
+  candidate.chmod(stat.S_IWRITE|stat.S_IREAD)
+  function(name)
+ shutil.rmtree(path,onexc=writable_retry)
 def key(create=False):
  p=STATE/'recovery-key.txt'
  if not p.exists():
@@ -35,14 +41,25 @@ def encrypt(source,target):
   while block:=src.read(1024*1024):dst.write(enc.update(block))
   dst.write(enc.finalize());dst.write(enc.tag)
 def decrypt(source,target):
- with source.open('rb') as src:
-  if src.read(5)!=b'ASIA1':raise ValueError('Unknown archive format')
-  nonce=src.read(12);src.seek(-16,2);tag=src.read(16);remaining=src.tell()-33;src.seek(17)
-  dec=Cipher(algorithms.AES(key()),modes.GCM(nonce,tag)).decryptor()
-  with target.open('wb') as dst:
-   while remaining:
-    block=src.read(min(1024*1024,remaining));remaining-=len(block);dst.write(dec.update(block))
-   dst.write(dec.finalize())
+ # Never retain unauthenticated plaintext, including on a truncated archive.
+ if target.exists():raise FileExistsError('Restore destination already exists')
+ created=False
+ try:
+  with source.open('rb') as src:
+   size=os.fstat(src.fileno()).st_size
+   if size<33 or src.read(5)!=b'ASIA1':raise ValueError('Invalid archive header')
+   nonce=src.read(12);src.seek(-16,2);tag=src.read(16);remaining=size-33;src.seek(17)
+   dec=Cipher(algorithms.AES(key()),modes.GCM(nonce,tag)).decryptor()
+   with target.open('xb') as dst:
+    created=True
+    while remaining>0:
+     block=src.read(min(1024*1024,remaining))
+     if not block:raise ValueError('Truncated archive')
+     remaining-=len(block);dst.write(dec.update(block))
+    dst.write(dec.finalize())
+ except BaseException:
+  if created:target.unlink(missing_ok=True)
+  raise
 def sources():
  return {'app':APP,'workspace':HOME/'Documents/OpenCode','opencode-config':HOME/'.config/opencode','openchamber-config':HOME/'.config/openchamber','telegram-settings':Path(os.environ['APPDATA'])/'opencode-telegram-bot','telegram-secrets':LOCAL/'OpenCodeTelegramSetup','opencode-service':LOCAL/'OpenCodeWeb','openchamber-service':LOCAL/'OpenChamberWeb','gateway-secrets':LOCAL/'AsiaLiteLLM','speech-code':LOCAL/'Programs/OpenCodeTelegramSpeech','telegram-code':LOCAL/'Programs/OpenCodeTelegram','google-oauth':HOME/'.google_workspace_mcp'}
 def snapshot(stage):
@@ -80,10 +97,11 @@ def verify(archive,restore=False):
    z.extractall(stage/'restore')
   base=stage/'restore';manifest=json.loads((base/'manifest.json').read_text())
   for rel,digest in manifest['files'].items():
+   if not (base/rel).resolve().is_relative_to(base.resolve()):raise ValueError('Unsafe manifest entry')
    if hashlib.sha256((base/rel).read_bytes()).hexdigest()!=digest:raise ValueError('Snapshot hash mismatch')
   with closing(sqlite3.connect(base/'opencode-data/opencode.db')) as con:
-   assert con.execute('PRAGMA quick_check').fetchone()[0]=='ok'
-   assert con.execute('SELECT count(*) FROM session').fetchone()[0]==manifest['sqlite_sessions']
+   if con.execute('PRAGMA quick_check').fetchone()[0]!='ok':raise ValueError('SQLite integrity failure')
+   if con.execute('SELECT count(*) FROM session').fetchone()[0]!=manifest['sqlite_sessions']:raise ValueError('SQLite session count mismatch')
   pg(['pg_restore.exe','--list',str(base/'litellm.dump')])
   result={'archive':str(archive),'files_verified':len(manifest['files']),'sqlite_sessions':manifest['sqlite_sessions'],'sqlite_integrity':'ok','postgres_dump_readable':True,'postgres_restored':False}
   if restore:
@@ -92,7 +110,7 @@ def verify(archive,restore=False):
    try:
     pg(['pg_restore.exe',*PGCON,'-d',dbname,'--no-owner','--no-privileges','--exit-on-error',str(base/'litellm.dump')])
     count=int(pg(['psql.exe',*PGCON,'-d',dbname,'-Atc',"SELECT count(*) FROM information_schema.tables WHERE table_schema='public'"]).strip())
-    assert count>=80
+    if count<80:raise ValueError('Incomplete PostgreSQL restore')
     result.update(postgres_restored=True,postgres_tables=count)
    finally:pg(['dropdb.exe',*PGCON,dbname])
   return result

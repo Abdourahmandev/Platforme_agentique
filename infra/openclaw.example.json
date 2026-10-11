@@ -1,0 +1,65 @@
+{
+  "gateway": {
+    "mode": "local",
+    "bind": "lan",
+    "port": 18789,
+    "auth": {"mode": "token", "token": "${OPENCLAW_GATEWAY_TOKEN}", "allowTailscale": false,
+      "rateLimit": {"maxAttempts": 10, "windowMs": 60000, "lockoutMs": 300000, "exemptLoopback": false}},
+    "controlUi": {
+      "allowedOrigins": ["http://localhost:18789", "http://127.0.0.1:18789"],
+      "environment": {"label": "Migration test", "color": "amber"},
+      "sessionObserver": false,
+      "newSessionModelDefaults": "configured"
+    },
+    "http": {"endpoints": {"chatCompletions": {"enabled": true, "images": {"allowUrl": false}}}}
+  },
+  "models": {
+    "mode": "replace",
+    "providers": {
+      "litellm": {
+        "baseUrl": "http://litellm:4000/v1",
+        "api": "openai-completions",
+        "auth": "api-key",
+        "request": {"allowPrivateNetwork": true},
+        "models": [{"id": "asia-auto", "name": "Automatique", "input": ["text", "image"], "contextWindow": 128000, "maxTokens": 4096}]
+      }
+    }
+  },
+  "agents": {
+    "ownership": "explicit",
+    "defaults": {
+      "model": {"primary": "litellm/asia-auto"},
+      "heartbeat": {"agentId": "asia", "every": "0m"},
+      "systemAgent": {"agentId": "asia"},
+      "maxConcurrent": 2,
+      "timeoutSeconds": 180
+    },
+    "entries": {
+      "asia": {"name": "Asia", "workspace": "/home/node/.openclaw/workspaces/asia", "agentDir": "/home/node/.openclaw/agents/asia/agent"},
+      "developpement": {"name": "Developpement", "workspace": "/home/node/.openclaw/workspaces/developpement", "agentDir": "/home/node/.openclaw/agents/developpement/agent"},
+      "recherche": {"name": "Recherche", "workspace": "/home/node/.openclaw/workspaces/recherche", "agentDir": "/home/node/.openclaw/agents/recherche/agent"}
+    }
+  },
+  "tools": {
+    "allow": ["read", "write", "edit", "web_fetch", "session_status", "sessions_list", "sessions_history"],
+    "fs": {"workspaceOnly": true},
+    "exec": {"security": "deny", "ask": "always"},
+    "elevated": {"enabled": false},
+    "agentToAgent": {"enabled": false},
+    "sessions": {"visibility": "agent"}
+  },
+  "session": {"dmScope": "per-account-channel-peer"},
+  "talk": {"agentId": "asia"},
+  "tts": {
+    "auto": "inbound", "provider": "microsoft", "maxTextLength": 2000,
+    "modelOverrides": {"enabled": false},
+    "providers": {"microsoft": {"enabled": true, "speakerVoice": "fr-FR-DeniseNeural",
+      "lang": "fr-FR", "outputFormat": "audio-24khz-48kbitrate-mono-mp3"}}
+  },
+  "browser": {"enabled": false},
+  "channels": {"telegram": {"enabled": false}},
+  "bindings": [],
+  "memory": {"search": {"enabled": false}},
+  "plugins": {"slots": {"memory": "none"}, "entries": {"microsoft": {"enabled": true}}},
+  "logging": {"level": "info", "audit": {"messages": "off"}}
+}
