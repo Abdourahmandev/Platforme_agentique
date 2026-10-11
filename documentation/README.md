@@ -2,9 +2,9 @@
 
 Ce dossier décrit l'installation réelle, ses limites et les procédures de reprise. Il peut être consulté directement sur GitHub. Les fichiers contenant des secrets ou des conversations ne sont jamais inclus dans le dépôt.
 
-**État au 11 octobre 2026 : Asia a basculé dans OpenClaw, en phase pilote.** Les agents Asia, Développement et Recherche sont configurés ; Asia et Développement sont connectés sur Telegram. Les essais utilisateur du canal et de reprise Windows restent à réaliser.
+**État au 11 octobre 2026 : Asia a basculé dans OpenClaw, en phase pilote.** Les agents Asia, Développement et Recherche sont tous connectés sur Telegram, chacun avec son bot. Les essais utilisateur du canal et de reprise Windows restent à réaliser.
 
-**Asia conserve [son bot habituel](https://t.me/Absourahman03_bot)** ; Développement utilise [Rassdevbot](https://t.me/Rassdevbot). Cinq services Docker sont sains, dont Playwright. L'ancien consommateur Telegram est arrêté et sa relance bloquée par un marqueur persistant. OpenCode reste disponible comme exécuteur Windows et partage désormais le budget Docker. Recherche attend son token. Voir la [bascule Asia](bascule-asia.md), ses limites et son retour arrière.
+**Asia conserve [son bot habituel](https://t.me/Absourahman03_bot)** ; Développement utilise [Rassdevbot](https://t.me/Rassdevbot) et Recherche [Rassresearchbot](https://t.me/Rassresearchbot). Cinq services Docker sont sains, dont Playwright. L'ancien consommateur Telegram est arrêté et sa relance bloquée par un marqueur persistant. OpenCode reste disponible comme exécuteur Windows et partage désormais le budget Docker. Voir la [bascule Asia](bascule-asia.md), ses limites et son retour arrière.
 
 | Document | Contenu |
 | --- | --- |

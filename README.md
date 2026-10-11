@@ -2,7 +2,7 @@
 
 Plateforme d'agents accessible sur Telegram. OpenClaw gère les conversations et les outils ; LiteLLM route les appels vers DeepSeek et Gemini. L'ancienne interface web française, avec thèmes clair et sombre, reste disponible via OpenCode pour les tâches Windows.
 
-**Asia et Développement sont actifs dans OpenClaw depuis le 11 octobre 2026.** Asia conserve son bot Telegram habituel. OpenClaw, LiteLLM, PostgreSQL, Speaches et Playwright fonctionnent dans Docker ; les connecteurs hors Google sont configurés. L'ancien consommateur Telegram Windows est arrêté et sa relance neutralisée. La phase pilote attend encore les essais utilisateur Telegram et de reprise Windows. Voir la [bascule contrôlée d'Asia](documentation/bascule-asia.md).
+**Asia, Développement et Recherche sont actifs dans OpenClaw depuis le 11 octobre 2026.** Asia conserve son bot Telegram habituel ; Recherche utilise [Rassresearchbot](https://t.me/Rassresearchbot). OpenClaw, LiteLLM, PostgreSQL, Speaches et Playwright fonctionnent dans Docker ; les connecteurs d'Asia hors Google sont configurés. L'ancien consommateur Telegram Windows est arrêté et sa relance neutralisée. La phase pilote attend encore les essais utilisateur Telegram et de reprise Windows. Voir la [bascule contrôlée d'Asia](documentation/bascule-asia.md).
 
 Consulter la **[documentation du projet](documentation/README.md)** : architecture, composantes, modèles, installation, exploitation, retour arrière et résultats des tests. Le [plan de migration](docs/plan-plateforme-agents.md) explique la cible. Voici les flux actifs pendant la phase pilote :
 
@@ -10,7 +10,7 @@ Consulter la **[documentation du projet](documentation/README.md)** : architectu
 flowchart LR
     Browser[Téléphone / laptop] --> Tailscale[Tailscale privé]
     Tailscale --> Asia[Asia :3210]
-    Telegram[Bots Asia et Développement] --> Claw[OpenClaw :18789]
+    Telegram[Bots Asia, Développement et Recherche] --> Claw[OpenClaw :18789]
     Claw --> Speech[Speaches local :18000]
     Claw --> MCP[Outils MCP Asia]
     Claw --> LiteLLM[LiteLLM Docker :14000]

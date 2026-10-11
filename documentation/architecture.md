@@ -2,7 +2,7 @@
 
 ## Architecture pendant la phase pilote
 
-Depuis le 11 octobre 2026, les bots Asia et Développement sont reçus par OpenClaw dans Docker. L'ancien consommateur Telegram Windows est arrêté. Asia Web et OpenChamber restent des interfaces d'OpenCode, qui sert aussi d'exécuteur Windows à Asia. OpenCode et OpenClaw utilisent tous deux LiteLLM Docker. Les connecteurs MCP sont exécutés par les moteurs d'agents, pas par LiteLLM.
+Depuis le 11 octobre 2026, les bots Asia, Développement et Recherche sont reçus par OpenClaw dans Docker. L'ancien consommateur Telegram Windows est arrêté. Asia Web et OpenChamber restent des interfaces d'OpenCode, qui sert aussi d'exécuteur Windows à Asia. OpenCode et OpenClaw utilisent tous deux LiteLLM Docker. Les connecteurs MCP sont exécutés par les moteurs d'agents, pas par LiteLLM.
 
 L'installation Docker utilise des images publiées, figées par empreinte dans [Compose](../infra/compose.yaml). Les configurations et scripts d'exploitation sont versionnés, sans construction d'image personnalisée. Les anciens LiteLLM et PostgreSQL Windows sont conservés pour le retour arrière.
 
@@ -10,7 +10,7 @@ L'installation Docker utilise des images publiées, figées par empreinte dans [
 flowchart TD
     TA[Bot Asia actif] --> O[OpenClaw Gateway]
     TD[Bot Développement actif] --> O
-    TR[Bot Recherche] -. token distinct .-> O
+    TR[Bot Recherche actif] --> O
     APP[Future application] -. WebSocket authentifié .-> O
     O --> A[Asia : espace et sessions]
     O --> D[Développement : espace et sessions]

@@ -24,9 +24,11 @@ Le compte `developpement` est le premier bot activé dans OpenClaw. Pour le susp
 
 Contrôler que ce compte est arrêté. En cas de doute ou d'absence de réponse de la Gateway, `./infra/compose.ps1 stop openclaw` arrête le processus Docker qui le reçoit. Les tokens et volumes sont conservés. Pour une reprise, réactiver ce compte et vérifier son état ; ne pas relancer l'initialiseur qui refuse d'écraser les associations actives.
 
+Pour suspendre uniquement Recherche, utiliser la même commande `config set` avec `channels.telegram.accounts.recherche.enabled`. L'arrêt du conteneur entier suspendrait les trois bots ; réserver cette mesure à une interruption complète assumée. Le script d'ajout désactive automatiquement son seul nouveau compte si ses vérifications échouent.
+
 ## Après un transfert de token Telegram
 
-La procédure exécutable, ses préconditions et ses limites de validation sont dans [bascule-asia.md](bascule-asia.md). Le journal de transfert existe et indique `active`. Avec `--rollback`, l'arrêt d'OpenClaw précède la reprise Windows, les dépenses Docker sont reportées, la clé et l'URL OpenCode sont restaurées. Développement est également suspendu. La tâche de démarrage Docker refuse ensuite un état de rollback ou un journal incomplet. L'activation réelle a réussi ; le rollback de cette transaction n'a pas été déclenché en production. Les restaurations isolées et les gardes ont été testés.
+La procédure exécutable, ses préconditions et ses limites de validation sont dans [bascule-asia.md](bascule-asia.md). Le journal de transfert existe et indique `active`. Avec `--rollback`, l'arrêt d'OpenClaw précède la reprise Windows, les dépenses Docker sont reportées, la clé et l'URL OpenCode sont restaurées. Développement et Recherche sont également suspendus. La tâche de démarrage Docker refuse ensuite un état de rollback ou un journal incomplet. L'activation réelle a réussi ; le rollback de cette transaction n'a pas été déclenché en production. Les restaurations isolées et les gardes ont été testés.
 
 Asia réutilise le token du bot habituel ; seul OpenClaw reçoit actuellement ses messages. Garder le fichier de credentials Windows et le journal privé pour pouvoir revenir à cet ancien service avec la même identité Telegram. La sauvegarde chiffrée Docker inclut désormais ce journal de retour arrière.
 

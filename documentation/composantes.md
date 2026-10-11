@@ -8,7 +8,7 @@
 | `server.mjs` | Accès local/Tailscale propriétaire, CSRF, API de façade, flux OpenCode | API Gateway OpenClaw pour la future application |
 | `request-journal.mjs` | Journal SQLite et réconciliation des envois incertains, sans répétition aveugle | Idempotence et historique Gateway testés ; garanties après crash à approfondir |
 | OpenCode et `integrations/opencode/` | Exécution d'agent et outils MCP | OpenClaw pour la conversation ; `infra/opencode-bridge/` conserve les tâches Windows d'Asia via OpenCode et ses permissions. Le spécialiste n'a pas cette passerelle |
-| `integrations/telegram/` | Bot unique, correctif autorisant seulement les conversations privées | Ancien consommateur arrêté ; comptes natifs Asia et Développement actifs, un bot distinct par agent |
+| `integrations/telegram/` | Bot unique, correctif autorisant seulement les conversations privées | Ancien consommateur arrêté ; comptes natifs Asia, Développement et Recherche actifs, un bot distinct par agent |
 | `integrations/speech/` | Transcription Whisper dans un service Python Windows | Image Speaches et volume de modèles |
 | `gateway/` | LiteLLM, catalogue et routage économique | Même configuration dans l'image LiteLLM, désormais utilisée par OpenClaw et OpenCode avec le budget commun |
 | PostgreSQL Windows | Clés, limites et comptabilité LiteLLM | PostgreSQL 17.11, migration logique de 91 tables |
@@ -43,6 +43,8 @@ Le plugin natif `infra/opencode-bridge/` est chargé par l'image OpenClaw exista
 Définir un identifiant stable, une mission et un bot distinct. Prévoir un workspace, un répertoire d'état, une clé LiteLLM dans l'équipe budgétaire commune et une association compte Telegram–agent. Donner seulement les outils nécessaires. Tester lecture/écriture de son espace, refus d'accès aux autres sessions, attribution des dépenses et réponse sur le bon bot. Les scripts initiaux refusent d'écraser les trois agents installés ; une extension doit fusionner la configuration active, pas relancer l'initialiseur.
 
 Les instructions `AGENTS.md` orientent le comportement du modèle. Elles ne remplacent ni les contrôles d'outils, ni les budgets, ni une séparation de processus lorsque des identités doivent être réellement isolées.
+
+Recherche est joignable sur Telegram, avec sa clé, ses sessions et son workspace. Son activation ne lui accorde pas les connecteurs d'Asia : la lecture d'URL est disponible, mais la recherche web spécialisée et ses connecteurs restent à configurer et valider séparément.
 
 ## Ce qui reste propre à Windows
 

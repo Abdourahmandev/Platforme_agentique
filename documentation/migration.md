@@ -100,6 +100,19 @@ python infra/configure-telegram.py --agent developpement --activate
 
 L'option `--agent` peut être répétée. Seuls les tokens sélectionnés sont requis ; aucun compte Asia ou Recherche n'est activé implicitement. L'initialiseur refuse d'écraser un canal déjà actif ou des associations existantes. Pour ajouter un agent après cette première activation, fusionner explicitement sa configuration avec les comptes en place et la valider ; ne pas effacer les associations existantes pour relancer l'initialiseur.
 
+### Ajouter un spécialiste sur une Gateway active
+
+Recherche a été ajouté au pilote existant le 11 octobre 2026 avec cette procédure, après stockage privé et validation de son token :
+
+```powershell
+python infra/add-telegram-account.py --agent recherche
+python infra/add-telegram-account.py --agent recherche --activate
+```
+
+Le premier appel vérifie l'identité, l'absence de webhook, la distinction des bots et le schéma, sans démarrer le consommateur. L'activation exige un agent déjà configuré, refuse tout compte ou association existant et fusionne le nouveau compte en préservant les précédents. Le script compare les configurations avant/après et contrôle la connexion de tous les comptes actifs. Les messages directs sont limités au propriétaire et les groupes désactivés. Aucune limite LiteLLM n'est modifiée.
+
+Un journal privé conserve l'état antérieur. En cas d'échec, le script désactive seulement le compte ajouté et retire sa route Telegram ; les autres bots restent configurés. Ne pas rejouer aveuglément une activation interrompue : examiner le journal et l'état du compte. Une nouvelle activation de compte déjà présent est volontairement refusée. Le bot Recherche actuel est [Rassresearchbot](https://t.me/Rassresearchbot) ; le propriétaire doit ouvrir la conversation et appuyer sur **Démarrer**, puis tester texte, photo et vocal.
+
 Avant la bascule : configurer les associations exactes compte–agent, les messages directs autorisés et le refus des groupes ; démarrer une conversation avec chacun des bots ; vérifier texte, photo, note vocale, réponse au bon bot, isolation et reconnexion. Ne jamais lancer deux consommateurs avec le même token.
 
 ## Critères de bascule

@@ -77,7 +77,7 @@ Après une tentative de transfert ayant créé le journal :
 python infra/activate-asia.py --rollback
 ```
 
-Le retour arrière arrête OpenClaw, fige l'enveloppe Docker, conserve ses nouvelles dépenses dans le compteur Windows, restaure l'URL OpenCode et réactive sa clé. Il désactive le compte Asia dans le volume arrêté, retire sa route, puis relance le consommateur Windows. Développement est suspendu avec OpenClaw pendant ce rollback complet. Les volumes, les historiques et les archives sont conservés. Ne pas relancer aveuglément Docker avant de vérifier les budgets et le compte Asia désactivé.
+Le retour arrière arrête OpenClaw, fige l'enveloppe Docker, conserve ses nouvelles dépenses dans le compteur Windows, restaure l'URL OpenCode et réactive sa clé. Il désactive le compte Asia dans le volume arrêté, retire sa route, puis relance le consommateur Windows. Développement et Recherche sont suspendus avec OpenClaw pendant ce rollback complet. Les volumes, les historiques et les archives sont conservés. Ne pas relancer aveuglément Docker avant de vérifier les budgets et le compte Asia désactivé.
 
 Un échec pendant l'activation déclenche cette procédure. Une impossibilité de retour arrière laisse le nouveau consommateur arrêté et exige une inspection du journal privé ; elle ne justifie jamais deux consommateurs du même token.
 
