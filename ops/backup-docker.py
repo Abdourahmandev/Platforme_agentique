@@ -62,7 +62,7 @@ def create():
         private.mkdir()
         for filename in ('litellm.env','openclaw.env','speaches.env','runtime-private.json','gateway-test-device.json',
                          'asia-handoff-private.json','telegram-add-developpement-private.json',
-                         'telegram-add-recherche-private.json'):
+                         'telegram-add-recherche-private.json','delegation-private.json'):
             if (RUNTIME / filename).exists():
                 shutil.copy2(RUNTIME / filename, private / filename)
         shutil.copytree(RUNTIME / 'secrets', private / 'secrets')

@@ -15,6 +15,10 @@ flowchart TD
     O --> A[Asia : espace et sessions]
     O --> D[Développement : espace et sessions]
     O --> R[Recherche : espace et sessions]
+    A -->|Missions natives| D
+    A -->|Missions natives| R
+    D -->|Résultats| A
+    R -->|Résultats| A
     A --> L[LiteLLM]
     A --> T[Tavily MCP]
     A --> B[Playwright MCP dédié]
@@ -52,7 +56,9 @@ Les identifiants stables sont `asia`, `developpement` et `recherche`. Chaque age
 
 Les comptes Telegram actifs sont associés explicitement aux agents. `session.dmScope=per-account-channel-peer` sépare les conversations par compte et correspondant. Les groupes sont désactivés et les messages directs réservés à l'identifiant numérique du propriétaire.
 
-La visibilité des sessions est limitée à l'agent. L'accès inter-agent est désactivé. Les outils directs de fichiers restent limités au workspace et le shell natif reste désactivé. Asia seule possède une passerelle vers les tâches Windows OpenCode, avec les permissions Windows existantes et des validations natives à usage unique. Ce sont des politiques applicatives dans une installation de confiance à propriétaire unique. Pour des utilisateurs ou agents qui ne se font pas confiance, utiliser des instances et identités système séparées.
+Asia peut créer des missions natives chez les deux spécialistes et recevoir leurs résultats. La visibilité des sessions est limitée à l'arbre de la conversation ; les missions créées par Asia sont accessibles à leur parent, mais pas les conversations Telegram indépendantes des spécialistes. Les échanges ordinaires entre agents restent désactivés. Les spécialistes ne peuvent ni s'envoyer de messages ni redéléguer. Voir [la délégation et ses limites](delegation.md).
+
+Les outils directs de fichiers restent limités au workspace et le shell natif reste désactivé. Asia seule possède une passerelle vers les tâches Windows OpenCode, avec les permissions Windows existantes et des validations natives à usage unique. Ce sont des politiques applicatives dans une installation de confiance à propriétaire unique. Pour des utilisateurs ou agents qui ne se font pas confiance, utiliser des instances et identités système séparées.
 
 L'authentification Gateway est maintenue même si une interface passe ensuite par Tailscale. Le secret administrateur LiteLLM ne doit jamais être remis à un agent ou à une application cliente. La clé Gateway HTTP donne des droits de propriétaire sur toute la Gateway ; la future application doit préférer des appareils appairés avec des portées adaptées.
 

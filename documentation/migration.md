@@ -127,3 +127,5 @@ Avant la bascule : configurer les associations exactes compte–agent, les messa
 La bascule n'est pas automatique à la fin des scripts d'installation. Se référer au [retour arrière](rollback.md) et au [bilan courant](revue-et-tests.md).
 
 La procédure du bot existant est décrite dans [Bascule Asia](bascule-asia.md). Elle ajoute les connecteurs hors Google, un contrôle d'arrêt du superviseur Windows et une transaction de transfert budgétaire. La pause administrateur et la bascule ont été réalisées le 11 octobre 2026. Le runtime courant est `asia-pilot` ; ne pas rejouer les initialiseurs sur cette installation. Les contrôles techniques après transfert sont passés ; les essais utilisateur Telegram et de reprise Windows restent à réaliser.
+
+La coordination des spécialistes a ensuite été activée avec `infra/configure-delegation.py --apply`. Pour reproduire cette étape après préparation des trois agents et du budget partagé, suivre [la procédure de délégation](delegation.md), ses tests et son retour arrière. L'exemple initial OpenClaw reste volontairement sans délégation tant que ce script n'a pas été appliqué.

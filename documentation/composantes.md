@@ -46,6 +46,8 @@ Les instructions `AGENTS.md` orientent le comportement du modèle. Elles ne remp
 
 Recherche est joignable sur Telegram, avec sa clé, ses sessions et son workspace. Son activation ne lui accorde pas les connecteurs d'Asia : la lecture d'URL est disponible, mais la recherche web spécialisée et ses connecteurs restent à configurer et valider séparément.
 
+La [délégation native](delegation.md) permet à Asia de confier des missions aux deux spécialistes. `infra/configure-delegation.py` applique les permissions, la portée des sessions et les instructions ; `infra/test-delegation.mjs` vérifie les appels et retours réels. Les résultats remontent à Asia sans messagerie directe entre spécialistes.
+
 ## Ce qui reste propre à Windows
 
 Les scripts d'exploitation contiennent les chemins de l'installation de référence et utilisent les ACL Windows. Le runtime des agents est Linux dans Docker, mais **ce dépôt n'est pas encore un installateur universel pour un serveur Linux neuf**. Une prochaine étape pourra paramétrer les chemins hôte et supprimer les dépendances de migration vers les anciens services, après la bascule et sa période de retour arrière.

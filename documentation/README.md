@@ -13,6 +13,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Catalogue des modèles](modeles.md) | Les 34 routes et leurs capacités déclarées |
 | [Installation et migration](migration.md) | Reproduire le socle Docker, configurer les secrets et valider chaque étape |
 | [Bascule Asia](bascule-asia.md) | Connecteurs conservés, transfert du token et du budget, intervention Windows et rollback |
+| [Délégation entre agents](delegation.md) | Asia coordinatrice, missions séparées, résultats, permissions, coûts et tests |
 | [Exploitation et sauvegardes](exploitation.md) | Démarrage, état, coûts, mises à jour et restauration |
 | [Retour arrière](rollback.md) | Arrêter le candidat et conserver/reprendre l'installation Windows |
 | [API de la future application](api.md) | Identités, sessions, streaming, annulation et reconnexion |

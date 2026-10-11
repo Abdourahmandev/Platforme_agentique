@@ -6,6 +6,8 @@ Plateforme d'agents accessible sur Telegram. OpenClaw gère les conversations et
 
 Consulter la **[documentation du projet](documentation/README.md)** : architecture, composantes, modèles, installation, exploitation, retour arrière et résultats des tests. Le [plan de migration](docs/plan-plateforme-agents.md) explique la cible. Voici les flux actifs pendant la phase pilote :
 
+Asia peut désormais [déléguer des missions à Recherche et Développement](documentation/delegation.md) et synthétiser leurs réponses. Les spécialistes conservent leurs conversations séparées et ne peuvent pas communiquer directement entre eux.
+
 ```mermaid
 flowchart LR
     Browser[Téléphone / laptop] --> Tailscale[Tailscale privé]

@@ -15,6 +15,7 @@ Asia conserve le bot actuel ; Développement et Recherche utilisent chacun un bo
 - Documentation de l'ensemble du projet dans ce dossier et contrôles CI enrichis.
 - Reprise pour Asia de Tavily, Playwright et mémoire MCP ; Google exclu à la demande du propriétaire. Passerelle de tâches Windows vers OpenCode avec validations humaines natives.
 - Tâches Windows de démarrage et sauvegarde Docker installées ; bascule contrôlée réalisée, retour arrière préparé, journal de reprise inclus dans la sauvegarde chiffrée.
+- Délégation native d'Asia vers les deux spécialistes, avec missions isolées, retour au parent, refus des échanges directs et de la récursion ; budget commun conservé.
 
 ## Défauts trouvés et corrigés
 
@@ -38,6 +39,7 @@ Asia conserve le bot actuel ; Développement et Recherche utilisent chacun un bo
 | Client de test connecté sans annoncer la capacité d'approbation | Capacité `plugin-approvals` explicite ; absence de route refusée, puis accord/refus via appareil appairé |
 | Liste explicite des plugins retirant l'adaptateur de transcription auparavant auto-activé | Conservation explicite du plugin `openai` utilisé contre Speaches local, test de régression et revalidation audio des trois agents |
 | Sauvegarde Docker initiale n'incluant pas le nouveau journal de transfert | Inclusion explicite du journal privé dans l'archive chiffrée ; vérification refusant un point pilote sans ce journal |
+| Premier essai de délégation appelant un outil différé non chargé puis un paramètre d'attente incorrect | Consignes imposant découverte/lecture du schéma et `waitFor: "message"` ; nouveau parcours complet réussi |
 
 Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw était en maintenance. L'essai a été relancé séquentiellement après l'état `healthy` et a réussi pour les trois agents. Ce résultat motive la règle d'exploitation : attendre la disponibilité, puis effectuer les changements de configuration un par un.
 
@@ -46,7 +48,7 @@ Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw
 | Étape | Résultat observé | Limite de la preuve |
 | --- | --- | --- |
 | Application et passerelle | 16 tests Node réussis ; compilation réussie | Inclut idempotence, refus d'auto-approbation, requête modifiée/expirée et concurrence entre instances ; aucun audit exhaustif des images |
-| Sauvegarde, routage, infrastructure et reprise Telegram | 26 tests Python réussis | Fixtures déterministes, refus d'une archive pilote sans journal, reprise budgétaire, ajout d'un bot préservant les comptes/routes existants, refus d'écrasement et désactivation ciblée après échec |
+| Sauvegarde, routage, infrastructure et reprise Telegram | 29 tests Python réussis | Fixtures déterministes, refus d'une archive pilote sans journal, reprise budgétaire, ajout de bot, frontières de délégation et restauration exacte des politiques sans modifier Telegram/audio |
 | Sauvegarde Windows | Archive chiffrée vérifiée, SQLite intègre, 38 sessions OpenCode, PostgreSQL restauré dans une base temporaire de 91 tables | La reprise sur un PC neuf n'a pas été simulée |
 | Migration PostgreSQL | 91 tables dans la cible distincte ; rôle applicatif non superutilisateur | Aucun fichier de cluster Windows monté dans Linux |
 | Accès LiteLLM/OpenClaw | Absence/mauvaise clé refusée ; droits administrateur refusés aux trois agents ; modèle inconnu refusé | Interfaces locales, pas d'essai depuis le téléphone |
@@ -65,12 +67,13 @@ Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw
 | Sécurité OpenClaw | 0 critique, 0 avertissement dans l'audit intégré après correction | Deux informations sur les frontières de confiance ; ce n'est pas un test d'intrusion |
 | Telegram Asia et Développement | Deux comptes actifs, bonnes associations, probes API réussis, aucun dernier échec ni conflit de polling observé ; réponse réelle d'Asia vérifiée après transfert par la Gateway | Échange depuis le compte utilisateur, photo, vocal et approbations à essayer ; aucun message de test envoyé à l'utilisateur |
 | Ajout Telegram Recherche | Token distinct et sans webhook, configuration validée avant écriture, comptes Asia/Développement identiques après fusion, trois probes réussis ; inférence Recherche réelle réussie et clé dans l'équipe budgétaire commune | Premier échange depuis le compte propriétaire à effectuer ; les outils de recherche web propres au spécialiste restent à configurer/valider |
+| Délégation Asia → spécialistes → Asia | Deux parcours réels réussis ; 20 contrôles sur le dernier : deux missions, réponses réelles, attente et synthèse du parent, contexte privé non copié, lecture des enfants par Asia, refus de lectures croisées, refus HTTP d'envoi/création chez les spécialistes, facturation propre aux trois clés | Sessions WebChat artificielles ; restitution Telegram, timeout, panne en mission et reprise après crash à éprouver. Les limites de quantité par demande et de durée sont détaillées dans [le guide](delegation.md) |
 | Connecteurs Asia | Tavily recherche/extraction, Playwright navigation/capture/refus `file://`, mémoire création/lecture/persistance ; appels d'un vrai tour Asia vérifiés | Crawl/map non exercés ; pas de reprise des connexions du navigateur Windows ; mémoire historique absente |
 | Tâches Windows d'Asia | Soumission et déduplication, commande en attente, refus natif sans exécution puis accord unique et sortie vérifiée ; accès 404 pour les autres agents. Test rejoué après transfert vers LiteLLM Docker | Commande artificielle `echo` ; boutons Telegram et questions OpenCode interactives à tester sur le canal final |
 | Planificateur Windows | Démarrage et sauvegarde testés, résultat 0 ; démarrage refusé sur un runtime artificiel en rollback | Ouverture de session après redémarrage et veille/réveil non exécutées ; pas d'alerte externe d'échec |
 | Garde et transaction de bascule | Refus préalable tant que l'ancien superviseur était présent ; après pause administrateur, activation réelle réussie et dix contrôles d'état positifs (ancien consommateur, clés, budget, fournisseur OpenCode, Gateway et comptes Telegram) | Rollback de cette transaction non déclenché en production ; reprise complète Windows non testée |
 
-Les rapports détaillés restent dans `%LOCALAPPDATA%\AsiaDocker` : tests de plateforme, Gateway, isolation, budget, audio, TTS, cycle de vie, sauvegarde et activation Développement ; ainsi que `asia-tools-test-result.json`, `mcp-transports-result.json`, `opencode-bridge-result.json`, `asia-post-handoff-result.json`, `telegram-recherche-result.json`, `startup-result.json` et `scheduled-backup-result.json`. Les journaux `asia-handoff-private.json` et `telegram-add-recherche-private.json` contiennent des secrets et restent privés. Ces fichiers ne sont pas copiés aveuglément dans Git. Les messages utilisés pour les essais sont artificiels.
+Les rapports détaillés restent dans `%LOCALAPPDATA%\AsiaDocker` : tests de plateforme, Gateway, isolation, budget, audio, TTS, cycle de vie, sauvegarde et activation Développement ; ainsi que `asia-tools-test-result.json`, `mcp-transports-result.json`, `opencode-bridge-result.json`, `asia-post-handoff-result.json`, `telegram-recherche-result.json`, `delegation-test-result.json`, `startup-result.json` et `scheduled-backup-result.json`. Les journaux de bascule, d'ajout de compte et de délégation restent privés et sont sauvegardés chiffrés. Ces fichiers ne sont pas copiés aveuglément dans Git. Les messages utilisés pour les essais sont artificiels.
 
 Restaurations de contrôle réussies sur les points Docker `docker-20261011T210319-0b250d43.aes` et Windows `asia-20261011T210504-e5c708.aes`, dans `D:\AsiaBackups` : état OpenClaw restauré séparément, SQLite Windows intègre et bases temporaires de 91 tables. Ces archives sont locales et chiffrées, pas déposées sur GitHub. Le rapport privé indique le point le plus récent ; des sauvegardes supplémentaires incluent la préparation de la passerelle et ses données artificielles.
 
@@ -79,6 +82,7 @@ Restaurations de contrôle réussies sur les points Docker `docker-20261011T2103
 | Priorité | Observation | Action et critère de réussite |
 | --- | --- | --- |
 | Validation du pilote | Asia, Développement et Recherche actifs dans OpenClaw | Tester chaque conversation, texte, photo et vocal depuis le compte propriétaire Telegram ; valider les approbations d'Asia |
+| Coordination | Asia délègue et reçoit les résultats dans des sessions séparées | Valider une synthèse sur Telegram, l'annulation et les scénarios de délai/panne ; garder les spécialistes sans échanges directs |
 | Stabilisation | PC de 12 Go, moins de 1 Go libre observé avec Windows et Docker en parallèle | Mesurer au repos et pendant deux tâches avec audio ; arrêter les services remplacés seulement après validation ; garder une marge mémoire suffisante sans boucle de redémarrage |
 | Validation après reprise | Démarrage Docker maintenant planifié et testé manuellement | Tester véritable ouverture de session, veille/réveil, réseau retardé et reprise des bots |
 | Exploitation | Sauvegarde Docker planifiée et testée, sans notification externe | Ajouter une alerte d'échec et une copie chiffrée hors machine ; exercice de reprise sur nouveaux volumes |
@@ -95,4 +99,4 @@ Restaurations de contrôle réussies sur les points Docker `docker-20261011T2103
 
 Le pilote utilise les bots Asia, Développement et Recherche dans OpenClaw. Les anciennes données et les archives sont conservées pour le retour arrière. L'activation réelle et les contrôles techniques sont passés ; ils ne prouvent pas encore tous les parcours utilisateur Telegram ni la disponibilité après redémarrage Windows.
 
-Cinq conteneurs servent les trois agents avec un budget commun. Le shell natif OpenClaw demeure désactivé ; seule Asia possède la passerelle de tâches Windows. OpenCode reste donc nécessaire comme exécuteur pendant cette phase hybride. Recherche dispose de la lecture d'URL mais pas encore des connecteurs MCP d'Asia. La procédure [bascule-asia.md](bascule-asia.md) décrit le transfert réalisé et les validations restantes.
+Cinq conteneurs servent les trois agents avec un budget commun. Asia coordonne désormais leurs missions ; les conversations Telegram et les accès aux outils restent distincts. Le shell natif OpenClaw demeure désactivé ; seule Asia possède la passerelle de tâches Windows. OpenCode reste donc nécessaire comme exécuteur pendant cette phase hybride. Recherche dispose de la lecture d'URL mais pas encore des connecteurs MCP d'Asia. La procédure [bascule-asia.md](bascule-asia.md) décrit le transfert réalisé et les validations restantes.
