@@ -2,6 +2,8 @@
 
 Assistant personnel accessible depuis un téléphone ou un ordinateur, avec une interface web en français et une intégration Telegram. OpenCode exécute les tâches ; LiteLLM route les appels vers DeepSeek et Gemini. L'interface propose des thèmes clair et sombre.
 
+Évolution prévue : [plan Docker, un bot Telegram par agent et future application commune](docs/plan-plateforme-agents.md). Ce plan décrit la cible ; l'architecture ci-dessous reste celle de l'installation actuelle.
+
 ```mermaid
 flowchart LR
     Browser[Téléphone / laptop] --> Tailscale[Tailscale privé]
