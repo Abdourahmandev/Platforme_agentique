@@ -77,3 +77,5 @@ Point de reprise Docker vérifié à 20:02 UTC : `D:\AsiaBackups\docker-20261011
 ## Décision actuelle
 
 Le socle est suffisamment préparé pour les essais Telegram avec des bots distincts. Le bot existant reste disponible. Les anciennes données et les archives sont conservées pour le retour arrière. Aucun objectif de disponibilité continue, aucune parité complète des MCP et aucune bascule de production ne sont annoncés sans les validations correspondantes.
+
+Les quatre conteneurs ont été arrêtés après validation pour rendre de la mémoire au PC pendant l'attente des nouveaux bots. Aucun volume n'a été supprimé. Le redémarrage explicite est documenté dans [l'exploitation](exploitation.md).

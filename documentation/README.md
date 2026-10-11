@@ -4,6 +4,8 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 
 **État au 11 octobre 2026 : migration Docker en validation, ancien bot encore en production.** Les agents Asia, Développement et Recherche fonctionnent dans OpenClaw. La bascule des bots est soumise aux tests Telegram et aux écarts fonctionnels détaillés dans le bilan.
 
+Après les essais, le candidat est arrêté pour libérer la mémoire du PC, en attendant les tokens des nouveaux bots. Ses volumes et secrets sont conservés. La [commande de redémarrage](exploitation.md#démarrer-et-contrôler-le-candidat) relance les quatre services et attend leur disponibilité.
+
 | Document | Contenu |
 | --- | --- |
 | [Architecture](architecture.md) | Composants, flux, agents, données et frontières de confiance |
