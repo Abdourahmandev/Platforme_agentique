@@ -7,6 +7,53 @@ x-logging: &logging
     max-file: '3'
 
 services:
+  playwright:
+    image: mcr.microsoft.com/playwright/mcp@sha256:690763cbb437ee7233f538a953bb5390bf03791eb5c965b471e59d17a6132fcb
+    init: true
+    restart: unless-stopped
+    user: '1000:1000'
+    read_only: true
+    working_dir: /workspace
+    environment:
+      HOME: /tmp
+    entrypoint: [node, /app/cli.js]
+    command: [--headless, --browser, chromium, --no-sandbox, --port, '8931', --host, '0.0.0.0', --allowed-hosts, 'playwright:8931,localhost:8931,127.0.0.1:8931', --isolated, --block-service-workers, --no-webmcp, --idle-timeout, '120000', --output-dir, /workspace/browser-output, --output-max-size, '52428800']
+    volumes:
+      - type: volume
+        source: openclaw-state
+        target: /workspace
+        volume:
+          subpath: workspaces/asia
+    tmpfs:
+      - /tmp:size=256m,mode=1777
+    shm_size: 128m
+    networks: [browser_control, browser_egress]
+    healthcheck:
+      test: [CMD, node, -e, 'const s=require("net").connect(8931,"127.0.0.1",()=>{s.end();process.exit(0)});s.on("error",()=>process.exit(1));setTimeout(()=>process.exit(1),3000)']
+      interval: 20s
+      timeout: 5s
+      retries: 6
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    mem_limit: 768m
+    cpus: 1.0
+    pids_limit: 200
+    logging: *logging
+
+  openclaw-tools-init:
+    profiles: [bootstrap]
+    image: ghcr.io/openclaw/openclaw@sha256:97a692e91a99b514318dd43e7925dffdacfc7499f401f842912bf15ccbf083ff
+    user: '0:0'
+    network_mode: none
+    entrypoint: [node, -e, 'require("fs").chownSync("/cache",1000,1000)']
+    volumes:
+      - openclaw-npm:/cache
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add: [CHOWN]
+    mem_limit: 128m
+    logging: *logging
+
   speaches:
     profiles: [audio]
     image: ghcr.io/speaches-ai/speaches@sha256:21e3df06d842fb7802ab470dd77c25f0e8c0d22950e8d8c6ae886e851af53ef8
@@ -128,10 +175,12 @@ services:
       TZ: America/New_York
     volumes:
       - openclaw-state:/home/node/.openclaw
+      # Reinstallable, version-pinned MCP packages stay outside data backups.
+      - openclaw-npm:/home/node/.npm
     command: [node, dist/index.js, gateway, --bind, lan, --port, '18789']
     ports:
       - '127.0.0.1:${ASIA_OPENCLAW_PORT:-18789}:18789'
-    networks: [agents, outbound]
+    networks: [agents, outbound, browser_control]
     depends_on:
       litellm: {condition: service_healthy}
     healthcheck:
@@ -148,6 +197,8 @@ services:
     logging: *logging
 
 networks:
+  browser_control: {internal: true}
+  browser_egress: {}
   database: {internal: true}
   agents: {internal: true}
   outbound: {}
@@ -156,6 +207,7 @@ volumes:
   postgres-data:
   litellm-metrics:
   openclaw-state:
+  openclaw-npm:
   speech-models:
 
 secrets:

@@ -6,13 +6,15 @@ Décision complémentaire : Asia conserve le bot actuel. Son token a été valid
 
 ## Changements réalisés
 
-- Installation des images officielles OpenClaw 2026.10.1, LiteLLM 1.104.1, PostgreSQL 17.11 et Speaches CPU, figées par empreinte ; aucune image de l'ancienne application construite.
+- Installation des images officielles OpenClaw 2026.10.1, LiteLLM 1.104.1, PostgreSQL 17.11, Speaches CPU et Playwright MCP 0.0.83, figées par empreinte ; aucune image de l'ancienne application construite.
 - Copie logique de PostgreSQL vers un volume distinct ; 91 tables restaurées. Conservation du sel LiteLLM et de la comptabilité historique.
 - Création des agents Asia, Développement et Recherche, avec espaces, sessions et clés propres ; enveloppe de test réduite et refus des droits administrateur.
 - Blocage des huit clés héritées dans le candidat ; clé Windows toujours valide en production et refusée dans le candidat.
 - Configuration de la transcription locale pour les trois agents et de la synthèse vocale Microsoft en français.
 - Création des scripts de migration, de tests, de sauvegarde Docker, de préparation des bots et d'un client WebSocket de référence pour la future application.
 - Documentation de l'ensemble du projet dans ce dossier et contrôles CI enrichis.
+- Reprise pour Asia de Tavily, Playwright et mémoire MCP ; Google exclu à la demande du propriétaire. Passerelle de tâches Windows vers OpenCode avec validations humaines natives.
+- Tâches Windows de démarrage et sauvegarde Docker installées ; bascule contrôlée et retour arrière préparés, sans activer un second consommateur Asia.
 
 ## Défauts trouvés et corrigés
 
@@ -28,6 +30,13 @@ Décision complémentaire : Asia conserve le bot actuel. Son token a été valid
 | Risque de second budget porté par les clés copiées depuis Windows | Quarantaine des clés héritées dans le candidat, test de refus et contrôle de la clé originale sur Windows |
 | Course possible lors de la reconnexion du client WebSocket de test | Requêtes en attente liées à chaque connexion ; reconnexion et historique testés |
 | Arrêt Docker plus court que le drainage maximal de la Gateway | Délai d'arrêt de six minutes et test d'arrêt/recréation avec volumes conservés |
+| Cache npm initialement détenu par root et refus d'écriture du serveur mémoire | Initialisation ponctuelle du propriétaire Linux, démarrage hors ligne et persistance vérifiés |
+| Filtrage Playwright par hôte sans numéro de port donnant un HTTP 403 | Autorités exactes avec port dans la liste ; navigation et capture réelles réussies |
+| Modèle devinant des paramètres MCP au lieu de lire le schéma | Instructions explicites recherche → description → appel ; vérification des vrais résultats imbriqués et des marqueurs sur disque |
+| Sortie normale Docker sur stderr traitée comme erreur par Windows PowerShell 5 | Lancement masqué avec capture séparée et contrôle du code de sortie ; deux tâches du Planificateur testées |
+| Hooks d'approbation et outils du plugin chargés dans des instances séparées | Reçus privés à usage unique et verrou entre instances ; test de régression, refus réel et accord réel réussis |
+| Client de test connecté sans annoncer la capacité d'approbation | Capacité `plugin-approvals` explicite ; absence de route refusée, puis accord/refus via appareil appairé |
+| Liste explicite des plugins retirant l'adaptateur de transcription auparavant auto-activé | Conservation explicite du plugin `openai` utilisé contre Speaches local, test de régression et revalidation audio des trois agents |
 
 Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw était en maintenance. L'essai a été relancé séquentiellement après l'état `healthy` et a réussi pour les trois agents. Ce résultat motive la règle d'exploitation : attendre la disponibilité, puis effectuer les changements de configuration un par un.
 
@@ -35,8 +44,8 @@ Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw
 
 | Étape | Résultat observé | Limite de la preuve |
 | --- | --- | --- |
-| Ancienne application | 10 tests Node réussis ; compilation réussie ; audit npm de production sans vulnérabilité signalée | Ne constitue pas un audit exhaustif des dépendances des images |
-| Sauvegarde, routage, infrastructure et reprise Telegram | 15 tests Python réussis | Fixtures déterministes et contrôles de frontières de déploiement, sans fournisseur externe |
+| Application et passerelle | 16 tests Node réussis ; compilation réussie | Inclut idempotence, refus d'auto-approbation, requête modifiée/expirée et concurrence entre instances ; aucun audit exhaustif des images |
+| Sauvegarde, routage, infrastructure et reprise Telegram | 21 tests Python réussis | Fixtures déterministes et contrôles de frontières de déploiement, sans fournisseur externe |
 | Sauvegarde Windows | Archive chiffrée vérifiée, SQLite intègre, 38 sessions OpenCode, PostgreSQL restauré dans une base temporaire de 91 tables | La reprise sur un PC neuf n'a pas été simulée |
 | Migration PostgreSQL | 91 tables dans la cible distincte ; rôle applicatif non superutilisateur | Aucun fichier de cluster Windows monté dans Linux |
 | Accès LiteLLM/OpenClaw | Absence/mauvaise clé refusée ; droits administrateur refusés aux trois agents ; modèle inconnu refusé | Interfaces locales, pas d'essai depuis le téléphone |
@@ -54,20 +63,24 @@ Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw
 | Sauvegarde Docker | Sauvegarde native OpenClaw vérifiée et restaurée dans un emplacement distinct ; dump PostgreSQL restauré, 91 tables | Pas de restauration par-dessus un environnement actif |
 | Sécurité OpenClaw | 0 critique, 0 avertissement dans l'audit intégré après correction | Deux informations sur les frontières de confiance ; ce n'est pas un test d'intrusion |
 | Telegram Développement | Seul compte activé, association au bon agent, connexion en polling, probe API réussi, aucun dernier échec signalé ; réponse réelle de l'agent vérifiée par la Gateway | Échange depuis le compte utilisateur, photo et vocal à essayer ; aucun message de test envoyé à l'utilisateur |
+| Connecteurs Asia | Tavily recherche/extraction, Playwright navigation/capture/refus `file://`, mémoire création/lecture/persistance ; appels d'un vrai tour Asia vérifiés | Crawl/map non exercés ; pas de reprise des connexions du navigateur Windows ; mémoire historique absente |
+| Tâches Windows d'Asia | Soumission et déduplication, commande en attente, refus natif sans exécution puis accord unique et sortie vérifiée ; accès 404 pour les autres agents | Commande artificielle `echo` ; boutons Telegram et questions OpenCode interactives à tester sur le canal final |
+| Planificateur Windows | Démarrage et sauvegarde testés, résultat 0 ; démarrage refusé sur un runtime artificiel en rollback | Ouverture de session après redémarrage et veille/réveil non exécutées ; pas d'alerte externe d'échec |
+| Garde de bascule | Précontrôle passé ; `--activate` refusé tant que l'ancien superviseur est présent ; ancien bot toujours actif | L'arrêt exige PowerShell administrateur ; transaction réelle et rollback de cette transaction non encore exécutés |
 
-Les rapports détaillés avec chemins locaux restent dans `%LOCALAPPDATA%\AsiaDocker` : `platform-test-result.json`, `gateway-test-result.json`, `isolation-test-result.json`, `team-budget-test-result.json`, `audio-test-result.json`, `tts-test-result.json`, `lifecycle-test-result.json`, `docker-backup-result.json`, `key-quarantine-result.json` et `developer-activation-result.json`. Ils ne sont pas copiés aveuglément dans Git. Les messages utilisés pour les essais sont artificiels.
+Les rapports détaillés restent dans `%LOCALAPPDATA%\AsiaDocker` : tests de plateforme, Gateway, isolation, budget, audio, TTS, cycle de vie, sauvegarde et activation Développement ; ainsi que `asia-tools-test-result.json`, `mcp-transports-result.json`, `opencode-bridge-result.json`, `startup-result.json` et `scheduled-backup-result.json`. Ils ne sont pas copiés aveuglément dans Git. Les messages utilisés pour les essais sont artificiels.
 
-Point de reprise Docker vérifié à 20:02 UTC : `D:\AsiaBackups\docker-20261011T200200-570803f5.aes`, 46 fichiers vérifiés, restauration OpenClaw réussie et 91 tables PostgreSQL restaurées. Point de reprise Windows : `D:\AsiaBackups\asia-20261011T190807-c0f5ef.aes`. Ces archives sont locales et chiffrées, pas déposées sur GitHub. Le rapport privé indique le point le plus récent si une sauvegarde supplémentaire a été faite.
+Restaurations de contrôle réussies sur les points Docker `docker-20261011T210319-0b250d43.aes` et Windows `asia-20261011T210504-e5c708.aes`, dans `D:\AsiaBackups` : état OpenClaw restauré séparément, SQLite Windows intègre et bases temporaires de 91 tables. Ces archives sont locales et chiffrées, pas déposées sur GitHub. Le rapport privé indique le point le plus récent ; des sauvegardes supplémentaires incluent la préparation de la passerelle et ses données artificielles.
 
 ## Revue de robustesse : priorités restantes
 
 | Priorité | Observation | Action et critère de réussite |
 | --- | --- | --- |
-| Avant bascule | Développement activé pour essai ; Asia reste sur Windows ; Recherche attend son token | Recevoir le token Recherche ; transférer Asia avec un seul consommateur ; tester texte, photo, vocal, refus d'un correspondant non autorisé et absence de mélange des conversations |
+| Avant bascule | Développement activé pour essai ; Asia reste sur Windows | Arrêt administrateur de l'ancien superviseur, transfert avec un seul consommateur ; tester texte, photo, vocal et approbations Telegram. Le token Recherche ne bloque pas Asia |
 | Avant bascule | PC de 12 Go, moins de 1 Go libre observé avec Windows et Docker en parallèle | Mesurer au repos et pendant deux tâches avec audio ; arrêter les services remplacés seulement après validation ; garder une marge mémoire suffisante sans boucle de redémarrage |
-| Avant bascule | Docker Desktop ne démarrait pas automatiquement à l'ouverture de session | Configurer et tester ouverture de session, veille/réveil, réseau retardé et reprise des bots |
-| Avant bascule | Sauvegarde Docker manuelle | Ajouter une exécution planifiée avec verrou, contrôle d'âge et alerte d'échec ; copie chiffrée hors machine et exercice de reprise sur nouveaux volumes |
-| Avant bascule | Connecteurs Google, Tavily, navigateur et exécution de code non migrés | Choisir les fonctions réellement nécessaires ; raccorder et tester les droits par agent, avec lecture seule initiale pour Google |
+| Validation après reprise | Démarrage Docker maintenant planifié et testé manuellement | Tester véritable ouverture de session, veille/réveil, réseau retardé et reprise des bots |
+| Exploitation | Sauvegarde Docker planifiée et testée, sans notification externe | Ajouter une alerte d'échec et une copie chiffrée hors machine ; exercice de reprise sur nouveaux volumes |
+| Portabilité | Connecteurs repris hors Google ; tâches Windows par passerelle OpenCode | Valider les parcours Telegram ; remplacer plus tard l'exécuteur Windows par un environnement isolé si une installation entièrement Linux est souhaitée |
 | Avant bascule | Budgets Windows et candidat distincts | Transférer la seule enveloppe de production, garder les dépenses de la période et désactiver les anciennes clés utilisées par les consommateurs remplacés |
 | Avant exécution autonome | Le spécialiste Développement n'a actuellement pas de shell | Introduire un environnement de travail isolé et des approbations testées ; pas d'accès global au disque hôte ni au socket Docker |
 | Avant multi-utilisateur | Une Gateway possède tous les agents et leurs identifiants | Conserver le propriétaire unique ; séparer instances, volumes, comptes et connecteurs si la confiance change |
@@ -80,4 +93,4 @@ Point de reprise Docker vérifié à 20:02 UTC : `D:\AsiaBackups\docker-20261011
 
 Le socle est suffisamment préparé pour les essais Telegram avec des bots distincts. Le bot existant reste disponible. Les anciennes données et les archives sont conservées pour le retour arrière. Aucun objectif de disponibilité continue, aucune parité complète des MCP et aucune bascule de production ne sont annoncés sans les validations correspondantes.
 
-Les quatre conteneurs ont été redémarrés pour activer Développement seul à la demande du propriétaire. La sauvegarde préalable `docker-20261011T205253-bf589d48.aes` comprend les tokens préparés et 49 fichiers vérifiés ; sa vérification native a réussi. La restauration complète avait été éprouvée sur le point de reprise précédent. Le budget de Développement reste celui des essais : 0,30 USD/30 jours, dans l'équipe de staging. L'exécution de commandes demeure désactivée. Asia continue sur son service Windows ; aucun consommateur Recherche n'est activé.
+Cinq conteneurs servent maintenant le candidat et Développement. Le budget de Développement reste celui des essais : 0,30 USD/30 jours dans l'équipe de staging. Le shell natif OpenClaw demeure désactivé ; seule Asia possède la passerelle de tâches Windows. Son bot continue sur l'ancien service ; aucun consommateur Recherche n'est activé. La procédure [bascule-asia.md](bascule-asia.md) décrit l'étape administrateur restante et les validations après transfert.

@@ -26,6 +26,8 @@ Contrôler que ce compte est arrêté. En cas de doute ou d'absence de réponse 
 
 ## Après un transfert de token Telegram
 
+La procédure exécutable, ses préconditions et ses limites de validation sont dans [bascule-asia.md](bascule-asia.md). Après création du journal de transfert, utiliser `python infra/activate-asia.py --rollback` : l'arrêt d'OpenClaw précède la reprise Windows, les dépenses Docker sont reportées, la clé et l'URL OpenCode sont restaurées. La tâche de démarrage Docker refuse ensuite un état de rollback ou un journal incomplet. Cette transaction n'a pas encore été exécutée en production ; les restaurations isolées et les gardes ont été testés.
+
 Asia réutilisera le token du bot actuel. La copie préparée sous `AsiaDocker/secrets/asia.token` ne change pas son propriétaire d'exécution : jusqu'à la bascule, seul le service Windows reçoit les messages. Garder le fichier de credentials Windows pour pouvoir revenir à ce service avec la même identité Telegram.
 
 L'ordre est impératif :

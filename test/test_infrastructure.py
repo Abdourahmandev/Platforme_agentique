@@ -23,6 +23,18 @@ class InfrastructureTests(unittest.TestCase):
         self.assertNotIn('ports',config['services']['postgres'])
         self.assertTrue(config['networks']['database']['internal'])
 
+    def test_browser_cannot_mount_agent_secrets_or_other_workspaces(self):
+        config=yaml.safe_load((ROOT/'infra/compose.yaml').read_text())
+        browser=config['services']['playwright']
+        self.assertNotIn('ports',browser)
+        self.assertNotIn('env_file',browser)
+        self.assertTrue(browser['read_only'])
+        self.assertEqual(browser['user'],'1000:1000')
+        self.assertEqual(len(browser['volumes']),1)
+        self.assertEqual(browser['volumes'][0]['volume']['subpath'],'workspaces/asia')
+        self.assertTrue(config['networks']['browser_control']['internal'])
+        self.assertEqual(set(browser['networks']),{'browser_control','browser_egress'})
+
     def test_agent_boundary_and_authenticated_gateway(self):
         config=json.loads((ROOT/'infra/openclaw.example.json').read_text())
         agents=config['agents']['entries']

@@ -16,11 +16,11 @@ export function loadDevice(filename) {
 }
 
 export class GatewayClient {
-  constructor({url, token, device, scopes = ['operator.read','operator.write','operator.approvals','operator.questions']}) {
+  constructor({url, token, device, caps = [], scopes = ['operator.read','operator.write','operator.approvals','operator.questions']}) {
     if (!/^ws:\/\/(127\.0\.0\.1|localhost):\d+\/?$/.test(url) && !url.startsWith('wss://')) {
       throw new Error('Gateway credentials require loopback or TLS');
     }
-    Object.assign(this,{url,token,device,scopes});
+    Object.assign(this,{url,token,device,scopes,caps});
     this.pending = new Map(); this.listeners = new Set();
   }
   async connect() {
@@ -53,7 +53,7 @@ export class GatewayClient {
           try {
             const hello=await this.request('connect',{
               minProtocol:4,maxProtocol:4,client:{id:'cli',version:'asia-migration-1',platform:'win32',mode:'cli'},
-              role:'operator',scopes:this.scopes,caps:[],auth:{token:this.token},locale:'fr-FR',
+              role:'operator',scopes:this.scopes,caps:this.caps,auth:{token:this.token},locale:'fr-FR',
               device:{id:this.device.id,publicKey:this.device.publicKey,signature,signedAt:ts,nonce},
             });
             clearTimeout(timeout);resolve(hello);

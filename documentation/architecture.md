@@ -9,13 +9,19 @@ Le candidat Docker utilise des images publiées, figées par empreinte dans [Com
 ```mermaid
 flowchart TD
     TA[Bot Asia] -. après validation .-> O[OpenClaw Gateway]
-    TD[Bot Développement] -. token distinct .-> O
+    TD[Bot Développement actif] --> O
     TR[Bot Recherche] -. token distinct .-> O
     APP[Future application] -. WebSocket authentifié .-> O
     O --> A[Asia : espace et sessions]
     O --> D[Développement : espace et sessions]
     O --> R[Recherche : espace et sessions]
     A --> L[LiteLLM]
+    A --> T[Tavily MCP]
+    A --> B[Playwright MCP dédié]
+    A --> MM[Mémoire propre à Asia]
+    A --> BR[Passerelle de tâches et approbations]
+    BR --> OC[OpenCode Windows]
+    OC -. après transfert du budget .-> L
     D --> L
     R --> L
     L --> M[DeepSeek / Gemini]
@@ -32,6 +38,8 @@ flowchart TD
 | LiteLLM 1.104.1 | Catalogue des 34 routes, choix du modèle, replis, clés et coûts | PostgreSQL et métriques limitées, hôte `127.0.0.1:14000` |
 | PostgreSQL 17.11 | Configuration et comptabilité LiteLLM | Volume `postgres-data`, aucun port publié |
 | Speaches, profil `audio` | Transcription locale sur CPU | Cache de modèles dédié, hôte `127.0.0.1:18000` |
+| Playwright MCP 0.0.83 | Navigateur d'Asia | Réseau dédié, sans port hôte ; seul le workspace Asia monté |
+| Plugin `asia-opencode` | Tâches Windows et validations natives | Journal privé dans le volume OpenClaw ; serveur Windows 4096 conservé |
 | Tailscale Windows | Accès privé aux interfaces publiées explicitement | Configuration actuelle conservée pendant la validation |
 | Scripts `infra/` | Initialisation, migration et tests reproductibles | Aucun service applicatif supplémentaire |
 | Scripts `ops/` | Archives chiffrées et restauration de contrôle | Archives sur D:, clé de récupération hors Git |
@@ -44,7 +52,7 @@ Les identifiants stables sont `asia`, `developpement` et `recherche`. Chaque age
 
 Les futurs comptes Telegram sont associés explicitement aux agents. `session.dmScope=per-account-channel-peer` sépare les conversations par compte et correspondant. Les groupes doivent rester désactivés et les messages directs réservés à l'identifiant numérique du propriétaire.
 
-La visibilité des sessions est limitée à l'agent. L'accès inter-agent est désactivé. Les outils de fichiers sont limités à l'espace de travail et le shell est désactivé dans le candidat initial. Ce sont des politiques applicatives dans un processus partagé. Pour des utilisateurs ou agents qui ne se font pas confiance, utiliser des instances et identités système séparées.
+La visibilité des sessions est limitée à l'agent. L'accès inter-agent est désactivé. Les outils directs de fichiers restent limités au workspace et le shell natif reste désactivé. Asia seule possède une passerelle vers les tâches Windows OpenCode, avec les permissions Windows existantes et des validations natives à usage unique. Ce sont des politiques applicatives dans une installation de confiance à propriétaire unique. Pour des utilisateurs ou agents qui ne se font pas confiance, utiliser des instances et identités système séparées.
 
 L'authentification Gateway est maintenue même si une interface passe ensuite par Tailscale. Le secret administrateur LiteLLM ne doit jamais être remis à un agent ou à une application cliente. La clé Gateway HTTP donne des droits de propriétaire sur toute la Gateway ; la future application doit préférer des appareils appairés avec des portées adaptées.
 
@@ -58,6 +66,6 @@ Le candidat a une équipe LiteLLM de test à 1 USD/30 jours et trois clés à 0,
 
 PostgreSQL est migré par `pg_dump`/`pg_restore`, avec conservation de `LITELLM_SALT_KEY`. Le dossier de données PostgreSQL Windows n'est jamais monté dans Linux. OpenClaw utilise un volume Linux car les opérations de permissions POSIX requises par son stockage ne fonctionnent pas correctement sur un montage Windows.
 
-L'historique OpenCode reste consultable dans l'ancienne installation et ses sauvegardes. Aucune conversion silencieuse en historique OpenClaw n'est effectuée. Les connecteurs Google, recherche web et navigateur doivent être reconnectés et testés avec les droits du nouvel agent avant la bascule.
+L'historique OpenCode reste consultable dans l'ancienne installation et ses sauvegardes. Aucune conversion silencieuse en historique OpenClaw n'est effectuée. Tavily, le navigateur et la mémoire ont été raccordés pour Asia. Google est exclu de cette bascule à la demande du propriétaire. Voir [les tests et limites du transfert](bascule-asia.md).
 
 Sources : [Docker OpenClaw](https://docs.openclaw.ai/install/docker), [multi-agent](https://docs.openclaw.ai/concepts/multi-agent), [LiteLLM](https://docs.openclaw.ai/providers/litellm), [audio](https://docs.openclaw.ai/nodes/audio).

@@ -105,10 +105,12 @@ Avant la bascule : configurer les associations exactes compte–agent, les messa
 ## Critères de bascule
 
 - Sauvegarde et restauration vérifiées, ancien service récupérable.
-- Trois bots validés séparément et propriétaire explicitement autorisé.
+- Chaque bot transféré validé séparément et propriétaire explicitement autorisé ; les bots non encore créés ne bloquent pas les autres.
 - Fonctions nécessaires reconnectées, écarts acceptés et documentés.
 - Budget de production partagé configuré sans double enveloppe.
 - Redémarrage des conteneurs, persistance et retour arrière testés.
 - Démarrage Docker après ouverture de session Windows et comportement après veille contrôlés.
 
 La bascule n'est pas automatique à la fin des scripts d'installation. Se référer au [retour arrière](rollback.md) et au [bilan courant](revue-et-tests.md).
+
+La procédure préparée pour le bot existant est décrite dans [Bascule Asia](bascule-asia.md). Elle ajoute les connecteurs hors Google, un contrôle d'arrêt du superviseur Windows et une transaction de transfert budgétaire. Le précontrôle est passé ; l'arrêt administrateur reste nécessaire et la bascule n'a pas encore eu lieu.

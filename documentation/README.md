@@ -4,7 +4,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 
 **État au 11 octobre 2026 : migration Docker en validation, ancien bot encore en production.** Les agents Asia, Développement et Recherche fonctionnent dans OpenClaw. La bascule des bots est soumise aux tests Telegram et aux écarts fonctionnels détaillés dans le bilan.
 
-**Développement est maintenant activé seul sur Telegram**, avec le bot [Rassdevbot](https://t.me/Rassdevbot). Les quatre services Docker sont démarrés pour ses essais. Asia continue sur Windows et réutilisera son token après un transfert contrôlé ; Recherche attend encore son token. La [commande de redémarrage](exploitation.md#démarrer-et-contrôler-le-candidat) relance les services et attend leur disponibilité si nécessaire.
+**Développement est activé seul sur Telegram**, avec le bot [Rassdevbot](https://t.me/Rassdevbot). Cinq services Docker sont démarrés, dont Playwright. Les connecteurs d'Asia sont configurés et testés dans OpenClaw, mais son bot continue sur Windows : son superviseur nécessite un arrêt administrateur avant le transfert. Recherche attend son token. Voir la [préparation de la bascule Asia](bascule-asia.md), ses limites et son retour arrière.
 
 | Document | Contenu |
 | --- | --- |
@@ -12,6 +12,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Guide des composantes](composantes.md) | Rôle du code, outils MCP, ajout d'agents et limites de portabilité |
 | [Catalogue des modèles](modeles.md) | Les 34 routes et leurs capacités déclarées |
 | [Installation et migration](migration.md) | Reproduire le socle Docker, configurer les secrets et valider chaque étape |
+| [Bascule Asia](bascule-asia.md) | Connecteurs conservés, transfert du token et du budget, intervention Windows et rollback |
 | [Exploitation et sauvegardes](exploitation.md) | Démarrage, état, coûts, mises à jour et restauration |
 | [Retour arrière](rollback.md) | Arrêter le candidat et conserver/reprendre l'installation Windows |
 | [API de la future application](api.md) | Identités, sessions, streaming, annulation et reconnexion |

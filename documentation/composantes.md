@@ -7,7 +7,7 @@
 | Asia Web, `src/`, `public/` | Interface française, thèmes clair/sombre, sessions, approbations, différences de fichiers | Conservée côté Windows ; future application distincte |
 | `server.mjs` | Accès local/Tailscale propriétaire, CSRF, API de façade, flux OpenCode | API Gateway OpenClaw pour la future application |
 | `request-journal.mjs` | Journal SQLite et réconciliation des envois incertains, sans répétition aveugle | Idempotence et historique Gateway testés ; garanties après crash à approfondir |
-| OpenCode et `integrations/opencode/` | Exécution d'agent et outils MCP | OpenClaw pour les agents ; exécution de code non encore accordée au spécialiste |
+| OpenCode et `integrations/opencode/` | Exécution d'agent et outils MCP | OpenClaw pour la conversation ; `infra/opencode-bridge/` conserve les tâches Windows d'Asia via OpenCode et ses permissions. Le spécialiste n'a pas cette passerelle |
 | `integrations/telegram/` | Bot unique, correctif autorisant seulement les conversations privées | Comptes Telegram natifs, un bot distinct par agent |
 | `integrations/speech/` | Transcription Whisper dans un service Python Windows | Image Speaches et volume de modèles |
 | `gateway/` | LiteLLM, catalogue et routage économique | Même configuration fonctionnelle dans l'image LiteLLM |
@@ -29,12 +29,14 @@ LiteLLM ne migre pas les outils MCP d'OpenCode. Ceux-ci doivent être raccordés
 
 | Outil existant | Décision / travail restant |
 | --- | --- |
-| Google Workspace | Reprendre les autorisations OAuth dans un service séparé, commencer par les lectures, tester la persistance après redémarrage ; ne pas partager l'accès Gmail avec tous les agents par défaut |
-| Recherche Tavily | Utiliser le MCP distant officiel ou un service publié, restreindre les outils et les agents autorisés, suivre son coût séparément |
-| Playwright | Évaluer le navigateur fourni par l'image OpenClaw ; le navigateur reste désactivé tant que profils, téléchargements et permissions ne sont pas testés |
-| Mémoire MCP | Ne pas importer un fichier global partagé comme mémoire des trois agents ; utiliser des mémoires par agent, avec règles explicites de partage |
+| Google Workspace | Exclu de cette bascule à la demande du propriétaire : il n'était pas connecté |
+| Recherche Tavily | MCP distant officiel configuré pour Asia ; recherche et extraction testées, facturation distincte des LLM |
+| Playwright | Conteneur MCP officiel dédié à Asia, sans port hôte ni secrets ; nouveau contexte sans les connexions Windows, navigation et capture testées |
+| Mémoire MCP | Serveur figé avec JSONL propre à Asia ; lecture/écriture et persistance testées. Le fichier Windows était absent |
 
 Une image est publiée pour [Google Workspace MCP](https://github.com/taylorwilsdon/google_workspace_mcp/pkgs/container/google_workspace_mcp). Cela ne prouve pas que les autorisations OAuth et l'isolation du projet y fonctionnent déjà : son intégration n'est pas activée dans ce candidat.
+
+Le plugin natif `infra/opencode-bridge/` est chargé par l'image OpenClaw existante. Il crée uniquement ses propres sessions OpenCode, journalise les envois avant transmission et refuse de rejouer une soumission incertaine. Les identifiants sont privés, hors des workspaces. Les validations passent par les permissions natives OpenClaw : une décision `allow-once` est liée à l'appel et à la demande exacte, consommable une fois. Le modèle ne peut pas s'accorder une autorisation ; aucun `allow-always` n'est proposé. Une absence de surface d'approbation échoue fermée. Le suivi des tâches longues reste explicite ; pas de notification autonome de fin. Cette compatibilité conserve une dépendance Windows, à remplacer plus tard par un exécuteur isolé si l'on vise un déploiement entièrement Linux.
 
 ## Ajouter un agent
 

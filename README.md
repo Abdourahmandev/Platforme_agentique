@@ -2,7 +2,7 @@
 
 Assistant personnel accessible depuis un téléphone ou un ordinateur, avec une interface web en français et une intégration Telegram. OpenCode exécute les tâches ; LiteLLM route les appels vers DeepSeek et Gemini. L'interface propose des thèmes clair et sombre.
 
-**Migration Docker en validation.** OpenClaw, LiteLLM, PostgreSQL et Speaches sont installés dans un environnement distinct, avec trois agents. L'ancien bot reste en production jusqu'aux essais des nouveaux bots et à la validation des écarts fonctionnels.
+**Migration Docker en validation.** OpenClaw, LiteLLM, PostgreSQL, Speaches et Playwright sont installés dans un environnement distinct, avec trois agents. Développement est actif sur Telegram. Le bot Asia reste sur Windows pendant la préparation de son transfert ; ses connecteurs hors Google sont configurés dans OpenClaw. Voir la [bascule contrôlée d'Asia](documentation/bascule-asia.md).
 
 Consulter la **[documentation du projet](documentation/README.md)** : architecture, composantes, modèles, installation, exploitation, retour arrière et résultats des tests. Le [plan de migration](docs/plan-plateforme-agents.md) explique la cible. Le diagramme ci-dessous décrit l'installation Windows conservée pendant la transition.
 

@@ -1,0 +1,8 @@
+{
+  "id": "asia-opencode",
+  "name": "Asia OpenCode Windows",
+  "description": "Taches Windows avec les permissions OpenCode et validation humaine.",
+  "configSchema": {"type":"object","additionalProperties":false,"properties":{}},
+  "contracts": {"tools":["asia_opencode_task","asia_opencode_approve"]},
+  "toolMetadata": {"asia_opencode_task":{"optional":true},"asia_opencode_approve":{"optional":true}}
+}
