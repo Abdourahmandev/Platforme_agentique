@@ -66,17 +66,27 @@ Le premier client WebSocket doit être appairé. Il affiche un identifiant de de
 
 ## 5. Préparer les bots
 
-Créer des bots distincts dans BotFather pour Asia Test, Développement et Recherche. Stocker leurs tokens avec :
+**Choix retenu : Asia conserve le bot Telegram actuel et son token.** Aucun nouveau bot Asia n'est nécessaire. Préparer sa reprise sans changer le service en production :
 
 ```powershell
-'asia-test','developpement','recherche' | ForEach-Object {
+& ./infra/prepare-existing-asia.ps1
+```
+
+Cette commande valide le bot avec `getMe` et copie son token dans `AsiaDocker/secrets/asia.token`, sous ACL privée. Elle ne lit pas les mises à jour Telegram, ne change pas le webhook et ne démarre aucun consommateur. Le nom, le lien et la conversation Telegram restent ceux du bot existant. L'historique OpenCode n'est pas pour autant converti en mémoire OpenClaw.
+
+Créer seulement les bots **Développement et Recherche** dans BotFather et stocker leurs tokens avec :
+
+```powershell
+'developpement','recherche' | ForEach-Object {
     & ./infra/set-telegram-token.ps1 -Agent $_
 }
 ```
 
 La commande valide chaque token auprès de Telegram et l'enregistre dans le dossier privé. Un token reste un secret même si le dépôt est privé. Il ne doit pas être collé dans une issue, une conversation ou un fichier suivi par Git.
 
-`python infra/configure-telegram.py` valide le schéma proposé sans activer de bot. Quand les trois tokens sont présents, `python infra/configure-telegram.py --activate` vérifie leur identité distincte, refuse le bot de production et les bots possédant déjà un webhook, puis associe chaque compte à son agent. Les messages directs sont réservés au propriétaire actuel et les groupes désactivés. Redémarrer OpenClaw, attendre son état sain, puis effectuer les essais Telegram. Le parcours d'activation réel reste à valider ; seul le mode de préparation a été exécuté à ce stade.
+Une fois le candidat démarré, `python infra/configure-telegram.py --reuse-existing-asia` prépare et valide les associations sans les activer. **L'initialiseur de staging refuse toujours l'activation du token de production** : la bascule du bot Asia doit inclure l'arrêt de l'ancien consommateur et de son superviseur, la neutralisation de sa relance automatique, puis le démarrage du nouveau consommateur. Une simple copie de token ou l'arrêt d'un processus enfant ne constitue pas ce transfert.
+
+Le mode historique sans `--reuse-existing-asia` conserve la possibilité d'un bot temporaire `asia-test`, facultatif. Son activation avec `--activate` reste réservée à trois bots distincts du bot de production. Les messages directs sont réservés au propriétaire actuel et les groupes désactivés. Le parcours Telegram réel reste à valider.
 
 Avant la bascule : configurer les associations exactes compte–agent, les messages directs autorisés et le refus des groupes ; démarrer une conversation avec chacun des bots ; vérifier texte, photo, note vocale, réponse au bon bot, isolation et reconnexion. Ne jamais lancer deux consommateurs avec le même token.
 

@@ -1,7 +1,9 @@
-"""Bind three NEW bots to three staged agents; never reuse the production token.
+"""Prepare account bindings without ever starting a second production consumer.
 
 Default: validate the proposed configuration without enabling a consumer.
 --activate: requires all real tokens, owner allowlist, and no existing webhooks.
+--reuse-existing-asia: prepare the existing Asia identity instead of a test bot.
+Its activation remains blocked here until the controlled legacy handoff is done.
 """
 import argparse
 import json
@@ -40,7 +42,10 @@ def telegram(token,method):
 def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--activate',action='store_true')
+    parser.add_argument('--reuse-existing-asia',action='store_true')
     args=parser.parse_args()
+    selected_accounts=({'asia':'asia','developpement':'developpement','recherche':'recherche'}
+                       if args.reuse_existing_asia else ACCOUNTS)
     state=json.loads((RUNTIME/'runtime-private.json').read_text())
     if state.get('phase')!='staging': raise RuntimeError('Staging initializer only')
     legacy=json.loads((Path(os.environ['LOCALAPPDATA'])/'OpenCodeTelegramSetup/bot-credentials.json').read_text())
@@ -53,14 +58,14 @@ def main():
     accounts={}
     tokens={}
     ids=set()
-    for account,agent in ACCOUNTS.items():
+    for account,agent in selected_accounts.items():
         path=RUNTIME/'secrets'/(account+'.token')
         if args.activate:
             if not path.exists(): raise RuntimeError('Missing token for '+account+'; run set-telegram-token.ps1')
             token=path.read_text().strip()
             bot=telegram(token,'getMe')
             if str(bot['id'])==legacy['Token'].split(':')[0]:
-                raise RuntimeError('Refusing to start a second consumer of the production bot')
+                raise RuntimeError('The existing Asia bot requires a controlled legacy handoff. This staging initializer does not stop its supervisor or authorize a second consumer.')
             if bot['id'] in ids: raise RuntimeError('Each agent must have a distinct Telegram bot')
             if telegram(token,'getWebhookInfo').get('url'):
                 raise RuntimeError('A supplied bot already has a webhook; resolve its ownership first')
@@ -73,7 +78,7 @@ def main():
     channel={'enabled':True,'dmPolicy':'allowlist','allowFrom':[owner],
              'groupPolicy':'disabled','configWrites':False,'accounts':accounts}
     bindings=[{'type':'route','agentId':agent,'match':{'channel':'telegram','accountId':account}}
-              for account,agent in ACCOUNTS.items()]
+              for account,agent in selected_accounts.items()]
     # Schema validation has no network consumer or configuration side effect.
     for key,value in (('bindings',bindings),('channels.telegram',channel)):
         cli('config','set',key,json.dumps(value),'--strict-json','--dry-run')

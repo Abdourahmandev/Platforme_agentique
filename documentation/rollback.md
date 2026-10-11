@@ -15,6 +15,8 @@ Les ports Windows de référence restent : Asia 3210, OpenCode 4096, LiteLLM 400
 
 ## Après un transfert de token Telegram
 
+Asia réutilisera le token du bot actuel. La copie préparée sous `AsiaDocker/secrets/asia.token` ne change pas son propriétaire d'exécution : jusqu'à la bascule, seul le service Windows reçoit les messages. Garder le fichier de credentials Windows pour pouvoir revenir à ce service avec la même identité Telegram.
+
 L'ordre est impératif :
 
 1. Désactiver/arrêter le consommateur OpenClaw du bot concerné et vérifier son arrêt.

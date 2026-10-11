@@ -2,6 +2,8 @@
 
 État au 11 octobre 2026. Le candidat Docker est installé et testé sur le PC de référence. **Le bot habituel fonctionne encore avec l'installation Windows. La migration de production n'est pas déclarée terminée.**
 
+Décision complémentaire : Asia conserve le bot actuel. Son token a été validé auprès de Telegram et copié dans le runtime privé sans activer OpenClaw. Seuls les tokens Développement et Recherche restent à fournir. Les tests de garde vérifient que ce choix ne permet pas à l'initialiseur de démarrer un second consommateur du bot actuel ; les résultats Telegram historiques ci-dessous précèdent cette préparation.
+
 ## Changements réalisés
 
 - Installation des images officielles OpenClaw 2026.10.1, LiteLLM 1.104.1, PostgreSQL 17.11 et Speaches CPU, figées par empreinte ; aucune image de l'ancienne application construite.
@@ -34,7 +36,7 @@ Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw
 | Étape | Résultat observé | Limite de la preuve |
 | --- | --- | --- |
 | Ancienne application | 10 tests Node réussis ; compilation réussie ; audit npm de production sans vulnérabilité signalée | Ne constitue pas un audit exhaustif des dépendances des images |
-| Sauvegarde, routage et infrastructure | 11 tests Python réussis | Fixtures déterministes et contrôles de frontières de déploiement, sans fournisseur externe |
+| Sauvegarde, routage, infrastructure et reprise Telegram | 13 tests Python réussis | Fixtures déterministes et contrôles de frontières de déploiement, sans fournisseur externe |
 | Sauvegarde Windows | Archive chiffrée vérifiée, SQLite intègre, 38 sessions OpenCode, PostgreSQL restauré dans une base temporaire de 91 tables | La reprise sur un PC neuf n'a pas été simulée |
 | Migration PostgreSQL | 91 tables dans la cible distincte ; rôle applicatif non superutilisateur | Aucun fichier de cluster Windows monté dans Linux |
 | Accès LiteLLM/OpenClaw | Absence/mauvaise clé refusée ; droits administrateur refusés aux trois agents ; modèle inconnu refusé | Interfaces locales, pas d'essai depuis le téléphone |
@@ -61,7 +63,7 @@ Point de reprise Docker vérifié à 20:02 UTC : `D:\AsiaBackups\docker-20261011
 
 | Priorité | Observation | Action et critère de réussite |
 | --- | --- | --- |
-| Avant bascule | Les trois bots ne sont pas créés/configurés | Recevoir les tokens par saisie locale protégée ; tester texte, photo, vocal, refus d'un correspondant non autorisé et absence de mélange des conversations |
+| Avant bascule | Asia réutilise le bot actuel ; deux bots restent à créer/configurer | Recevoir les tokens Développement/Recherche par saisie locale protégée ; transférer Asia avec un seul consommateur ; tester texte, photo, vocal, refus d'un correspondant non autorisé et absence de mélange des conversations |
 | Avant bascule | PC de 12 Go, moins de 1 Go libre observé avec Windows et Docker en parallèle | Mesurer au repos et pendant deux tâches avec audio ; arrêter les services remplacés seulement après validation ; garder une marge mémoire suffisante sans boucle de redémarrage |
 | Avant bascule | Docker Desktop ne démarrait pas automatiquement à l'ouverture de session | Configurer et tester ouverture de session, veille/réveil, réseau retardé et reprise des bots |
 | Avant bascule | Sauvegarde Docker manuelle | Ajouter une exécution planifiée avec verrou, contrôle d'âge et alerte d'échec ; copie chiffrée hors machine et exercice de reprise sur nouveaux volumes |
