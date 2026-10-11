@@ -1,0 +1,71 @@
+{
+  "name": "Auto économique",
+  "alias": "asia-auto",
+  "classifier": "Règles locales, sans appel API de classification",
+  "tiers": {
+    "SIMPLE": "asia-rapide",
+    "MEDIUM": "gemini-3.1-flash-lite",
+    "COMPLEX": "gemini-3.8-flash",
+    "REASONING": "gemini-3.1-pro-preview"
+  },
+  "maxOutputTokens": 8192,
+  "fallbacks": [
+    {
+      "asia-rapide": [
+        "gemini-3.1-flash-lite"
+      ]
+    },
+    {
+      "gemini-3.1-flash-lite": [
+        "asia-rapide"
+      ]
+    },
+    {
+      "gemini-3.8-flash": [
+        "asia-pro"
+      ]
+    },
+    {
+      "gemini-3.1-pro-preview": [
+        "asia-pro"
+      ]
+    }
+  ],
+  "maxFallbacks": 1,
+  "activatedChat": 13,
+  "activatedSpecialized": 18,
+  "pricingChecked": "2026-10-11",
+  "notes": "Coûts estimés uniquement, pas de plafond financier. Le choix est heuristique et ne garantit pas le modèle optimal. Les profils manuels ignorent le classement Auto.",
+  "vision": {
+    "enabled": true,
+    "simpleModel": "asia-rapide",
+    "simpleFallback": "gemini-3.1-flash-lite",
+    "fallbacksRemainVisionCapable": true
+  },
+  "multimodal": {
+    "audioPdfVideoAndJsonSchemaModel": "gemini-3.1-flash-lite",
+    "fallbacks": [
+      {
+        "asia-rapide": [
+          "gemini-3.1-flash-lite"
+        ]
+      },
+      {
+        "gemini-3.1-flash-lite": [
+          "gemini-3.8-flash"
+        ]
+      },
+      {
+        "gemini-3.8-flash": [
+          "gemini-3.1-flash-lite"
+        ]
+      },
+      {
+        "gemini-3.1-pro-preview": [
+          "gemini-3.8-flash"
+        ]
+      }
+    ],
+    "openCodeVideo": false
+  }
+}

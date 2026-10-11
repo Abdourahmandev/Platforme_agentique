@@ -1,0 +1,781 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "model": "litellm/asia-auto",
+  "small_model": "litellm/asia-rapide",
+  "enabled_providers": [
+    "litellm"
+  ],
+  "permission": {
+    "read": {
+      "*": "allow",
+      "*.key": "deny",
+      "*auth.json": "deny",
+      "*credentials.json": "deny",
+      "*server-secret.json": "deny",
+      "*speech-secret.txt": "deny",
+      "*database.json": "deny",
+      "*recovery-key.txt": "deny",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*AsiaHardening*": "deny",
+      "*AsiaBackup*": "deny",
+      "*AsiaBackups*": "deny",
+      "C:/Users/VOTRE_UTILISATEUR/.config/opencode/opencode.json": "deny",
+      "C:\\Users\\VOTRE_UTILISATEUR\\.config\\opencode\\opencode.json": "deny",
+      "*.env.example": "allow"
+    },
+    "edit": {
+      "*": "allow",
+      "*.key": "deny",
+      "*auth.json": "deny",
+      "*credentials.json": "deny",
+      "*server-secret.json": "deny",
+      "*speech-secret.txt": "deny",
+      "*database.json": "deny",
+      "*recovery-key.txt": "deny",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*AsiaHardening*": "deny",
+      "*AsiaBackup*": "deny",
+      "*AsiaBackups*": "deny",
+      "C:/Users/VOTRE_UTILISATEUR/.config/opencode/opencode.json": "deny",
+      "C:\\Users\\VOTRE_UTILISATEUR\\.config\\opencode\\opencode.json": "deny"
+    },
+    "glob": "allow",
+    "grep": "allow",
+    "bash": {
+      "*": "ask",
+      "git status*": "allow",
+      "git diff*": "allow",
+      "git log*": "allow",
+      "git show*": "allow",
+      "rg *": "allow"
+    },
+    "task": "allow",
+    "external_directory": "ask",
+    "todowrite": "allow",
+    "question": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "lsp": "allow",
+    "doom_loop": "ask",
+    "skill": "allow",
+    "*": "ask",
+    "google-workspace_get*": "allow",
+    "google-workspace_list*": "allow",
+    "google-workspace_search*": "allow",
+    "google-workspace_read*": "allow",
+    "google_workspace_get*": "allow",
+    "google_workspace_list*": "allow",
+    "google_workspace_search*": "allow",
+    "google_workspace_read*": "allow",
+    "memory_read_graph": "allow",
+    "memory_search_nodes": "allow",
+    "memory_open_nodes": "allow",
+    "search_tavily_search": "allow",
+    "search_tavily_extract": "allow",
+    "playwright_browser_snapshot": "allow",
+    "playwright_browser_tabs": "allow",
+    "playwright_browser_navigate": "allow"
+  },
+  "agent": {
+    "plan": {
+      "options": {},
+      "steps": 20,
+      "permission": {
+        "read": {
+          "*": "allow",
+          "*.key": "deny",
+          "*auth.json": "deny",
+          "*credentials.json": "deny",
+          "*server-secret.json": "deny",
+          "*speech-secret.txt": "deny",
+          "*database.json": "deny",
+          "*recovery-key.txt": "deny",
+          "*.env": "deny",
+          "*.env.*": "deny",
+          "*AsiaHardening*": "deny",
+          "*AsiaBackup*": "deny",
+          "*AsiaBackups*": "deny",
+          "C:/Users/VOTRE_UTILISATEUR/.config/opencode/opencode.json": "deny",
+          "C:\\Users\\VOTRE_UTILISATEUR\\.config\\opencode\\opencode.json": "deny",
+          "*.env.example": "allow"
+        },
+        "edit": {
+          "*": "deny",
+          "*\\.opencode\\plans\\*.md": "allow",
+          "*\\.local\\share\\opencode\\plans\\*.md": "allow",
+          "*/.opencode/plans/*.md": "allow",
+          "*/.local/share/opencode/plans/*.md": "allow"
+        },
+        "glob": "allow",
+        "grep": "allow",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "git show*": "allow",
+          "rg *": "allow"
+        },
+        "task": "allow",
+        "external_directory": "ask",
+        "todowrite": "allow",
+        "question": "allow",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "lsp": "allow",
+        "doom_loop": "ask",
+        "skill": "allow",
+        "google-workspace_get*": "allow",
+        "google-workspace_list*": "allow",
+        "google-workspace_search*": "allow",
+        "google-workspace_read*": "allow",
+        "google_workspace_get*": "allow",
+        "google_workspace_list*": "allow",
+        "google_workspace_search*": "allow",
+        "google_workspace_read*": "allow",
+        "memory_read_graph": "allow",
+        "memory_search_nodes": "allow",
+        "memory_open_nodes": "allow",
+        "search_tavily_search": "allow",
+        "search_tavily_extract": "allow",
+        "playwright_browser_snapshot": "allow",
+        "playwright_browser_tabs": "allow",
+        "playwright_browser_navigate": "allow"
+      }
+    },
+    "build": {
+      "options": {},
+      "steps": 30,
+      "permission": {
+        "read": {
+          "*": "allow",
+          "*.key": "deny",
+          "*auth.json": "deny",
+          "*credentials.json": "deny",
+          "*server-secret.json": "deny",
+          "*speech-secret.txt": "deny",
+          "*database.json": "deny",
+          "*recovery-key.txt": "deny",
+          "*.env": "deny",
+          "*.env.*": "deny",
+          "*AsiaHardening*": "deny",
+          "*AsiaBackup*": "deny",
+          "*AsiaBackups*": "deny",
+          "C:/Users/VOTRE_UTILISATEUR/.config/opencode/opencode.json": "deny",
+          "C:\\Users\\VOTRE_UTILISATEUR\\.config\\opencode\\opencode.json": "deny",
+          "*.env.example": "allow"
+        },
+        "edit": {
+          "*": "allow",
+          "*.key": "deny",
+          "*auth.json": "deny",
+          "*credentials.json": "deny",
+          "*server-secret.json": "deny",
+          "*speech-secret.txt": "deny",
+          "*database.json": "deny",
+          "*recovery-key.txt": "deny",
+          "*.env": "deny",
+          "*.env.*": "deny",
+          "*AsiaHardening*": "deny",
+          "*AsiaBackup*": "deny",
+          "*AsiaBackups*": "deny",
+          "C:/Users/VOTRE_UTILISATEUR/.config/opencode/opencode.json": "deny",
+          "C:\\Users\\VOTRE_UTILISATEUR\\.config\\opencode\\opencode.json": "deny"
+        },
+        "glob": "allow",
+        "grep": "allow",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "git show*": "allow",
+          "rg *": "allow"
+        },
+        "task": "allow",
+        "external_directory": "ask",
+        "todowrite": "allow",
+        "question": "allow",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "lsp": "allow",
+        "doom_loop": "ask",
+        "skill": "allow",
+        "google-workspace_get*": "allow",
+        "google-workspace_list*": "allow",
+        "google-workspace_search*": "allow",
+        "google-workspace_read*": "allow",
+        "google_workspace_get*": "allow",
+        "google_workspace_list*": "allow",
+        "google_workspace_search*": "allow",
+        "google_workspace_read*": "allow",
+        "memory_read_graph": "allow",
+        "memory_search_nodes": "allow",
+        "memory_open_nodes": "allow",
+        "search_tavily_search": "allow",
+        "search_tavily_extract": "allow",
+        "playwright_browser_snapshot": "allow",
+        "playwright_browser_tabs": "allow",
+        "playwright_browser_navigate": "allow"
+      }
+    },
+    "general": {
+      "options": {},
+      "steps": 15,
+      "permission": {
+        "read": {
+          "*": "allow",
+          "*.key": "deny",
+          "*auth.json": "deny",
+          "*credentials.json": "deny",
+          "*server-secret.json": "deny",
+          "*speech-secret.txt": "deny",
+          "*database.json": "deny",
+          "*recovery-key.txt": "deny",
+          "*.env": "deny",
+          "*.env.*": "deny",
+          "*AsiaHardening*": "deny",
+          "*AsiaBackup*": "deny",
+          "*AsiaBackups*": "deny",
+          "C:/Users/VOTRE_UTILISATEUR/.config/opencode/opencode.json": "deny",
+          "C:\\Users\\VOTRE_UTILISATEUR\\.config\\opencode\\opencode.json": "deny",
+          "*.env.example": "allow"
+        },
+        "edit": {
+          "*": "allow",
+          "*.key": "deny",
+          "*auth.json": "deny",
+          "*credentials.json": "deny",
+          "*server-secret.json": "deny",
+          "*speech-secret.txt": "deny",
+          "*database.json": "deny",
+          "*recovery-key.txt": "deny",
+          "*.env": "deny",
+          "*.env.*": "deny",
+          "*AsiaHardening*": "deny",
+          "*AsiaBackup*": "deny",
+          "*AsiaBackups*": "deny",
+          "C:/Users/VOTRE_UTILISATEUR/.config/opencode/opencode.json": "deny",
+          "C:\\Users\\VOTRE_UTILISATEUR\\.config\\opencode\\opencode.json": "deny"
+        },
+        "glob": "allow",
+        "grep": "allow",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "git show*": "allow",
+          "rg *": "allow"
+        },
+        "task": "allow",
+        "external_directory": "ask",
+        "todowrite": "allow",
+        "question": "allow",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "lsp": "allow",
+        "doom_loop": "ask",
+        "skill": "allow",
+        "google-workspace_get*": "allow",
+        "google-workspace_list*": "allow",
+        "google-workspace_search*": "allow",
+        "google-workspace_read*": "allow",
+        "google_workspace_get*": "allow",
+        "google_workspace_list*": "allow",
+        "google_workspace_search*": "allow",
+        "google_workspace_read*": "allow",
+        "memory_read_graph": "allow",
+        "memory_search_nodes": "allow",
+        "memory_open_nodes": "allow",
+        "search_tavily_search": "allow",
+        "search_tavily_extract": "allow",
+        "playwright_browser_snapshot": "allow",
+        "playwright_browser_tabs": "allow",
+        "playwright_browser_navigate": "allow"
+      }
+    },
+    "explore": {
+      "options": {},
+      "steps": 15,
+      "permission": {
+        "read": {
+          "*": "allow",
+          "*.key": "deny",
+          "*auth.json": "deny",
+          "*credentials.json": "deny",
+          "*server-secret.json": "deny",
+          "*speech-secret.txt": "deny",
+          "*database.json": "deny",
+          "*recovery-key.txt": "deny",
+          "*.env": "deny",
+          "*.env.*": "deny",
+          "*AsiaHardening*": "deny",
+          "*AsiaBackup*": "deny",
+          "*AsiaBackups*": "deny",
+          "C:/Users/VOTRE_UTILISATEUR/.config/opencode/opencode.json": "deny",
+          "C:\\Users\\VOTRE_UTILISATEUR\\.config\\opencode\\opencode.json": "deny",
+          "*.env.example": "allow"
+        },
+        "edit": "deny",
+        "glob": "allow",
+        "grep": "allow",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "git show*": "allow",
+          "rg *": "allow"
+        },
+        "task": "deny",
+        "external_directory": "ask",
+        "todowrite": "allow",
+        "question": "allow",
+        "webfetch": "allow",
+        "websearch": "allow",
+        "lsp": "allow",
+        "doom_loop": "ask",
+        "skill": "allow",
+        "google-workspace_get*": "allow",
+        "google-workspace_list*": "allow",
+        "google-workspace_search*": "allow",
+        "google-workspace_read*": "allow",
+        "google_workspace_get*": "allow",
+        "google_workspace_list*": "allow",
+        "google_workspace_search*": "allow",
+        "google_workspace_read*": "allow",
+        "memory_read_graph": "allow",
+        "memory_search_nodes": "allow",
+        "memory_open_nodes": "allow",
+        "search_tavily_search": "allow",
+        "search_tavily_extract": "allow",
+        "playwright_browser_snapshot": "allow",
+        "playwright_browser_tabs": "allow",
+        "playwright_browser_navigate": "allow"
+      }
+    }
+  },
+  "provider": {
+    "litellm": {
+      "name": "LiteLLM local",
+      "npm": "@ai-sdk/openai-compatible",
+      "models": {
+        "asia-pro": {
+          "name": "asia-pro / DeepSeek V4 Pro",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 393216
+          },
+          "modalities": {
+            "input": [
+              "text"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "attachment": false
+        },
+        "asia-rapide": {
+          "name": "asia-rapide / DeepSeek V4.1 Flash",
+          "reasoning": true,
+          "temperature": true,
+          "tool_call": true,
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "limit": {
+            "context": 1048576,
+            "output": 393216
+          },
+          "modalities": {
+            "input": [
+              "text",
+              "image"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "attachment": true
+        },
+        "gemini-3-flash-preview": {
+          "name": "gemini-3-flash-preview",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.1-flash-lite": {
+          "name": "gemini-3.1-flash-lite",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.1-flash-lite-preview": {
+          "name": "gemini-3.1-flash-lite-preview",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.1-pro-preview": {
+          "name": "gemini-3.1-pro-preview",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.1-pro-preview-customtools": {
+          "name": "gemini-3.1-pro-preview-customtools",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.5-flash": {
+          "name": "gemini-3.5-flash",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.5-flash-lite": {
+          "name": "gemini-3.5-flash-lite",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.6-flash": {
+          "name": "gemini-3.6-flash",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.7-flash": {
+          "name": "gemini-3.7-flash",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-3.8-flash": {
+          "name": "gemini-3.8-flash",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-flash-latest": {
+          "name": "gemini-flash-latest",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-flash-lite-latest": {
+          "name": "gemini-flash-lite-latest",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "gemini-pro-latest": {
+          "name": "gemini-pro-latest",
+          "reasoning": true,
+          "tool_call": true,
+          "limit": {
+            "context": 1048576,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        },
+        "asia-auto": {
+          "name": "Auto économique",
+          "reasoning": true,
+          "tool_call": true,
+          "interleaved": {
+            "field": "reasoning_content"
+          },
+          "limit": {
+            "context": 1000000,
+            "output": 8192
+          },
+          "attachment": true,
+          "modalities": {
+            "input": [
+              "text",
+              "image",
+              "audio",
+              "pdf"
+            ],
+            "output": [
+              "text"
+            ]
+          },
+          "temperature": true
+        }
+      },
+      "options": {
+        "baseURL": "http://127.0.0.1:4000/v1",
+        "apiKey": "{file:~/AppData/Local/AsiaLiteLLM/agent.key}"
+      }
+    }
+  },
+  "mcp": {
+    "google-workspace": {
+      "type": "local",
+      "command": [
+        "C:\\Users\\VOTRE_UTILISATEUR\\AppData\\Roaming\\Python\\Python313\\Scripts\\uvx.exe",
+        "workspace-mcp",
+        "--single-user",
+        "--tool-tier",
+        "core"
+      ],
+      "enabled": true,
+      "environment": {
+        "GOOGLE_OAUTH_CLIENT_ID": "{env:GOOGLE_OAUTH_CLIENT_ID}",
+        "GOOGLE_OAUTH_CLIENT_SECRET": "{env:GOOGLE_OAUTH_CLIENT_SECRET}"
+      }
+    },
+    "playwright": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@playwright/mcp",
+        "--browser",
+        "chromium"
+      ],
+      "enabled": true
+    },
+    "memory": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-memory"
+      ],
+      "enabled": true,
+      "environment": {
+        "MEMORY_FILE_PATH": "{env:MEMORY_FILE_PATH}"
+      }
+    },
+    "search": {
+      "type": "local",
+      "command": [
+        "npx",
+        "-y",
+        "tavily-mcp"
+      ],
+      "enabled": true,
+      "environment": {
+        "TAVILY_API_KEY": "{env:TAVILY_API_KEY}"
+      }
+    }
+  }
+}

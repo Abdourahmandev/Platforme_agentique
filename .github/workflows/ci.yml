@@ -1,0 +1,36 @@
+name: Verification
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: windows-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: npm ci
+      - run: npm run check:repo
+      - run: npm test
+      - run: npm run build
+      - name: Python syntax
+        run: python -m compileall -q gateway ops integrations
+      - name: PowerShell syntax
+        shell: pwsh
+        run: |
+          $failures = @()
+          git ls-files '*.ps1' | ForEach-Object {
+            $tokens = $null
+            $parseErrors = $null
+            [System.Management.Automation.Language.Parser]::ParseFile((Join-Path $PWD $_), [ref]$tokens, [ref]$parseErrors) | Out-Null
+            if ($parseErrors.Count) { $failures += $_ }
+          }
+          if ($failures.Count) { throw ('Invalid PowerShell: ' + ($failures -join ', ')) }

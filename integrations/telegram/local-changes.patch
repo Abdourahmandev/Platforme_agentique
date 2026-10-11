@@ -1,0 +1,11 @@
+--- a/dist/bot/middleware/auth.js
++++ b/dist/bot/middleware/auth.js
+@@ -1,6 +1,8 @@
+ import { config } from "../../config.js";
+ import { logger } from "../../utils/logger.js";
+ export async function authMiddleware(ctx, next) {
++    // Private chats only for this installation.
++    if (ctx.chat?.type !== 'private') return;
+     const userId = ctx.from?.id;
+     logger.debug(`[Auth] Checking access: userId=${userId}, allowedUserId=${config.telegram.allowedUserId}, hasCallbackQuery=${!!ctx.callbackQuery}, hasMessage=${!!ctx.message}`);
+     if (userId && userId === config.telegram.allowedUserId) {

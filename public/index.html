@@ -1,0 +1,24 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#090909"><meta name="description" content="Asia, votre interface personnelle pour OpenCode."><link rel="manifest" href="/manifest.webmanifest"><link rel="icon" href="/icon.svg" type="image/svg+xml"><title>Asia — mon agent</title><link rel="stylesheet" href="/styles.css"><link rel="stylesheet" href="/ui.css"><script src="/app.js" defer></script></head>
+<body>
+<div class="app-shell">
+  <aside class="sidebar" id="sidebar" aria-label="Conversations">
+    <div class="sidebar-brand"><span class="brand-orb">A</span><span>Asia<small>Ton espace personnel</small></span><button class="icon-btn mobile-only" id="close-sidebar" aria-label="Fermer le menu"><i data-lucide="x"></i></button></div>
+    <button class="new-chat" id="new-chat"><i data-lucide="plus"></i> Nouvelle conversation</button>
+    <label class="search"><i data-lucide="search"></i><input id="session-search" placeholder="Rechercher" aria-label="Rechercher une conversation"></label>
+    <div class="sidebar-label">CONVERSATIONS</div><div id="sessions" class="sessions"><p class="muted">Chargement…</p></div>
+    <button class="sidebar-footer" id="sidebar-settings"><i data-lucide="settings-2"></i><span>Réglages et connexion</span></button>
+  </aside>
+  <button id="sidebar-scrim" class="scrim" aria-label="Fermer les conversations" hidden></button>
+  <section class="workspace">
+    <header class="app-header"><button class="icon-btn menu-btn" id="open-sidebar" aria-label="Ouvrir les conversations"><i data-lucide="menu"></i></button><span class="header-avatar" aria-hidden="true">A</span><div class="header-label"><span id="session-title">Une nouvelle conversation</span><small id="connection-label">Connexion en cours…</small></div><button class="icon-btn" id="theme-toggle" aria-label="Passer au fond blanc"><i data-lucide="sun"></i></button></header>
+    <div class="identity"><div class="avatar" aria-hidden="true">A</div><h1>Asia</h1><span id="identity-caption">À tes côtés, d’un écran à l’autre.</span></div>
+    <div id="error-banner" class="error-banner" role="alert" hidden><span></span><button id="retry">Réessayer</button></div>
+    <div id="scroll-area" class="scroll-area"><main id="main-content" aria-label="Contenu principal"></main></div>
+    <div class="composer-zone" id="composer-zone"><div id="request-area" aria-live="polite"></div><div id="attachment-list"></div><div class="profile-row"><label for="model-profile">Modèle</label><select id="model-profile" aria-label="Profil du modèle"><option value="pro">Approfondi · Pro</option></select><span id="profile-lock"></span></div><form id="composer" class="composer"><button type="button" class="icon-btn" id="attach-file" aria-label="Joindre un fichier texte"><i data-lucide="paperclip"></i></button><textarea id="message-input" rows="1" placeholder="Message à Asia…" aria-label="Message à Asia" maxlength="50000"></textarea><button class="send-btn" id="send-button" type="submit" aria-label="Envoyer le message"><i data-lucide="arrow-up"></i></button><button class="send-btn stop-btn" id="stop-button" type="button" aria-label="Arrêter la tâche" hidden><i data-lucide="square"></i></button></form><input type="file" id="file-input" accept=".txt,.md,.csv,.json,.js,.ts,.py,.sql,.html,.css,.yaml,.yml,.log" multiple hidden><div class="composer-note" id="composer-note">DeepSeek · tes conversations restent sur ton PC</div></div>
+    <nav class="bottom-nav" aria-label="Navigation"><button data-view="chat" aria-pressed="true"><i data-lucide="message-circle"></i><span>Chat</span></button><button data-view="files" aria-pressed="false"><i data-lucide="files"></i><span>Fichiers</span></button><button data-view="activity" aria-pressed="false"><i data-lucide="sparkles"></i><span>Activité</span></button><button data-view="tasks" aria-pressed="false"><i data-lucide="square-check"></i><span>Tâches</span></button><button data-view="settings" aria-pressed="false"><i data-lucide="sliders-horizontal"></i><span>Réglages</span></button></nav>
+  </section>
+  <aside class="context-panel"><span class="eyebrow">TA CONVERSATION</span><h2>Suivi en direct</h2><div class="context-card"><i data-lucide="activity"></i><span id="context-status">Connexion en cours</span><p id="context-detail">Tes tâches et validations apparaîtront ici.</p></div><div id="context-todos"></div><div class="context-bottom"><i data-lucide="shield-check"></i><span>Ton espace privé<small>Accessible avec Tailscale</small></span></div></aside>
+</div><div id="toast" role="status" class="toast" hidden></div><dialog id="detail-dialog"><div class="dialog-heading"><h2 id="detail-title">Détail</h2><button class="icon-btn" id="close-dialog" aria-label="Fermer"><i data-lucide="x"></i></button></div><div id="detail-content"></div></dialog>
+</body></html>

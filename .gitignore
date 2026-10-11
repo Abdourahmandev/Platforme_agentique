@@ -1,0 +1,46 @@
+# Dependencies and generated files
+node_modules/
+dist/
+venv/
+.venv/
+__pycache__/
+*.py[cod]
+model-*/
+
+# Machine configuration, credentials and runtime state
+config.local.json
+*.local.json
+.env
+.env.*
+!.env.example
+*.key
+*.pem
+*.p12
+*credentials*.json
+auth.json
+server-secret.json
+database.json
+*secret.txt
+recovery-key.txt
+*.sqlite*
+*.db
+*.db-*
+*.dump
+*.jsonl
+*.log
+*.lock
+!package-lock.json
+*-runtime.json
+runtime.json
+AsiaAgent/
+
+# Private backups, exports and local previews
+backups/
+*.aes
+*.partial
+*.zip
+*.tgz
+apercu-mobile.png
+README.local.md
+.DS_Store
+Thumbs.db

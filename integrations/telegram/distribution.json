@@ -1,0 +1,11 @@
+{
+  "package": "@grinev/opencode-telegram-bot",
+  "version": "0.26.3",
+  "archive_sha256": "e7e0560d3041d551ebbaee0e1ffe894308b28eb8557941d650eda8c58b69c864",
+  "customized_files": [
+    {
+      "file": "dist/bot/middleware/auth.js",
+      "status": "modified"
+    }
+  ]
+}

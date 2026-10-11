@@ -1,0 +1,185 @@
+{
+  "port": 3210,
+  "upstream": "http://127.0.0.1:4096",
+  "secretPath": "C:/Users/VOTRE_UTILISATEUR/AppData/Local/OpenCodeWeb/server-secret.json",
+  "directory": "C:/Users/VOTRE_UTILISATEUR/Documents/OpenCode",
+  "publicHost": "VOTRE-PC.VOTRE-TAILNET.ts.net:9443",
+  "ownerLogin": "vous@example.com",
+  "telegramURL": "",
+  "model": {
+    "providerID": "litellm",
+    "modelID": "asia-auto"
+  },
+  "defaultProfile": "auto",
+  "profiles": [
+    {
+      "id": "auto",
+      "label": "Auto économique",
+      "description": "Selon la tâche",
+      "providerID": "litellm",
+      "modelID": "asia-auto"
+    },
+    {
+      "id": "pro",
+      "label": "Approfondi",
+      "description": "DeepSeek Pro",
+      "providerID": "litellm",
+      "modelID": "asia-pro"
+    },
+    {
+      "id": "rapide",
+      "label": "Rapide",
+      "description": "DeepSeek Flash",
+      "providerID": "litellm",
+      "modelID": "asia-rapide"
+    },
+    {
+      "id": "gemini-3-flash-preview",
+      "label": "Gemini 3 Flash Preview",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3-flash-preview"
+    },
+    {
+      "id": "gemini-3.1-flash-lite",
+      "label": "Gemini 3.1 Flash-Lite",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.1-flash-lite"
+    },
+    {
+      "id": "gemini-3.1-flash-lite-preview",
+      "label": "Gemini 3.1 Flash-Lite Preview",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.1-flash-lite-preview"
+    },
+    {
+      "id": "gemini-3.1-pro-preview",
+      "label": "Gemini 3.1 Pro Preview",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.1-pro-preview"
+    },
+    {
+      "id": "gemini-3.1-pro-preview-customtools",
+      "label": "Gemini 3.1 Pro Preview Custom Tools",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.1-pro-preview-customtools"
+    },
+    {
+      "id": "gemini-3.5-flash",
+      "label": "Gemini 3.5 Flash",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.5-flash"
+    },
+    {
+      "id": "gemini-3.5-flash-lite",
+      "label": "Gemini 3.5 Flash-Lite",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.5-flash-lite"
+    },
+    {
+      "id": "gemini-3.6-flash",
+      "label": "Gemini 3.6 Flash",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.6-flash"
+    },
+    {
+      "id": "gemini-3.7-flash",
+      "label": "Gemini 3.7 Flash",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.7-flash"
+    },
+    {
+      "id": "gemini-3.8-flash",
+      "label": "Gemini 3.8 Flash",
+      "description": "Manuel",
+      "providerID": "litellm",
+      "modelID": "gemini-3.8-flash"
+    }
+  ],
+  "metricsPath": "C:/Users/VOTRE_UTILISATEUR/AppData/Local/AsiaLiteLLM/usage.jsonl",
+  "routingPolicy": {
+    "name": "Auto économique",
+    "alias": "asia-auto",
+    "classifier": "Règles locales, sans appel API de classification",
+    "tiers": {
+      "SIMPLE": "asia-rapide",
+      "MEDIUM": "gemini-3.1-flash-lite",
+      "COMPLEX": "gemini-3.8-flash",
+      "REASONING": "gemini-3.1-pro-preview"
+    },
+    "maxOutputTokens": 8192,
+    "fallbacks": [
+      {
+        "asia-rapide": [
+          "gemini-3.1-flash-lite"
+        ]
+      },
+      {
+        "gemini-3.1-flash-lite": [
+          "asia-rapide"
+        ]
+      },
+      {
+        "gemini-3.8-flash": [
+          "asia-pro"
+        ]
+      },
+      {
+        "gemini-3.1-pro-preview": [
+          "asia-pro"
+        ]
+      }
+    ],
+    "maxFallbacks": 1,
+    "activatedChat": 13,
+    "activatedSpecialized": 18,
+    "pricingChecked": "2026-10-11",
+    "notes": "Coûts estimés uniquement, pas de plafond financier. Le choix est heuristique et ne garantit pas le modèle optimal. Les profils manuels ignorent le classement Auto.",
+    "vision": {
+      "enabled": true,
+      "simpleModel": "asia-rapide",
+      "simpleFallback": "gemini-3.1-flash-lite",
+      "fallbacksRemainVisionCapable": true
+    },
+    "multimodal": {
+      "audioPdfVideoAndJsonSchemaModel": "gemini-3.1-flash-lite",
+      "fallbacks": [
+        {
+          "asia-rapide": [
+            "gemini-3.1-flash-lite"
+          ]
+        },
+        {
+          "gemini-3.1-flash-lite": [
+            "gemini-3.8-flash"
+          ]
+        },
+        {
+          "gemini-3.8-flash": [
+            "gemini-3.1-flash-lite"
+          ]
+        },
+        {
+          "gemini-3.1-pro-preview": [
+            "gemini-3.8-flash"
+          ]
+        }
+      ],
+      "openCodeVideo": false
+    }
+  },
+  "limits": {
+    "budgetUSD": 20,
+    "budgetPeriod": "30d",
+    "rpm": 60,
+    "parallelRequests": 4
+  }
+}

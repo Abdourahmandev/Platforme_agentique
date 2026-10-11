@@ -1,0 +1,1167 @@
+model_list:
+- model_name: asia-rapide
+  litellm_params:
+    model: deepseek/deepseek-flash
+    api_key: os.environ/DEEPSEEK_API_KEY
+    api_base: https://api.deepseek.com
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_assistant_prefill: true
+    supports_prompt_caching: true
+    supports_native_streaming: true
+    supports_reasoning: true
+    supports_native_structured_output: false
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 393216
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_video_input: false
+    input_modalities:
+    - text
+    - image
+    output_modalities:
+    - text
+    max_tokens: 393216
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://api-docs.deepseek.com/api/list-models/
+- model_name: asia-pro
+  litellm_params:
+    model: deepseek/deepseek-v4-pro
+    api_key: os.environ/DEEPSEEK_API_KEY
+    api_base: https://api.deepseek.com
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: false
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_assistant_prefill: true
+    supports_prompt_caching: true
+    supports_native_streaming: true
+    supports_reasoning: true
+    supports_native_structured_output: false
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 393216
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_video_input: false
+    input_modalities:
+    - text
+    output_modalities:
+    - text
+    max_tokens: 393216
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://api-docs.deepseek.com/api/list-models/
+- model_name: gemini-2.5-flash-image
+  litellm_params:
+    model: gemini/gemini-2.5-flash-image
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: true
+    supports_function_calling: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_prompt_caching: false
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_web_search: false
+    supports_url_context: false
+    supports_reasoning: false
+    supports_image_size: false
+    mode: image_generation
+    max_input_tokens: 32768
+    max_output_tokens: 32768
+    supports_video_input: false
+    input_modalities:
+    - text
+    - image
+    output_modalities:
+    - text
+    - image
+    max_tokens: 32768
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash-image
+- model_name: gemini-3-pro-image
+  litellm_params:
+    model: gemini/gemini-3-pro-image
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: true
+    supports_function_calling: false
+    supports_prompt_caching: false
+    supports_web_search: true
+    supports_reasoning: true
+    supports_url_context: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    mode: image_generation
+    max_input_tokens: 65536
+    max_output_tokens: 32768
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_video_input: false
+    input_modalities:
+    - text
+    - image
+    output_modalities:
+    - text
+    - image
+    max_tokens: 32768
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image
+- model_name: gemini-3-pro-image-preview
+  litellm_params:
+    model: gemini/gemini-3-pro-image-preview
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: true
+    supports_function_calling: false
+    supports_prompt_caching: false
+    supports_web_search: true
+    supports_reasoning: true
+    supports_url_context: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    mode: image_generation
+    max_input_tokens: 65536
+    max_output_tokens: 32768
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_video_input: false
+    input_modalities:
+    - text
+    - image
+    output_modalities:
+    - text
+    - image
+    max_tokens: 32768
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3-pro-image
+- model_name: gemini-3.1-flash-image
+  litellm_params:
+    model: gemini/gemini-3.1-flash-image
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: true
+    supports_function_calling: false
+    supports_prompt_caching: false
+    supports_pdf_input: true
+    supports_web_search: true
+    supports_reasoning: true
+    supports_url_context: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    mode: image_generation
+    max_input_tokens: 65536
+    max_output_tokens: 32768
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - video
+    - pdf
+    output_modalities:
+    - text
+    - image
+    max_tokens: 32768
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-image
+- model_name: gemini-3.1-flash-image-preview
+  litellm_params:
+    model: gemini/gemini-3.1-flash-image-preview
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: true
+    supports_function_calling: false
+    supports_prompt_caching: false
+    supports_web_search: true
+    supports_reasoning: true
+    supports_url_context: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    mode: image_generation
+    max_input_tokens: 65536
+    max_output_tokens: 32768
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - video
+    - pdf
+    output_modalities:
+    - text
+    - image
+    max_tokens: 32768
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-image
+- model_name: gemini-3.1-flash-lite-image
+  litellm_params:
+    model: gemini/gemini-3.1-flash-lite-image
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: true
+    supports_function_calling: false
+    supports_prompt_caching: false
+    supports_pdf_input: true
+    supports_web_search: false
+    supports_reasoning: true
+    supports_url_context: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    mode: image_generation
+    max_input_tokens: 65536
+    max_output_tokens: 4096
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - video
+    - pdf
+    output_modalities:
+    - text
+    - image
+    max_tokens: 4096
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite-image
+- model_name: gemini-nano-banana-2.1
+  litellm_params:
+    model: gemini/gemini-nano-banana-2.1
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: true
+    supports_function_calling: false
+    supports_prompt_caching: false
+    supports_pdf_input: true
+    supports_web_search: true
+    supports_reasoning: true
+    supports_url_context: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    mode: image_generation
+    max_input_tokens: 65536
+    max_output_tokens: 32768
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - video
+    - pdf
+    output_modalities:
+    - text
+    - image
+    max_tokens: 32768
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-nano-banana-2.1
+- model_name: gemini-omni-1.1-flash
+  litellm_params:
+    model: gemini/gemini-omni-1.1-flash
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_vision: true
+    supports_audio_input: true
+    supports_reasoning: true
+    supports_prompt_caching: false
+    supports_function_calling: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_response_schema: false
+    mode: interactions
+    max_input_tokens: 131072
+    max_output_tokens: 65536
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    output_modalities:
+    - text
+    - video
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-omni-1.1-flash
+- model_name: gemini-omni-flash-preview
+  litellm_params:
+    model: gemini/gemini-omni-flash-preview
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_vision: true
+    supports_audio_input: true
+    supports_reasoning: true
+    supports_prompt_caching: false
+    supports_function_calling: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_response_schema: false
+    mode: interactions
+    max_input_tokens: 131072
+    max_output_tokens: 65536
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    output_modalities:
+    - text
+    - video
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-omni-flash-preview
+- model_name: gemini-embedding-001
+  litellm_params:
+    model: gemini/gemini-embedding-001
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_prompt_caching: false
+    output_vector_size: 3072
+    supports_embedding_image_input: false
+    supports_function_calling: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_response_schema: false
+    mode: embedding
+    max_input_tokens: 2048
+    max_output_tokens: null
+    supports_vision: false
+    supports_audio_input: false
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_video_input: false
+    supports_reasoning: false
+    input_modalities:
+    - text
+    output_modalities:
+    - embedding
+    max_tokens: 2048
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-embedding-001
+- model_name: gemini-embedding-2
+  litellm_params:
+    model: gemini/gemini-embedding-2
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_vision: true
+    supports_audio_input: true
+    supports_prompt_caching: false
+    output_vector_size: 3072
+    supports_embedding_image_input: true
+    supports_function_calling: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_response_schema: false
+    mode: embedding
+    max_input_tokens: 8192
+    max_output_tokens: null
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_video_input: true
+    supports_reasoning: false
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - embedding
+    max_tokens: 8192
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-embedding-2
+- model_name: gemini-embedding-2-preview
+  litellm_params:
+    model: gemini/gemini-embedding-2-preview
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_vision: true
+    supports_audio_input: true
+    supports_prompt_caching: false
+    output_vector_size: 3072
+    supports_embedding_image_input: true
+    supports_function_calling: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_response_schema: false
+    mode: embedding
+    max_input_tokens: 8192
+    max_output_tokens: null
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_video_input: true
+    supports_reasoning: false
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - embedding
+    max_tokens: 8192
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-embedding-2-preview
+- model_name: gemini-2.5-flash-preview-tts
+  litellm_params:
+    model: gemini/gemini-2.5-flash-preview-tts
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_response_schema: false
+    supports_function_calling: false
+    supports_audio_input: false
+    supports_web_search: false
+    supports_prompt_caching: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    mode: audio_speech
+    max_input_tokens: 8192
+    max_output_tokens: 16384
+    supports_vision: false
+    supports_audio_output: true
+    supports_pdf_input: false
+    supports_video_input: false
+    supports_reasoning: false
+    input_modalities:
+    - text
+    output_modalities:
+    - audio
+    max_tokens: 16384
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-2.5-flash-preview-tts
+- model_name: gemini-2.5-pro-preview-tts
+  litellm_params:
+    model: gemini/gemini-2.5-pro-preview-tts
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: false
+    supports_vision: false
+    supports_function_calling: false
+    supports_tool_choice: false
+    supports_prompt_caching: false
+    supports_audio_input: false
+    supports_audio_output: true
+    supports_web_search: false
+    supports_parallel_function_calling: false
+    mode: audio_speech
+    max_input_tokens: 8192
+    max_output_tokens: 16384
+    supports_pdf_input: false
+    supports_video_input: false
+    supports_reasoning: false
+    input_modalities:
+    - text
+    output_modalities:
+    - audio
+    max_tokens: 16384
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-2.5-pro-preview-tts
+- model_name: gemini-3.1-flash-tts-preview
+  litellm_params:
+    model: gemini/gemini-3.1-flash-tts-preview
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_response_schema: false
+    supports_function_calling: false
+    supports_web_search: false
+    supports_prompt_caching: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    mode: audio_speech
+    max_input_tokens: 8192
+    max_output_tokens: 16384
+    supports_vision: false
+    supports_audio_input: false
+    supports_audio_output: true
+    supports_pdf_input: false
+    supports_video_input: false
+    supports_reasoning: false
+    input_modalities:
+    - text
+    output_modalities:
+    - audio
+    max_tokens: 16384
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-tts-preview
+- model_name: gemini-3.8-flash-lite-tts
+  litellm_params:
+    model: gemini/gemini-3.8-flash-lite-tts
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_prompt_caching: false
+    supports_function_calling: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_response_schema: false
+    mode: audio_speech
+    max_input_tokens: 8192
+    max_output_tokens: 16384
+    supports_vision: false
+    supports_audio_input: false
+    supports_audio_output: true
+    supports_pdf_input: false
+    supports_video_input: false
+    supports_reasoning: false
+    input_modalities:
+    - text
+    output_modalities:
+    - audio
+    max_tokens: 16384
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash-lite-tts
+- model_name: gemini-3.8-flash-tts
+  litellm_params:
+    model: gemini/gemini-3.8-flash-tts
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_prompt_caching: false
+    supports_function_calling: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_response_schema: false
+    mode: audio_speech
+    max_input_tokens: 8192
+    max_output_tokens: 16384
+    supports_vision: false
+    supports_audio_input: false
+    supports_audio_output: true
+    supports_pdf_input: false
+    supports_video_input: false
+    supports_reasoning: false
+    input_modalities:
+    - text
+    output_modalities:
+    - audio
+    max_tokens: 16384
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash-tts
+- model_name: gemini-3-flash-preview
+  litellm_params:
+    model: gemini/gemini-3-flash-preview
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3-flash-preview
+- model_name: gemini-3.1-flash-lite
+  litellm_params:
+    model: gemini/gemini-3.1-flash-lite
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite
+- model_name: gemini-3.1-flash-lite-preview
+  litellm_params:
+    model: gemini/gemini-3.1-flash-lite-preview
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-flash-lite-preview
+- model_name: gemini-3.1-pro-preview
+  litellm_params:
+    model: gemini/gemini-3.1-pro-preview
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_audio_output: false
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview
+- model_name: gemini-3.1-pro-preview-customtools
+  litellm_params:
+    model: gemini/gemini-3.1-pro-preview-customtools
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_audio_output: false
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.1-pro-preview-customtools
+- model_name: gemini-3.5-flash
+  litellm_params:
+    model: gemini/gemini-3.5-flash
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash
+- model_name: gemini-3.5-flash-lite
+  litellm_params:
+    model: gemini/gemini-3.5-flash-lite
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.5-flash-lite
+- model_name: gemini-3.6-flash
+  litellm_params:
+    model: gemini/gemini-3.6-flash
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.6-flash
+- model_name: gemini-3.7-flash
+  litellm_params:
+    model: gemini/gemini-3.7-flash
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    supports_minimal_reasoning_effort: false
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.7-flash
+- model_name: gemini-3.8-flash
+  litellm_params:
+    model: gemini/gemini-3.8-flash
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    supports_minimal_reasoning_effort: false
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.8-flash
+- model_name: gemini-flash-latest
+  litellm_params:
+    model: gemini/gemini-flash-latest
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-flash-latest
+- model_name: gemini-flash-lite-latest
+  litellm_params:
+    model: gemini/gemini-flash-lite-latest
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_parallel_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-flash-lite-latest
+- model_name: gemini-pro-latest
+  litellm_params:
+    model: gemini/gemini-pro-latest
+    api_key: os.environ/GEMINI_API_KEY
+    max_tokens: 8192
+  model_info:
+    supports_system_messages: true
+    supports_response_schema: true
+    supports_vision: true
+    supports_function_calling: true
+    supports_tool_choice: true
+    supports_prompt_caching: true
+    supports_audio_input: true
+    supports_pdf_input: true
+    supports_native_streaming: true
+    supports_web_search: true
+    supports_url_context: true
+    supports_reasoning: true
+    mode: chat
+    max_input_tokens: 1048576
+    max_output_tokens: 65536
+    supports_audio_output: false
+    supports_video_input: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 65536
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-pro-latest
+- model_name: gemini-3.5-transcribe
+  litellm_params:
+    model: gemini/gemini-3.5-transcribe
+    api_key: os.environ/GEMINI_API_KEY
+  model_info:
+    supports_function_calling: false
+    supports_audio_input: true
+    supports_prompt_caching: false
+    supports_parallel_function_calling: false
+    supports_tool_choice: false
+    supports_response_schema: false
+    mode: audio_transcription
+    max_input_tokens: 98304
+    max_output_tokens: 32768
+    supports_vision: false
+    supports_audio_output: false
+    supports_pdf_input: false
+    supports_video_input: false
+    supports_reasoning: false
+    input_modalities:
+    - audio
+    output_modalities:
+    - text
+    max_tokens: 32768
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: https://ai.google.dev/gemini-api/docs/models/gemini-3.5-transcribe
+- model_name: asia-auto
+  litellm_params:
+    model: auto_router/complexity_router
+    max_tokens: 8192
+    complexity_router_default_model: gemini-3.1-flash-lite
+    complexity_router_config:
+      tiers:
+        SIMPLE: asia-rapide
+        MEDIUM: gemini-3.1-flash-lite
+        COMPLEX: gemini-3.8-flash
+        REASONING: gemini-3.1-pro-preview
+      classifier_type: heuristic
+      classification_mode: user_turn
+      session_affinity: false
+      session_affinity_ttl_seconds: 3600
+      return_raw_model_name: true
+      enable_context_window_escalation: true
+      modality_routing: true
+      semantic_keyword_matching: false
+      keyword_tier_rules:
+      - keywords:
+        - audit de sécurité
+        - audit sécurité
+        - architecture distribuée
+        - preuve mathématique
+        - security audit
+        - formal proof
+        tier: REASONING
+      - keywords:
+        - refactorisation
+        - refactoriser
+        - migration de base
+        - concurrence distribuée
+        - débogage complexe
+        - complex debugging
+        - refactor
+        - distributed system
+        tier: COMPLEX
+      - keywords:
+        - écris un script
+        - ecris un script
+        - corrige ce code
+        - corrige ce bug
+        - write a script
+        - fix this bug
+        - débogue
+        - debug
+        tier: MEDIUM
+      escalation_keywords:
+      - LITELLM ESCALATE
+      - modèle plus puissant
+      - modele plus puissant
+      - plus de réflexion
+      modality_pin_override: true
+  model_info:
+    supports_response_schema: true
+    supports_native_streaming: true
+    mode: chat
+    max_input_tokens: 1000000
+    max_output_tokens: 8192
+    supports_vision: true
+    supports_audio_input: true
+    supports_audio_output: false
+    supports_pdf_input: true
+    supports_video_input: true
+    supports_function_calling: true
+    supports_reasoning: true
+    input_modalities:
+    - text
+    - image
+    - audio
+    - video
+    - pdf
+    output_modalities:
+    - text
+    max_tokens: 8192
+    capabilities_audited_at: '2026-10-11'
+    capabilities_source: local:routing_context.py + config.yaml
+    supports_tool_choice: true
+router_settings:
+  routing_strategy: simple-shuffle
+  num_retries: 0
+  timeout: 120
+  max_fallbacks: 1
+  fallbacks:
+  - asia-rapide:
+    - gemini-3.1-flash-lite
+  - gemini-3.1-flash-lite:
+    - asia-rapide
+  - gemini-3.8-flash:
+    - asia-pro
+  - gemini-3.1-pro-preview:
+    - asia-pro
+  retry_policy:
+    AuthenticationErrorRetries: 0
+    BadRequestErrorRetries: 0
+    RateLimitErrorRetries: 0
+    TimeoutErrorRetries: 0
+    InternalServerErrorRetries: 0
+litellm_settings:
+  callbacks:
+  - routing_context.guard
+  - metrics.logger
+  turn_off_message_logging: true
+general_settings:
+  master_key: os.environ/LITELLM_MASTER_KEY
+  disable_spend_logs: false
+  store_prompts_in_spend_logs: false
+  database_connection_pool_limit: 10
