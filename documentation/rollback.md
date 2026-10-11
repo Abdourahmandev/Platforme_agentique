@@ -13,6 +13,17 @@ Le dernier appel passe par l'interface Asia locale pour contrôler la santé d'O
 
 Les ports Windows de référence restent : Asia 3210, OpenCode 4096, LiteLLM 4000, PostgreSQL 55432. Les anciennes associations Tailscale sont conservées.
 
+## Suspendre seulement le bot Développement
+
+Le compte `developpement` est le premier bot activé dans OpenClaw. Pour le suspendre sans arrêter Asia ni effacer son historique :
+
+```powershell
+& ./infra/compose.ps1 exec -T openclaw node dist/index.js config set channels.telegram.accounts.developpement.enabled false --strict-json
+& ./infra/compose.ps1 exec -T openclaw node dist/index.js channels status --probe --channel telegram --json
+```
+
+Contrôler que ce compte est arrêté. En cas de doute ou d'absence de réponse de la Gateway, `./infra/compose.ps1 stop openclaw` arrête le processus Docker qui le reçoit. Les tokens et volumes sont conservés. Pour une reprise, réactiver ce compte et vérifier son état ; ne pas relancer l'initialiseur qui refuse d'écraser les associations actives.
+
 ## Après un transfert de token Telegram
 
 Asia réutilisera le token du bot actuel. La copie préparée sous `AsiaDocker/secrets/asia.token` ne change pas son propriétaire d'exécution : jusqu'à la bascule, seul le service Windows reçoit les messages. Garder le fichier de credentials Windows pour pouvoir revenir à ce service avec la même identité Telegram.

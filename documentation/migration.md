@@ -86,7 +86,19 @@ La commande valide chaque token auprès de Telegram et l'enregistre dans le doss
 
 Une fois le candidat démarré, `python infra/configure-telegram.py --reuse-existing-asia` prépare et valide les associations sans les activer. **L'initialiseur de staging refuse toujours l'activation du token de production** : la bascule du bot Asia doit inclure l'arrêt de l'ancien consommateur et de son superviseur, la neutralisation de sa relance automatique, puis le démarrage du nouveau consommateur. Une simple copie de token ou l'arrêt d'un processus enfant ne constitue pas ce transfert.
 
-Le mode historique sans `--reuse-existing-asia` conserve la possibilité d'un bot temporaire `asia-test`, facultatif. Son activation avec `--activate` reste réservée à trois bots distincts du bot de production. Les messages directs sont réservés au propriétaire actuel et les groupes désactivés. Le parcours Telegram réel reste à valider.
+Le mode historique sans `--reuse-existing-asia` conserve la possibilité d'un bot temporaire `asia-test`, facultatif. Son activation avec `--activate` reste réservée aux bots distincts du bot de production. Les messages directs sont réservés au propriétaire actuel et les groupes désactivés. Les parcours utilisateur Telegram sont validés séparément après la connexion du canal.
+
+### Démarrer un seul agent
+
+Les bots n'ont pas besoin de démarrer ensemble. Pour la première activation de Développement seul, après démarrage du candidat et attente de son état sain :
+
+```powershell
+python infra/configure-telegram.py --agent developpement
+python infra/configure-telegram.py --agent developpement --activate
+& ./infra/compose.ps1 exec -T openclaw node dist/index.js channels status --probe --channel telegram --json
+```
+
+L'option `--agent` peut être répétée. Seuls les tokens sélectionnés sont requis ; aucun compte Asia ou Recherche n'est activé implicitement. L'initialiseur refuse d'écraser un canal déjà actif ou des associations existantes. Pour ajouter un agent après cette première activation, fusionner explicitement sa configuration avec les comptes en place et la valider ; ne pas effacer les associations existantes pour relancer l'initialiseur.
 
 Avant la bascule : configurer les associations exactes compte–agent, les messages directs autorisés et le refus des groupes ; démarrer une conversation avec chacun des bots ; vérifier texte, photo, note vocale, réponse au bon bot, isolation et reconnexion. Ne jamais lancer deux consommateurs avec le même token.
 

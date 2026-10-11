@@ -1,7 +1,8 @@
 """Prepare account bindings without ever starting a second production consumer.
 
 Default: validate the proposed configuration without enabling a consumer.
---activate: requires all real tokens, owner allowlist, and no existing webhooks.
+--activate: requires tokens for the selected agents, owner allowlist, no webhooks.
+--agent: select one or more agents without requiring the other bot credentials.
 --reuse-existing-asia: prepare the existing Asia identity instead of a test bot.
 Its activation remains blocked here until the controlled legacy handoff is done.
 """
@@ -43,9 +44,13 @@ def main():
     parser=argparse.ArgumentParser()
     parser.add_argument('--activate',action='store_true')
     parser.add_argument('--reuse-existing-asia',action='store_true')
+    parser.add_argument('--agent',action='append',choices=['asia','developpement','recherche'],
+                        help='Select an agent; repeat to select several. Defaults to all three.')
     args=parser.parse_args()
     selected_accounts=({'asia':'asia','developpement':'developpement','recherche':'recherche'}
                        if args.reuse_existing_asia else ACCOUNTS)
+    if args.agent:
+        selected_accounts={account:agent for account,agent in selected_accounts.items() if agent in args.agent}
     state=json.loads((RUNTIME/'runtime-private.json').read_text())
     if state.get('phase')!='staging': raise RuntimeError('Staging initializer only')
     legacy=json.loads((Path(os.environ['LOCALAPPDATA'])/'OpenCodeTelegramSetup/bot-credentials.json').read_text())
@@ -83,7 +88,7 @@ def main():
     for key,value in (('bindings',bindings),('channels.telegram',channel)):
         cli('config','set',key,json.dumps(value),'--strict-json','--dry-run')
     if not args.activate:
-        print('Three account/agent bindings validated. Telegram remains disabled; no tokens required for this dry run.')
+        print(f'{len(accounts)} account/agent binding(s) validated. Telegram remains disabled; no tokens required for this dry run.')
         return
     run(['node','-e',
         'const fs=require("fs"),p="/home/node/.openclaw/credentials",v=JSON.parse(fs.readFileSync(0));'
@@ -96,7 +101,7 @@ def main():
     except Exception:
         cli('config','set','channels.telegram.enabled','false','--strict-json')
         raise
-    print('Three staged Telegram bots configured. Restart the gateway, wait for health, then test each bot from the owner account.')
+    print(f'{len(accounts)} staged Telegram bot(s) configured: '+', '.join(accounts)+'. Wait for gateway/channel health, then test from the owner account.')
 
 
 if __name__=='__main__':
