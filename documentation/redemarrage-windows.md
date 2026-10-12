@@ -1,6 +1,32 @@
 # Validation du redémarrage Windows
 
-Le propriétaire a autorisé un redémarrage complet après validation des boutons Telegram. **Le contrôle avant redémarrage est réussi ; la reprise effective reste à vérifier après une nouvelle ouverture de session Windows.** Le lancement d'une commande de redémarrage ne suffit pas à déclarer ce test réussi.
+Le propriétaire a effectué un redémarrage complet le 12 octobre 2026 après validation des boutons Telegram. **Les 13 contrôles techniques après reprise sont réussis.** Les services ont démarré par leurs mécanismes automatiques ; une intervention a arrêté Ollama pour libérer de la mémoire pendant le contrôle. Le délai d'un prochain démarrage sans cette intervention reste donc à mesurer.
+
+## Résultat du 12 octobre 2026
+
+La première commande de redémarrage avait échoué avec le code Windows 1271 : machine verrouillée, arrêt sans forçage refusé. Elle n'a pas été relancée automatiquement. Le propriétaire a ensuite redémarré Windows lui-même.
+
+| Contrôle | Résultat observé |
+| --- | --- |
+| Nouveau démarrage Windows | 12 octobre à 00 h 09 min 26 s, heure de New York ; précédent démarrage le 6 octobre |
+| Démarrage automatique | `Asia Docker Startup` lancée à 00 h 10 min 10 s, terminée avec le code 0 à 00 h 17 min 21 s |
+| Services | Les cinq conteneurs sains, mêmes images ; aucune relance manuelle de Docker ou de Compose |
+| Comptes Telegram | Asia, Développement et Recherche en fonctionnement, sondes natives réussies, aucune dernière erreur |
+| Sessions et appareil | Les 53 identifiants de sessions sont conservés ; l'appareil de test déjà appairé se reconnecte, sans nouvelle association |
+| Configuration et fichiers | Empreinte de configuration identique hors métadonnées ; les 34 fichiers des espaces des agents sont identiques |
+| Comptabilité | Mêmes équipes, plafonds et dates de budget ; dépenses enregistrées conservées |
+| Exécuteur Windows | OpenCode accessible, sans tâche, permission ou question en attente ; fournisseur toujours sur LiteLLM Docker |
+| Ancien bot | Marqueur de migration et garde présents, consommateur historique resté arrêté |
+
+Le journal `%LOCALAPPDATA%/AsiaDocker/training/windows-restart-result.json` conserve ces contrôles. `windows-restart-gateway-result.json` conserve la comparaison des sessions. Le propriétaire a ensuite envoyé un court message aux trois bots et confirmé : « Oui, les trois répondent ». Cette confirmation du parcours Telegram après redémarrage est enregistrée séparément des sondes techniques.
+
+Le démarrage a été lent : presque huit minutes entre le démarrage Windows et le succès de la tâche. Pendant cette attente, l'application Ollama inutilisée s'était relancée avec environ 2,5 Gio de mémoire résidente, sans modèle chargé. La mémoire libre observée est descendue à 398 Mio. Les services et la passerelle avaient commencé à répondre avant son arrêt ; la tâche a terminé quatre secondes après. Cela ne prouve pas qu'Ollama soit l'unique cause du délai.
+
+Ollama a été arrêté, puis son seul raccourci `Ollama.lnk` retiré du dossier de démarrage automatique. Il est conservé sous `%LOCALAPPDATA%/AsiaDocker/training/disabled-startup`. Le journal `ollama-startup-disabled.json` contient le chemin d'origine, l'empreinte SHA-256 et les octets du raccourci pour la sauvegarde chiffrée. Aucun modèle ni programme n'a été désinstallé. Pour annuler cette modification, restaurer le raccourci à son chemin d'origine après vérification de l'empreinte et de l'absence d'un nouveau raccourci à cet endroit.
+
+La sauvegarde finale `D:\AsiaBackups\docker-20261012T042220-7dc044d5.aes` inclut les preuves privées du redémarrage et du retrait du raccourci. Sa restauration de contrôle réussit : 259 fichiers vérifiés, archive native OpenClaw restaurée dans un répertoire distinct et 91 tables PostgreSQL restaurées dans une base temporaire. Les données actives ne sont pas remplacées.
+
+Limite relevée : les appels Docker de `ops/start-docker.ps1` utilisent encore une attente de processus non bornée ; la boucle de quatre minutes ne garantit donc pas une échéance si un appel reste bloqué. Le Planificateur impose une limite globale de 25 minutes. Un délai par commande et un état explicite « démarrage en cours » constituent les prochains durcissements ; le rapport de succès doit toujours être daté après le démarrage Windows pour être valable. La veille/réveil reste distincte de ce test.
 
 ## État conservé avant le test
 

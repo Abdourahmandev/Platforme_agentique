@@ -2,7 +2,7 @@
 
 Ce dossier décrit l'installation réelle, ses limites et les procédures de reprise. Il peut être consulté directement sur GitHub. Les fichiers contenant des secrets ou des conversations ne sont jamais inclus dans le dépôt.
 
-**État au 11 octobre 2026 : Asia a basculé dans OpenClaw, en phase pilote.** Le propriétaire confirme les réponses Telegram des trois bots, ainsi que la photo et le vocal d'Asia. Les boutons d'approbation ont été reçus et les deux décisions vérifiées : accord unique avec exécution, refus sans exécution. La reprise après redémarrage Windows reste à valider.
+**État au 12 octobre 2026 : Asia a basculé dans OpenClaw, en phase pilote.** Le propriétaire confirme les réponses Telegram des trois bots, ainsi que la photo et le vocal d'Asia. Les boutons d'approbation ont été reçus et les deux décisions vérifiées : accord unique avec exécution, refus sans exécution. Les contrôles techniques après redémarrage Windows passent, avec sessions, fichiers et budgets conservés. Le démarrage a été lent ; Ollama inutilisé a été arrêté puis retiré du démarrage automatique. Voir les [résultats et limites de reprise](redemarrage-windows.md).
 
 **Asia conserve [son bot habituel](https://t.me/Absourahman03_bot)** ; Développement utilise [Rassdevbot](https://t.me/Rassdevbot) et Recherche [Rassresearchbot](https://t.me/Rassresearchbot). Cinq services Docker sont sains, dont Playwright. L'ancien consommateur Telegram est arrêté et sa relance bloquée par un marqueur persistant. OpenCode reste disponible comme exécuteur Windows et partage désormais le budget Docker. Voir la [bascule Asia](bascule-asia.md), ses limites et son retour arrière.
 
@@ -19,7 +19,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Reprise ciblée](formation/bilan-reprise.md) | Réconciliation d'Asia, périmètre de Développement et formation sans redémarrer les bots |
 | [Tests de robustesse](tests-robustesse.md) | Confirmation Telegram, coupures réelles de l'exécuteur, reçus durables et limites d'exécution |
 | [Approbations Telegram](approbations-telegram.md) | Boutons privés, distinction expiration/refus, accord unique et preuves d'exécution |
-| [Redémarrage Windows](redemarrage-windows.md) | État de référence avant interruption et contrôles de reprise après ouverture de session |
+| [Redémarrage Windows](redemarrage-windows.md) | Treize contrôles techniques réussis, données conservées, lenteur et nettoyage du démarrage Ollama |
 | [Exploitation et sauvegardes](exploitation.md) | Démarrage, état, coûts, mises à jour et restauration |
 | [Retour arrière](rollback.md) | Arrêter le candidat et conserver/reprendre l'installation Windows |
 | [API de la future application](api.md) | Identités, sessions, streaming, annulation et reconnexion |

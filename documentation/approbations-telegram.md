@@ -54,4 +54,4 @@ La restauration de contrôle de `D:\AsiaBackups\docker-20261012T034619-1ae34db0.
 
 Pour annuler le changement de routage : terminer ou annuler les tâches de test encore ouvertes, consulter le journal privé, puis rétablir uniquement la valeur précédente de `channels.telegram.accounts.asia.execApprovals.target` avec `openclaw config patch --stdin` (valider d'abord avec `--dry-run`). Ne pas remplacer toute la configuration par une ancienne copie. Rétablir les instructions précédentes depuis `before_instructions` seulement si le fichier actif correspond encore à `after_instructions` ; sinon fusionner les modifications intervenues depuis. Recontrôler les trois comptes et garder les preuves. Le retour à `channel` peut réintroduire l'absence de boutons du scénario initial.
 
-Le redémarrage complet de Windows, la veille/réveil et les autres parcours Telegram non déjà exercés restent à valider séparément.
+Le [redémarrage complet de Windows](redemarrage-windows.md) a ensuite été contrôlé le 12 octobre. La veille/réveil et les autres parcours Telegram non déjà exercés restent à valider séparément.
