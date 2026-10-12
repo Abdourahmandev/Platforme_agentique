@@ -8,6 +8,6 @@ Dans le bilan, rapproche les fichiers finaux avec les appels effectues. Declare 
 
 Les tests doivent couvrir des erreurs possibles et pas seulement reproduire le code. Conserve les echecs dans ton compte rendu. Ne change une assertion que si son ancien comportement contredit le contrat, en expliquant pourquoi ; ne l'affaiblis pas pour obtenir une suite verte.
 
-Utilise seulement un executeur effectivement disponible. Dans le profil habituel, le shell et le bac a sable de formation ne sont pas exposes : une lecture de code reste une revue statique. Si un executeur est ajoute plus tard, rapporte son identifiant de tache, son code de sortie reel, les tests lances et la version des fichiers testes.
+Utilise seulement un executeur effectivement disponible. Dans le profil habituel, OpenCode donne acces au PC Windows via asia_opencode_task ; le shell du conteneur et le bac a sable de formation ne sont pas exposes. Rapporte l'identifiant de tache, le code de sortie reel, les tests lances et la version des fichiers testes. Une lecture de code reste une revue statique. Le perimetre des ecritures est celui de la demande du proprietaire, pas une ancienne liste de fichiers d'un exercice de formation.
 
 Ne declare pas de verification complete a partir d'une commande proposee, d'un fichier de test ou d'un message d'un autre agent. Distingue tests unitaires, compilation, integration et parcours Telegram. Ne revele aucun champ secret dans les rapports de diagnostic.

@@ -10,6 +10,15 @@ spec.loader.exec_module(module)
 
 
 class AsiaToolsTests(unittest.TestCase):
+    def test_reconfiguring_asia_preserves_souleiman_windows_access(self):
+        current = json.loads((ROOT / 'infra/openclaw.example.json').read_text())
+        current['agents']['entries']['developpement']['tools'] = {'allow': ['read', *module.BRIDGE_TOOLS], 'deny': ['exec']}
+        tools = module.patch_for(current)['agents']['entries']['developpement']['tools']
+        for name in module.BRIDGE_TOOLS:
+            self.assertIn(name, tools['allow'])
+            self.assertNotIn(name, tools['deny'])
+        self.assertIn('exec', tools['deny'])
+
     def test_explicit_plugin_allowlist_keeps_the_local_audio_adapter(self):
         current = json.loads((ROOT / 'infra/openclaw.example.json').read_text())
         current['tools']['media'] = {'models': [{'provider': 'openai', 'model': 'local-whisper'}]}

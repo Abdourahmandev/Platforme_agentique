@@ -9,15 +9,23 @@ const id = value => {
   if (typeof value !== 'string' || !/^[a-zA-Z0-9_-]{8,100}$/.test(value)) throw Error('Identifiant invalide');
   return value;
 };
-export function assertAsia(context) {
-  if (context?.agentId !== 'asia') throw Error('Passerelle reservee a Asia');
+const agents = Object.freeze({asia:'Asia', developpement:'Souleiman'});
+export function assertBridgeAgent(context) {
+  if (!Object.hasOwn(agents, context?.agentId)) throw Error('Agent non autorise sur la passerelle Windows');
+  return context.agentId;
+}
+export function bridgeStateFile(base, agentId) {
+  assertBridgeAgent({agentId});
+  // Keep Asia's existing journal and receipts; new agents get separate stores.
+  return path.join(base, 'asia-opencode', ...(agentId === 'asia' ? [] : [agentId]), 'tasks.json');
 }
 
 // Plugin hooks and tool factories may have separate module instances. A file
 // lock serializes mutations; a crash lock fails closed for operator review.
 // The journal is outside all workspaces and contains only sessions created here.
 export class Bridge {
-  constructor({stateFile, credentials, fetchImpl = fetch}) {
+  constructor({stateFile, credentials, fetchImpl = fetch, agentId = 'asia'}) {
+    this.agentId = assertBridgeAgent({agentId});
     this.stateFile = stateFile;
     this.credentials = credentials;
     this.fetch = fetchImpl;
@@ -54,6 +62,7 @@ export class Bridge {
   own(taskId) {
     const task = this.load().tasks[id(taskId)];
     if (!task?.sessionId) throw Error('Tache inconnue ou creation incertaine : inspection operateur requise');
+    if ((task.agentId ?? 'asia') !== this.agentId) throw Error('Tache appartenant a un autre agent');
     return task;
   }
   async request(route, body) {
@@ -90,12 +99,12 @@ export class Bridge {
         this.save(state); // Crash or timeout must never silently replay a side effect.
         if (params.action === 'start') {
           const created = await this.request('/session', {
-            title:'Asia / ' + taskId, agent:'build',
+            title:agents[this.agentId] + ' / ' + taskId, agent:'build',
             permission:[{permission:'read', pattern:'*AsiaDocker*', action:'deny'},
                         {permission:'edit', pattern:'*AsiaDocker*', action:'deny'}],
           });
           id(created.id);
-          state.tasks[taskId] = {sessionId:created.id, createdAt:new Date().toISOString()};
+          state.tasks[taskId] = {sessionId:created.id, agentId:this.agentId, createdAt:new Date().toISOString()};
           this.save(state);
         }
         const task = state.tasks[taskId];
@@ -156,7 +165,7 @@ export class Bridge {
   async approvalHook(event, context) {
     if (event.toolName !== 'asia_opencode_approve') return;
     try {
-      assertAsia(context);
+      if (assertBridgeAgent(context) !== this.agentId) throw Error('Validation reservee au proprietaire de la tache');
       if (!event.toolCallId) throw Error('Identite de l appel manquante');
       const params = structuredClone(event.params);
       const pending = await this.permission(params.taskId, params.permissionId);
@@ -164,7 +173,7 @@ export class Bridge {
       // Never approve a command whose details were hidden by truncation.
       if (description.length > 470) throw Error('Demande trop longue : verifier dans OpenCode');
       return {requireApproval:{
-        title:'Autoriser cette action Windows une fois ?', description,
+        title:agents[this.agentId] + ' : autoriser cette action Windows une fois ?', description,
         severity:'warning', allowedDecisions:['allow-once','deny'], timeoutMs:120000,
         onResolution:decision => {
           // Hooks and tool factories can use distinct module instances. A private

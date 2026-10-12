@@ -1,6 +1,6 @@
 {
   "id": "asia-opencode",
-  "name": "Asia OpenCode Windows",
+  "name": "OpenCode Windows — Asia et Souleiman",
   "description": "Taches Windows avec les permissions OpenCode et validation humaine.",
   "configSchema": {"type":"object","additionalProperties":false,"properties":{}},
   "contracts": {"tools":["asia_opencode_task","asia_opencode_approve"]},

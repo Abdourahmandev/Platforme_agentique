@@ -2,7 +2,7 @@
 
 ## Architecture pendant la phase pilote
 
-Depuis le 11 octobre 2026, les bots Asia, Souleiman et Saredo sont reçus par OpenClaw dans Docker. L'ancien consommateur Telegram Windows est arrêté. Asia Web et OpenChamber restent des interfaces d'OpenCode, qui sert aussi d'exécuteur Windows à Asia. OpenCode et OpenClaw utilisent tous deux LiteLLM Docker. Les connecteurs MCP sont exécutés par les moteurs d'agents, pas par LiteLLM.
+Depuis le 11 octobre 2026, les bots Asia, Souleiman et Saredo sont reçus par OpenClaw dans Docker. L'ancien consommateur Telegram Windows est arrêté. Asia Web et OpenChamber restent des interfaces d'OpenCode, qui sert aussi d'exécuteur Windows à Asia et, depuis le 12 octobre, à Souleiman. OpenCode et OpenClaw utilisent tous deux LiteLLM Docker. Les connecteurs MCP sont exécutés par les moteurs d'agents, pas par LiteLLM.
 
 L'installation Docker utilise des images publiées, figées par empreinte dans [Compose](../infra/compose.yaml). Les configurations et scripts d'exploitation sont versionnés, sans construction d'image personnalisée. Les anciens LiteLLM et PostgreSQL Windows sont conservés pour le retour arrière.
 
@@ -24,6 +24,7 @@ flowchart TD
     A --> B[Playwright MCP dédié]
     A --> MM[Mémoire propre à Asia]
     A --> BR[Passerelle de tâches et approbations]
+    D --> BR
     BR --> OC[OpenCode Windows]
     OC --> L
     D --> L
@@ -60,7 +61,7 @@ Les comptes Telegram actifs sont associés explicitement aux agents. `session.dm
 
 Asia peut créer des missions natives chez les deux spécialistes et recevoir leurs résultats. La visibilité des sessions est limitée à l'arbre de la conversation ; les missions créées par Asia sont accessibles à leur parent, mais pas les conversations Telegram indépendantes des spécialistes. Les échanges ordinaires entre agents restent désactivés. Les spécialistes ne peuvent ni s'envoyer de messages ni redéléguer. Voir [la délégation et ses limites](delegation.md).
 
-Les outils directs de fichiers restent limités au workspace et le shell natif reste désactivé. Asia seule possède une passerelle vers les tâches Windows OpenCode, avec les permissions Windows existantes et des validations natives à usage unique. Ce sont des politiques applicatives dans une installation de confiance à propriétaire unique. Pour des utilisateurs ou agents qui ne se font pas confiance, utiliser des instances et identités système séparées.
+Les outils directs de fichiers restent limités au workspace et le shell natif reste désactivé. Asia et Souleiman possèdent une passerelle vers les tâches Windows OpenCode, avec des journaux séparés, les permissions Windows existantes et des validations natives à usage unique. Voir [l'accès Windows de Souleiman](acces-windows-souleiman.md). Ce sont des politiques applicatives dans une installation de confiance à propriétaire unique. Pour des utilisateurs ou agents qui ne se font pas confiance, utiliser des instances et identités système séparées.
 
 L'authentification Gateway est maintenue même si une interface passe ensuite par Tailscale. Le secret administrateur LiteLLM ne doit jamais être remis à un agent ou à une application cliente. La clé Gateway HTTP donne des droits de propriétaire sur toute la Gateway ; la future application doit préférer des appareils appairés avec des portées adaptées.
 

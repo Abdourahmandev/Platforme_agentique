@@ -64,7 +64,9 @@ def patch_for(current):
         allow = [name for name in policy.get('allow', global_allow) if name != 'browser']
         policy['allow'] = list(dict.fromkeys(allow + (TOOLS + BRIDGE_TOOLS if agent == 'asia' else [])))
         if agent != 'asia':
-            policy['deny'] = list(dict.fromkeys(policy.get('deny', []) + TOOLS + BRIDGE_TOOLS))
+            # Preserve a separately enabled Windows bridge for Souleiman.
+            bridge_enabled = agent == 'developpement' and all(t in allow for t in BRIDGE_TOOLS)
+            policy['deny'] = list(dict.fromkeys(policy.get('deny', []) + TOOLS + ([] if bridge_enabled else BRIDGE_TOOLS)))
         policies[agent] = {'tools': policy}
     return {
         'tools': {'allow': list(dict.fromkeys(global_allow + TOOLS + BRIDGE_TOOLS))},

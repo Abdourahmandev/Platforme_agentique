@@ -3,14 +3,15 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
-import {Bridge, assertAsia} from '../infra/opencode-bridge/bridge.mjs';
+import {Bridge, assertBridgeAgent, bridgeStateFile} from '../infra/opencode-bridge/bridge.mjs';
+import plugin from '../infra/opencode-bridge/index.mjs';
 
-function fixture(t) {
+function fixture(t, agentId = 'asia') {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(),'asia-bridge-'));
   t.after(() => fs.rmSync(dir, {recursive:true,force:true}));
   const calls = [], pending = [{id:'per_test0001',sessionID:'ses_test0001',permission:'bash',patterns:['echo synthetic']}];
   let failPrompt = false;
-  const options = {stateFile:path.join(dir,'tasks.json'), credentials:() => ({username:'fixture',password:'fixture',directory:'C:/synthetic'}),
+  const options = {agentId,stateFile:bridgeStateFile(dir,agentId), credentials:() => ({username:'fixture',password:'fixture',directory:'C:/synthetic'}),
     fetchImpl:async (url, opts) => {
       const body = opts.body && JSON.parse(opts.body);
       calls.push({route:url.pathname, body});
@@ -24,8 +25,9 @@ function fixture(t) {
 
 test('bridge isolates tasks and rejects untrusted agent context', async t => {
   const f = fixture(t);
-  assert.throws(() => assertAsia({agentId:'developpement'}));
-  assert.throws(() => assertAsia({}));
+  assert.equal(assertBridgeAgent({agentId:'developpement'}),'developpement');
+  assert.throws(() => assertBridgeAgent({agentId:'recherche'}));
+  assert.throws(() => assertBridgeAgent({}));
   await assert.rejects(f.bridge.status('ses_test0001'), /inconnue/);
   assert.equal(f.calls.length, 0);
 });
@@ -85,4 +87,52 @@ test('separate plugin instances cannot race journal writes or approve after a cr
     await assert.rejects(new Bridge(f.options).mutate({action:'start',requestId:'request0010',prompt:'test'}),/verrou/);
   });
   assert.equal(f.calls.length,0);
+});
+
+test('specialists get independent task journals and cannot consume Asia approvals', async t => {
+  const asia = fixture(t), dev = fixture(t,'developpement');
+  const input = {action:'start',requestId:'same-request',prompt:'test'};
+  const a = await asia.bridge.mutate(input), d = await dev.bridge.mutate(input);
+  assert.notEqual(a.taskId,d.taskId);
+  assert.match(dev.calls.find(c=>c.route==='/session').body.title,/^Souleiman \/ /);
+  for (const [f,foreign] of [[asia,d],[dev,a]]) {
+    const count=f.calls.length;
+    await assert.rejects(f.bridge.status(foreign.taskId),/inconnue/);
+    for (const action of ['cancel','reject','answer','continue']) {
+      await assert.rejects(f.bridge.mutate({action,taskId:foreign.taskId,requestId:'foreign-request',prompt:'test'}),/inconnue/);
+    }
+    assert.equal(f.calls.length,count);
+  }
+  const params={taskId:a.taskId,permissionId:'per_test0001'};
+  const hook=await asia.bridge.approvalHook({toolName:'asia_opencode_approve',toolCallId:'same-call',params},{agentId:'asia'});
+  hook.requireApproval.onResolution('allow-once');
+  await assert.rejects(dev.bridge.approve('same-call',{taskId:d.taskId,permissionId:'per_test0001'}),/humaine/);
+  assert.deepEqual(await asia.bridge.approve('same-call',params),{approvedOnce:true});
+});
+
+test('Souleiman approval survives reload but is bound to his native context', async t => {
+  const f=fixture(t,'developpement');
+  const task=await f.bridge.mutate({action:'start',requestId:'dev-request',prompt:'test'});
+  const event={toolName:'asia_opencode_approve',toolCallId:'dev-call',params:{taskId:task.taskId,permissionId:'per_test0001'}};
+  assert.equal((await f.bridge.approvalHook(event,{agentId:'asia'})).block,true);
+  const hook=await f.bridge.approvalHook(event,{agentId:'developpement'});
+  assert.match(hook.requireApproval.title,/Souleiman/);
+  hook.requireApproval.onResolution('allow-once');
+  assert.deepEqual(await new Bridge(f.options).approve('dev-call',event.params),{approvedOnce:true});
+  await assert.rejects(f.bridge.approve('dev-call',event.params),/humaine/);
+});
+
+test('legacy Asia tasks keep ownership and unsupported agents never get a tool', async t => {
+  const f=fixture(t);
+  const task=await f.bridge.mutate({action:'start',requestId:'legacy-task',prompt:'test'});
+  const state=f.bridge.load();delete state.tasks[task.taskId].agentId;f.bridge.save(state);
+  assert.equal(f.bridge.own(task.taskId).sessionId,'ses_test0001');
+  assert.throws(()=>new Bridge({...f.options,agentId:'developpement'}).own(task.taskId),/autre agent/);
+  const factories=[],hooks=[];
+  plugin.register({registerTool:factory=>factories.push(factory),on:(name,fn)=>hooks.push(fn)});
+  for(const factory of factories){
+    assert.ok(factory({agentId:'developpement'}));
+    for(const agentId of ['recherche','formation-developpement','../asia'])assert.equal(factory({agentId}),null);
+  }
+  assert.equal((await hooks[0]({toolName:'asia_opencode_approve'},{agentId:'recherche'})).block,true);
 });

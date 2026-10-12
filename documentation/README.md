@@ -14,6 +14,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Catalogue des modèles](modeles.md) | Les 34 routes et leurs capacités déclarées |
 | [Installation et migration](migration.md) | Reproduire le socle Docker, configurer les secrets et valider chaque étape |
 | [Bascule Asia](bascule-asia.md) | Connecteurs conservés, transfert du token et du budget, intervention Windows et rollback |
+| [Accès Windows de Souleiman](acces-windows-souleiman.md) | Fichiers, commandes, programmes et réseau du PC via OpenCode ; autorisations et rollback |
 | [Délégation entre agents](delegation.md) | Asia coordinatrice, missions séparées, résultats, permissions, coûts et tests |
 | [Paperclip : suivi des tâches](paperclip.md) | Conversations sans ticket automatique, discussions entre agents, accès privé, sauvegarde et rollback |
 | [Validation Paperclip](paperclip-validation.md) | Pilote des trois agents, corrections et tests de reprise |

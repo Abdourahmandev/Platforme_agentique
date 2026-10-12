@@ -61,10 +61,14 @@ def instructions(role, improved=False):
     if role == 'asia':
         # Drop host execution instructions: training has no Windows bridge.
         text = text.split('Pour executer une tache sur Windows')[0]
-        text = text.replace('pas encore raccordes','raccordes pour la formation').replace('ne peut pas executer de commandes','peut lancer les tests via training_run')
+        text = text.replace('pas encore raccordes','raccordes pour la formation')
+        text = text.replace('puis executer des taches Windows via sa propre passerelle OpenCode et les validations humaines natives', 'lancer les tests uniquement via training_run')
     if role == 'developpement':
-        text = text.replace("Pendant la migration, l'execution de commandes et OpenCode/ACP ne sont pas encore actives.",
-            'Tu peux modifier repo/ puis lancer les tests et la compilation avec training_run. Le shell general reste interdit.')
+        text = text.split('## Execution Windows')[0]
+        text = text.replace('Pour travailler sur le PC Windows du proprietaire, utilise la passerelle OpenCode decrite plus bas.', 'Travaille uniquement dans repo/.')
+        start = text.index('Tu peux maintenant travailler')
+        end = text.index('\n\n', start)
+        text = text[:start] + 'Tu peux modifier repo/ puis lancer les tests et la compilation avec training_run. Le shell general et Windows restent interdits.' + text[end:]
     if role == 'recherche':
         text = text.replace('la recherche web et les connecteurs additionnels restent a valider',
             'Tavily search et extract sont disponibles pour la formation')
