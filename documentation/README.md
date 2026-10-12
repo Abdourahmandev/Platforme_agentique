@@ -2,7 +2,7 @@
 
 Ce dossier décrit l'installation réelle, ses limites et les procédures de reprise. Il peut être consulté directement sur GitHub. Les fichiers contenant des secrets ou des conversations ne sont jamais inclus dans le dépôt.
 
-**État au 11 octobre 2026 : Asia a basculé dans OpenClaw, en phase pilote.** Les agents Asia, Développement et Recherche sont tous connectés sur Telegram, chacun avec son bot. Les essais utilisateur du canal et de reprise Windows restent à réaliser.
+**État au 11 octobre 2026 : Asia a basculé dans OpenClaw, en phase pilote.** Le propriétaire confirme les réponses Telegram des trois bots, ainsi que la photo et le vocal d'Asia. Les approbations Telegram et la reprise après redémarrage Windows restent à valider.
 
 **Asia conserve [son bot habituel](https://t.me/Absourahman03_bot)** ; Développement utilise [Rassdevbot](https://t.me/Rassdevbot) et Recherche [Rassresearchbot](https://t.me/Rassresearchbot). Cinq services Docker sont sains, dont Playwright. L'ancien consommateur Telegram est arrêté et sa relance bloquée par un marqueur persistant. OpenCode reste disponible comme exécuteur Windows et partage désormais le budget Docker. Voir la [bascule Asia](bascule-asia.md), ses limites et son retour arrière.
 
@@ -17,6 +17,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Formation supervisée](formation/README.md) | Exercices sur le projet, bac à sable, budget, qualification et retour arrière |
 | [Bilan du premier cycle](formation/bilan-cycle-1.md) | Résultats réels, corrections, limites et promotion revue par le superviseur |
 | [Reprise ciblée](formation/bilan-reprise.md) | Réconciliation d'Asia, périmètre de Développement et formation sans redémarrer les bots |
+| [Tests de robustesse](tests-robustesse.md) | Confirmation Telegram, coupures réelles de l'exécuteur, reçus durables et limites d'exécution |
 | [Exploitation et sauvegardes](exploitation.md) | Démarrage, état, coûts, mises à jour et restauration |
 | [Retour arrière](rollback.md) | Arrêter le candidat et conserver/reprendre l'installation Windows |
 | [API de la future application](api.md) | Identités, sessions, streaming, annulation et reconnexion |

@@ -3,6 +3,7 @@ import argparse
 import base64
 import hashlib
 import json
+import os
 from pathlib import Path
 import re
 import shutil
@@ -79,60 +80,139 @@ def heartbeat():
     remote_write(CONTROL + '/heartbeat.json', json.dumps({'timestamp': int(time.time() * 1000)}))
 
 
+def request_digest(request):
+    validate(request)
+    return hashlib.sha256(json.dumps(request,sort_keys=True,separators=(',',':')).encode()).hexdigest()
+
+
+def durable_write(filename,value):
+    """Commit a local receipt before any network publication; never replace evidence."""
+    filename.parent.mkdir(parents=True,exist_ok=True)
+    if filename.exists():
+        if json.loads(filename.read_text(encoding='utf-8'))!=value:
+            raise ValueError('Conflicting durable receipt; manual reconciliation required')
+        return
+    temporary=filename.with_suffix(filename.suffix+'.tmp')
+    with temporary.open('w',encoding='utf-8') as f:
+        json.dump(value,f)
+        f.flush()
+        os.fsync(f.fileno())
+    temporary.replace(filename)
+
+
+def publish_result(request,result):
+    digest=request_digest(request)
+    if result.get('jobId')!=request['jobId'] or result.get('request_sha256')!=digest:
+        raise ValueError('Receipt does not belong to this exact request')
+    durable_write(STATE/'jobs'/(request['jobId']+'.result.json'),result)
+    # A failed publication is allowed to stop the consumer. The next explicitly
+    # started consumer republishes this receipt, never its underlying command.
+    remote_write(CONTROL+'/'+request['jobId']+'.result.json',json.dumps(result))
+
+
+def remove_job(job):
+    """Best-effort cleanup whose failure must not erase the execution receipt."""
+    try:
+        removed=subprocess.run([DOCKER,'rm','-f','asia-training-job-'+job],capture_output=True,timeout=20)
+        return removed.returncode==0 or b'No such container:' in removed.stderr
+    except (OSError,subprocess.TimeoutExpired):
+        return False
+
+
+def recover(request,remote_started):
+    """Return true when existing evidence was reconciled without running a command."""
+    job=request['jobId'];digest=request_digest(request)
+    local=STATE/'jobs'/(job+'.result.json')
+    if local.exists():
+        publish_result(request,json.loads(local.read_text(encoding='utf-8')))
+        return True
+    marker=STATE/'jobs'/(job+'.started.json')
+    if marker.exists():
+        if json.loads(marker.read_text())['request_sha256']!=digest:
+            raise ValueError('Changed request after execution began')
+    if marker.exists() or remote_started:
+        cleaned=remove_job(job)
+        result={'jobId':job,'operation':request['operation'],
+            'request_sha256':digest,'status':'unknown_after_restart','exitCode':None,
+            'finished_at':time.time()}
+        if not cleaned:result['cleanup_unconfirmed']=True
+        publish_result(request,result)
+        return True
+    return False
+
+
 def process(request):
     validate(request)
     job = request['jobId']
     target = STATE / 'jobs' / job
     target.mkdir(parents=True, exist_ok=False)
-    remote_write(CONTROL + '/' + job + '.started.json', json.dumps({'started_at': time.time()}))
-    result = {'jobId': job, 'operation': request['operation'], 'status': 'failed', 'exitCode': None}
+    started={'started_at':time.time(),'request_sha256':request_digest(request)}
+    durable_write(STATE/'jobs'/(job+'.started.json'),started)
+    result = {'jobId': job, 'operation': request['operation'], 'status': 'failed', 'exitCode': None,
+              'request_sha256':started['request_sha256']}
+    p=None;reader=None;log=None
+    output_limit=threading.Event()
     try:
+        remote_write(CONTROL + '/' + job + '.started.json', json.dumps(started))
         cancelled = json.loads(node('const fs=require("fs");console.log(JSON.stringify(fs.existsSync(JSON.parse(fs.readFileSync(0)))));', CONTROL + '/' + job + '.cancel'))
         if cancelled:
             result['status'] = 'cancelled'
             return result
         result['source_sha256'] = snapshot(target)
         args = command(request, target)
-        # Logs go to a bounded container lifetime, then only a tail is returned.
-        with (STATE / 'jobs' / (job + '.log')).open('wb') as log:
-            p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
-            output_limit=threading.Event()
-            def drain():
-                count=0
-                while chunk:=p.stdout.read(8192):
-                    remaining=max(0,2*1024*1024-count)
-                    log.write(chunk[:remaining])
-                    count+=len(chunk)
-                    if count>2*1024*1024:output_limit.set()
-            reader=threading.Thread(target=drain,daemon=True)
-            reader.start()
-            deadline = time.monotonic() + 180
-            while p.poll() is None:
-                heartbeat()
-                cancelled = json.loads(node('const fs=require("fs"),v=JSON.parse(fs.readFileSync(0));console.log(JSON.stringify(fs.existsSync(v)));', CONTROL + '/' + job + '.cancel'))
-                too_large = output_limit.is_set()
-                if cancelled or time.monotonic() >= deadline or too_large:
-                    subprocess.run([DOCKER, 'kill', 'asia-training-job-' + job], capture_output=True, timeout=15)
-                    result['status'] = 'cancelled' if cancelled else 'timed_out' if not too_large else 'output_limit'
-                    try:
-                        p.wait(timeout=15)
-                    except subprocess.TimeoutExpired:
-                        p.kill()
-                    break
-                time.sleep(1)
-            result['exitCode'] = p.wait(timeout=15)
-            reader.join(timeout=5)
-            if output_limit.is_set() and result['status']=='failed':result['status']='output_limit'
+        # Keep the writer alive until the process and drain thread stop, including
+        # when queue access fails halfway through execution.
+        log=(STATE / 'jobs' / (job + '.log')).open('wb')
+        p = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+        def drain():
+            count=0
+            while chunk:=p.stdout.read(8192):
+                remaining=max(0,2*1024*1024-count)
+                log.write(chunk[:remaining])
+                count+=len(chunk)
+                if count>2*1024*1024:output_limit.set()
+        reader=threading.Thread(target=drain,daemon=True)
+        reader.start()
+        deadline = time.monotonic() + 180
+        while p.poll() is None:
+            heartbeat()
+            cancelled = json.loads(node('const fs=require("fs"),v=JSON.parse(fs.readFileSync(0));console.log(JSON.stringify(fs.existsSync(v)));', CONTROL + '/' + job + '.cancel'))
+            too_large = output_limit.is_set()
+            if cancelled or time.monotonic() >= deadline or too_large:
+                subprocess.run([DOCKER, 'kill', 'asia-training-job-' + job], capture_output=True, timeout=15)
+                result['status'] = 'cancelled' if cancelled else 'timed_out' if not too_large else 'output_limit'
+                try:p.wait(timeout=15)
+                except subprocess.TimeoutExpired:p.kill()
+                break
+            time.sleep(1)
+        result['exitCode'] = p.wait(timeout=15)
+        reader.join(timeout=5)
+        if output_limit.is_set() and result['status']=='failed':result['status']='output_limit'
         if result['status'] == 'failed' and result['exitCode'] == 0:
             result['status'] = 'passed'
-        result['output'] = (STATE / 'jobs' / (job + '.log')).read_bytes()[-18000:].decode('utf-8', errors='replace')
     except Exception as e:
+        if p is not None:result['status']='unknown_after_transport'
         result['error'] = type(e).__name__
     finally:
-        subprocess.run([DOCKER, 'rm', '-f', 'asia-training-job-' + job], capture_output=True, timeout=20)
-        result['finished_at'] = time.time()
-        remote_write(CONTROL + '/' + job + '.result.json', json.dumps(result))
-        (STATE / 'jobs' / (job + '.result.json')).write_text(json.dumps(result))
+        if not remove_job(job):result['cleanup_unconfirmed']=True
+        try:
+            if p is not None:
+                try:p.wait(timeout=15)
+                except subprocess.TimeoutExpired:p.kill();p.wait(timeout=5)
+                if reader:reader.join(timeout=5)
+                if reader and reader.is_alive():
+                    result['output_incomplete']=True
+                else:
+                    if p.stdout:p.stdout.close()
+                    if log:log.close()
+            elif log:log.close()
+            if log:
+                result['output']=(STATE/'jobs'/(job+'.log')).read_bytes()[-18000:].decode('utf-8',errors='replace')
+        except (OSError,subprocess.TimeoutExpired):
+            result['cleanup_unconfirmed']=True
+        finally:
+            result['finished_at'] = time.time()
+            publish_result(request,result)
     return result
 
 
@@ -148,13 +228,7 @@ def serve(seconds):
                 break
             request = entry['request']
             validate(request)
-            if entry['started']:
-                # A previous consumer may have died after submitting the job.
-                # Stop its known container; never silently replay an uncertain job.
-                subprocess.run([DOCKER, 'rm', '-f', 'asia-training-job-' + request['jobId']], capture_output=True, timeout=20)
-                remote_write(CONTROL + '/' + request['jobId'] + '.result.json', json.dumps({
-                    'jobId': request['jobId'], 'status': 'unknown_after_restart', 'exitCode': None}))
-            else:
+            if not recover(request,entry['started']):
                 print(json.dumps({k: v for k, v in process(request).items() if k != 'output'}), flush=True)
         time.sleep(1)
 

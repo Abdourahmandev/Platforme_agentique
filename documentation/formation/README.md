@@ -6,10 +6,10 @@ La [reprise ciblee](bilan-reprise.md) utilise desormais une Gateway de formation
 
 ## Nouveau cycle isole
 
-Utiliser un numero neuf : les journaux d'un cycle existant ne doivent jamais etre ecrases. `cycle-2` conserve une preparation en echec sans inference ; `cycle-3` contient la reprise terminee. Les noms de roles `formation-asia` et `formation-developpement` sont reutilisables parce que chaque Gateway possede un volume distinct.
+Utiliser un numero neuf : les journaux d'un cycle existant ne doivent jamais etre ecrases. `cycle-2` conserve une preparation en echec sans inference ; `cycle-3` contient la reprise terminee ; `cycle-4` conserve les [tests de coupure sans modele](../tests-robustesse.md). Les noms de roles `formation-asia` et `formation-developpement` sont reutilisables parce que chaque Gateway possede un volume distinct.
 
 ```powershell
-$env:ASIA_TRAINING_CYCLE = 'cycle-4' # exemple pour le prochain cycle
+$env:ASIA_TRAINING_CYCLE = 'cycle-5' # exemple : choisir un numero encore inutilise
 python infra/training/isolated.py prepare
 node infra/training/probe.mjs
 ```
@@ -26,7 +26,7 @@ Apres les missions, `python infra/training/evidence.py check` compare les fichie
 
 Cloture : `python infra/training/isolated.py stop` bloque les cles, arrete le runner, verifie/restaure l'archive native et arrete la Gateway separee. Les volumes, journaux et conteneur arrete sont conserves pour investigation ; un cycle neuf peut utiliser un autre nom. Une erreur de preparation ou d'arret ne declenche ni rejeu d'inference ni suppression de preuves. Examiner le journal avant toute reprise ; des jobs sans resultat doivent etre annules/reconcilies avant l'archivage.
 
-Retirer ensuite la variable du terminal avec `Remove-Item Env:ASIA_TRAINING_CYCLE`. Pour installer des procedures **revues** en production, `python infra/training/promote.py apply --revision cycle-4` cree un journal distinct. Le rollback correspondant utilise `rollback --revision cycle-4` et refuse d'ecraser des modifications ulterieures. La variable de formation doit etre absente pour cette promotion. Terminer par `python ops/backup-docker.py --restore-check` : les cycles et leurs archives natives sont inclus dans la sauvegarde chiffree.
+Retirer ensuite la variable du terminal avec `Remove-Item Env:ASIA_TRAINING_CYCLE`. Pour installer des procedures **revues** en production, `python infra/training/promote.py apply --revision cycle-5` cree un journal distinct. Le rollback correspondant utilise `rollback --revision cycle-5` et refuse d'ecraser des modifications ulterieures. La variable de formation doit etre absente pour cette promotion. Terminer par `python ops/backup-docker.py --restore-check` : les cycles, les recus individuels et leurs archives natives sont inclus dans la sauvegarde chiffree.
 
 ## Programme et roles
 
@@ -48,7 +48,9 @@ Chaque commande s'execute dans un conteneur jetable : reseau externe coupe, util
 
 Le premier cycle a revele une ecriture hors perimetre par `apply_patch`. Le garde de mutation ajoute a la suite de cet incident limite aussi `write`, `edit` et `apply_patch` aux quatre fichiers candidats ; suppressions et deplacements sont interdits. Le bilan conserve l'incident : un controle ajoute apres coup ne transforme pas la tentative initiale en reussite.
 
-Le resultat comprend `jobId`, `status`, `exitCode`, `source_sha256` et la sortie reelle. Les etats sont `passed`, `failed`, `cancelled`, `timed_out`, `output_limit` ou `unknown_after_restart`. Un job marque commence avant une interruption du superviseur n'est jamais rejoue automatiquement. L'outil refuse une mission appartenant a une autre session.
+Le resultat comprend `jobId`, `status`, `exitCode`, `request_sha256` et, lorsque disponibles, `source_sha256` et la sortie reelle. Les etats sont `passed`, `failed`, `cancelled`, `timed_out`, `output_limit`, `unknown_after_transport` ou `unknown_after_restart`. Le marqueur de debut et le recu final sont ecrits localement, avec synchronisation du fichier et remplacement atomique, avant leur publication dans la Gateway. Au redemarrage explicite du runner, un recu local est republie identiquement ; un debut sans resultat devient inconnu. Aucune commande n'est rejouee. Un recu corrompu, modifie ou lie a une autre requete provoque un refus. L'outil refuse une mission appartenant a une autre session.
+
+Les anciens recus sans `request_sha256` ne sont pas automatiquement certifies par le nouveau runner : examiner et conserver ces preuves sans reprendre aveuglement un ancien cycle. `cleanup_unconfirmed` signale un nettoyage non confirme ; une issue inconnue exige une reconciliation operateur des effets. Ces garanties ont ete testees sur des coupures de processus et de transport, pas sur une perte electrique complete du disque Windows.
 
 ## Budget et limites
 

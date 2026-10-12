@@ -94,6 +94,18 @@ class BackupTests(unittest.TestCase):
             compose.assert_not_called()
         self.assertEqual(list(self.root.glob('stage-*')), [])
 
+    def test_training_receipts_survive_without_copying_snapshots_or_logs(self):
+        state=self.root/'training';jobs=state/'jobs';jobs.mkdir(parents=True)
+        job='a'*32
+        for name in [job+'.started.json',job+'.result.json',job+'.log','unrelated.json']:
+            (jobs/name).write_text('{"evidence":true}')
+        snapshot=jobs/job;snapshot.mkdir();(snapshot/'secret.json').write_text('disposable')
+        destination=self.root/'archive-training'
+        backup_docker.copy_job_receipts(state,destination)
+        self.assertEqual(sorted(p.relative_to(destination).as_posix() for p in destination.rglob('*') if p.is_file()),
+                         ['jobs/'+job+'.result.json','jobs/'+job+'.started.json'])
+        self.assertEqual((destination/'jobs'/(job+'.result.json')).read_text(),'{"evidence":true}')
+
 
 if __name__ == '__main__':
     unittest.main()

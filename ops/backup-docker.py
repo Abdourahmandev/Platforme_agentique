@@ -10,6 +10,7 @@ import hashlib
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import shutil
 import subprocess
@@ -43,6 +44,16 @@ def remove_container_temp(filename):
             'require("fs").rmSync(process.argv[1],{recursive:true,force:true})',filename)
 
 
+def copy_job_receipts(source,destination):
+    # Receipts are recovery evidence, unlike the disposable job subdirectories.
+    jobs=source/'jobs'
+    if not jobs.is_dir() or jobs.is_symlink():return
+    for receipt in jobs.iterdir():
+        if re.fullmatch(r'[a-f0-9]{32}\.(started|result)\.json',receipt.name) and receipt.is_file() and not receipt.is_symlink():
+            (destination/'jobs').mkdir(parents=True,exist_ok=True)
+            shutil.copy2(receipt,destination/'jobs'/receipt.name)
+
+
 def create():
     backup.private(backup.STATE)
     backup.private(backup.DEST)
@@ -73,6 +84,7 @@ def create():
             training.mkdir()
             for source in (RUNTIME / 'training').glob('*.json'):
                 shutil.copy2(source, training / source.name)
+            copy_job_receipts(RUNTIME/'training',training)
             # Named cycles keep private receipts and an independently verified
             # native Gateway archive. Never copy job snapshots or dependency caches.
             for cycle in (RUNTIME / 'training/cycles').glob('cycle-*'):
@@ -83,6 +95,7 @@ def create():
                 for source in [*cycle.glob('*.json'), cycle / 'openclaw.tar.gz']:
                     if source.is_file() and not source.is_symlink():
                         shutil.copy2(source, destination / source.name)
+                copy_job_receipts(cycle,destination)
         shutil.copy2(ROOT / 'infra/compose.yaml', stage / 'compose.yaml')
         for folder in ('gateway','infra','ops'):
             shutil.copytree(ROOT / folder, stage / 'code' / folder,
@@ -144,6 +157,9 @@ def verify(archive, restore=False):
         compose('exec','-T','openclaw','node','dist/index.js','backup','verify',remote,'--json')
         result = {'archive':str(archive),'files_verified':len(manifest['files']),
                   'handoff_journal_preserved':handoff.exists(),
+                  'training_receipts_verified':sum(bool(re.fullmatch(
+                      r'runtime/training/(?:cycles/cycle-[1-9][0-9]{0,3}/)?jobs/[a-f0-9]{32}\.(?:started|result)\.json',name))
+                      for name in manifest['files']),
                   'openclaw_native_verify':True,'openclaw_restored':False,'postgres_restored':False}
         if restore:
             compose('exec','-T','openclaw','node','dist/index.js','backup','restore',remote,

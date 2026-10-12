@@ -1,6 +1,6 @@
 # Revue et bilan de migration
 
-État au 11 octobre 2026. **Le bot habituel Asia fonctionne maintenant dans OpenClaw, en phase pilote.** L'ancien consommateur Windows est arrêté. Les validations utilisateur Telegram et de reprise Windows restent nécessaires avant de déclarer la migration entièrement terminée.
+État au 11 octobre 2026. **Le bot habituel Asia fonctionne maintenant dans OpenClaw, en phase pilote.** L'ancien consommateur Windows est arrêté. Le propriétaire confirme les trois conversations Telegram et les médias entrants d'Asia. Les approbations Telegram et la reprise Windows restent à valider avant de déclarer la migration entièrement terminée.
 
 Asia conserve le bot actuel ; Développement et Recherche utilisent chacun un bot distinct. Les trois comptes OpenClaw sont connectés. Après la pause administrateur exécutée par le propriétaire, la transaction a contrôlé l'arrêt de l'ancien consommateur, transféré le budget et activé Asia sans conflit de polling observé. Recherche a ensuite été ajouté par une fusion validée, sans modifier les comptes Asia/Développement ni les limites budgétaires.
 
@@ -40,6 +40,8 @@ Asia conserve le bot actuel ; Développement et Recherche utilisent chacun un bo
 | Liste explicite des plugins retirant l'adaptateur de transcription auparavant auto-activé | Conservation explicite du plugin `openai` utilisé contre Speaches local, test de régression et revalidation audio des trois agents |
 | Sauvegarde Docker initiale n'incluant pas le nouveau journal de transfert | Inclusion explicite du journal privé dans l'archive chiffrée ; vérification refusant un point pilote sans ce journal |
 | Premier essai de délégation appelant un outil différé non chargé puis un paramètre d'attente incorrect | Consignes imposant découverte/lecture du schéma et `waitFor: "message"` ; nouveau parcours complet réussi |
+| Reçu du runner perdu si la publication échoue après exécution | Reproduction par coupure réelle, sauvegarde locale avant publication, liaison à la requête et republication sans réexécution ; [bilan détaillé](tests-robustesse.md) |
+| Reçus individuels exclus avec les snapshots jetables de formation | Inclusion des seuls marqueurs et résultats dans la sauvegarde chiffrée, sans copier les snapshots ni les journaux volumineux |
 
 Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw était en maintenance. L'essai a été relancé séquentiellement après l'état `healthy` et a réussi pour les trois agents. Ce résultat motive la règle d'exploitation : attendre la disponibilité, puis effectuer les changements de configuration un par un.
 
@@ -56,17 +58,17 @@ Le premier essai audio pendant un redémarrage a échoué : le stockage OpenClaw
 | Budget individuel et partagé | Clé épuisée refusée ; deux clés encore disponibles refusées par le budget de leur équipe épuisée | Dépense de fixture ; plafonds non instantanés sous concurrence |
 | Trois agents | Réponses avec la bonne identité ; dépenses attribuées à chaque clé | Requêtes artificielles courtes |
 | Espaces et sessions | Chaque agent lit/écrit son marqueur ; listes limitées à son agent ; historique voisin interdit ; marqueur voisin non divulgué ; shell indisponible | Politique dans un processus partagé, pas une frontière multi-utilisateur hostile ; le test négatif de fichier inclut le comportement du modèle |
-| Image | Carré rouge envoyé à OpenClaw, réponse correcte via LiteLLM | Ne valide pas encore la chaîne Telegram photo |
+| Image | Carré rouge envoyé à OpenClaw, réponse correcte via LiteLLM ; photo Telegram d'Asia ensuite confirmée par le propriétaire | Cette confirmation ne couvre pas les médias des deux spécialistes |
 | Pannes fournisseurs | Routeur LiteLLM réel, fournisseurs simulés, six cas réussis : texte, images Auto/manuelles, PDF, JSON strict, panne totale bornée | Simulation isolée sans réseau ; pas de panne infligée aux comptes fournisseurs |
 | API future application | Protocole 4, appairage, liste d'agents/sessions, streaming, idempotence, annulation, historique après reconnexion, refus d'écriture admin | Crash en plein appel d'outil et durée de déduplication non éprouvés |
-| Transcription | Fixture vocale synthétique comprise par chacun des trois agents avec Speaches local | Réception effective d'un vocal Telegram à tester |
+| Transcription | Fixture vocale synthétique comprise par chacun des trois agents avec Speaches local ; vocal Telegram d'Asia confirmé par le propriétaire | Vocaux Telegram des deux spécialistes non confirmés |
 | Synthèse | MP3 français généré par Microsoft ; contenu vérifié par transcription locale | Service externe sans garantie de disponibilité ; livraison Telegram non testée |
 | Redémarrage PostgreSQL | LiteLLM se reconnecte et conserve les comptes | Test de redémarrage propre, pas corruption du disque |
 | Retour arrière / recréation | Candidat arrêté, Windows toujours sain, quatre conteneurs recréés ; espaces, comptes, dépenses, sessions et appareil conservés | Pas de redémarrage complet de Windows |
 | Sauvegarde Docker | Sauvegarde native OpenClaw vérifiée et restaurée dans un emplacement distinct ; dump PostgreSQL restauré, 91 tables | Pas de restauration par-dessus un environnement actif |
 | Sécurité OpenClaw | 0 critique, 0 avertissement dans l'audit intégré après correction | Deux informations sur les frontières de confiance ; ce n'est pas un test d'intrusion |
-| Telegram Asia et Développement | Deux comptes actifs, bonnes associations, probes API réussis, aucun dernier échec ni conflit de polling observé ; réponse réelle d'Asia vérifiée après transfert par la Gateway | Échange depuis le compte utilisateur, photo, vocal et approbations à essayer ; aucun message de test envoyé à l'utilisateur |
-| Ajout Telegram Recherche | Token distinct et sans webhook, configuration validée avant écriture, comptes Asia/Développement identiques après fusion, trois probes réussis ; inférence Recherche réelle réussie et clé dans l'équipe budgétaire commune | Premier échange depuis le compte propriétaire à effectuer ; les outils de recherche web propres au spécialiste restent à configurer/valider |
+| Telegram Asia et Développement | Comptes et routes contrôlés ; le propriétaire confirme maintenant leurs réponses, plus photo et vocal pour Asia | Approbations Telegram et médias de Développement non confirmés ; provenance utilisateur explicitée dans le bilan |
+| Ajout Telegram Recherche | Token distinct, configuration validée, comptes existants préservés ; inférence réelle et budget commun vérifiés ; réponse Telegram confirmée par le propriétaire | Médias Telegram et outils de recherche web propres au spécialiste restent à configurer/valider selon le parcours |
 | Délégation Asia → spécialistes → Asia | Deux parcours réels réussis ; 20 contrôles sur le dernier : deux missions, réponses réelles, attente et synthèse du parent, contexte privé non copié, lecture des enfants par Asia, refus de lectures croisées, refus HTTP d'envoi/création chez les spécialistes, facturation propre aux trois clés | Sessions WebChat artificielles ; restitution Telegram, timeout, panne en mission et reprise après crash à éprouver. Les limites de quantité par demande et de durée sont détaillées dans [le guide](delegation.md) |
 | Connecteurs Asia | Tavily recherche/extraction, Playwright navigation/capture/refus `file://`, mémoire création/lecture/persistance ; appels d'un vrai tour Asia vérifiés | Crawl/map non exercés ; pas de reprise des connexions du navigateur Windows ; mémoire historique absente |
 | Tâches Windows d'Asia | Soumission et déduplication, commande en attente, refus natif sans exécution puis accord unique et sortie vérifiée ; accès 404 pour les autres agents. Test rejoué après transfert vers LiteLLM Docker | Commande artificielle `echo` ; boutons Telegram et questions OpenCode interactives à tester sur le canal final |
@@ -81,7 +83,7 @@ Restaurations de contrôle réussies sur les points Docker `docker-20261011T2103
 
 | Priorité | Observation | Action et critère de réussite |
 | --- | --- | --- |
-| Validation du pilote | Asia, Développement et Recherche actifs dans OpenClaw | Tester chaque conversation, texte, photo et vocal depuis le compte propriétaire Telegram ; valider les approbations d'Asia |
+| Validation du pilote | Trois conversations et photo/vocal d'Asia confirmés par le propriétaire | Valider les approbations d'Asia et, si utilisés, les médias des spécialistes |
 | Coordination | Asia délègue et reçoit les résultats dans des sessions séparées | Valider une synthèse sur Telegram, l'annulation et les scénarios de délai/panne ; garder les spécialistes sans échanges directs |
 | Stabilisation | PC de 12 Go, moins de 1 Go libre observé avec Windows et Docker en parallèle | Mesurer au repos et pendant deux tâches avec audio ; arrêter les services remplacés seulement après validation ; garder une marge mémoire suffisante sans boucle de redémarrage |
 | Validation après reprise | Démarrage Docker maintenant planifié et testé manuellement | Tester véritable ouverture de session, veille/réveil, réseau retardé et reprise des bots |
@@ -99,7 +101,9 @@ Restaurations de contrôle réussies sur les points Docker `docker-20261011T2103
 
 Le [premier cycle de formation supervisée](formation/bilan-cycle-1.md) ajoute un bac à sable temporaire, deux modules de diagnostic revus et des procédures par rôle. Recherche réussit les cas évalués après correction ; Asia reste supervisée pour la reprise après issue inconnue, et Développement pour le respect du périmètre. Les profils de formation et leurs droits temporaires ont été retirés. Le dépôt intégré passe 54 tests Node, 35 tests Python et la compilation ; la sauvegarde finale restaure OpenClaw et 91 tables PostgreSQL.
 
-La [reprise ciblée suivante](formation/bilan-reprise.md) valide les nouveaux scénarios d'Asia et les actions de Développement, avec une correction de formulation sur la lecture seule. Elle utilise une Gateway distincte, sans redémarrer les trois bots. Le dépôt passe désormais 57 tests Node et 39 tests Python. Les procédures revues sont installées ; les permissions de production restent inchangées. Cette réussite limitée aux cas évalués ne constitue pas une qualification d'autonomie générale.
+La [reprise ciblée suivante](formation/bilan-reprise.md) valide les nouveaux scénarios d'Asia et les actions de Développement, avec une correction de formulation sur la lecture seule. Elle utilise une Gateway distincte, sans redémarrer les trois bots. Le dépôt passe alors 57 tests Node et 39 tests Python. Les procédures revues sont installées ; les permissions de production restent inchangées. Cette réussite limitée aux cas évalués ne constitue pas une qualification d'autonomie générale.
+
+La [campagne de robustesse suivante](tests-robustesse.md) exerce de vraies coupures du transport et du processus de l'exécuteur de formation, sans modèle. Elle corrige la perte possible des reçus et leur omission dans la sauvegarde. Six scénarios réels, 57 tests Node et 47 tests Python passent ; la restauration vérifie 246 fichiers, dont 38 reçus, et 91 tables PostgreSQL. La confirmation Telegram du propriétaire est enregistrée séparément des résultats automatiques.
 
 Le pilote utilise les bots Asia, Développement et Recherche dans OpenClaw. Les anciennes données et les archives sont conservées pour le retour arrière. L'activation réelle et les contrôles techniques sont passés ; ils ne prouvent pas encore tous les parcours utilisateur Telegram ni la disponibilité après redémarrage Windows.
 

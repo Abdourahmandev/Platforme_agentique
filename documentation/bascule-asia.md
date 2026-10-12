@@ -6,7 +6,7 @@
 
 Dans le candidat, les appels réels ont validé Tavily (recherche et extraction), Playwright (navigation et capture de structure) et la mémoire MCP (écriture, lecture et persistance après redémarrage du serveur). Un tour réel d'Asia a utilisé les trois connecteurs ; ses appels et leurs résultats ont été contrôlés dans son historique de test. La transcription, les images et l'isolation des espaces/sessions ont également été revérifiées. Les essais n'ont envoyé aucun message Telegram.
 
-L'utilisateur a exécuté la pause administrateur Windows. Le contrôle d'absence des processus et du verrou a ensuite permis l'activation. Les deux comptes Telegram sont connectés, sans conflit de polling observé ; une inférence réelle d'Asia a réussi. Le runtime est `asia-pilot` et le journal `active`. Le test complet de passerelle Windows a été rejoué avec le nouveau LiteLLM : déduplication, attente, refus sans exécution et accord unique réussis. **Restent à valider par le propriétaire : texte, photo, vocal et boutons d'approbation dans Telegram.**
+L'utilisateur a exécuté la pause administrateur Windows. Le contrôle d'absence des processus et du verrou a ensuite permis l'activation. Les deux comptes Telegram sont connectés, sans conflit de polling observé ; une inférence réelle d'Asia a réussi. Le runtime est `asia-pilot` et le journal `active`. Le test complet de passerelle Windows a été rejoué avec le nouveau LiteLLM : déduplication, attente, refus sans exécution et accord unique réussis. **Le propriétaire confirme maintenant les réponses des trois bots, ainsi que photo et vocal pour Asia. Les boutons d'approbation Telegram restent à valider.** Voir les [preuves et limites](tests-robustesse.md).
 
 ## Connecteurs et périmètre
 
@@ -17,7 +17,7 @@ L'utilisateur a exécuté la pause administrateur Windows. Le contrôle d'absenc
 | Fichiers du navigateur | Seul le sous-répertoire `workspaces/asia` est monté | Aucun montage des clés OpenClaw ni des espaces Développement/Recherche ; les fichiers téléchargés restent à vérifier avant utilisation |
 | Mémoire | `@modelcontextprotocol/server-memory@1.0.0`, cache npm persistant, démarrage hors ligne | Fichier JSONL propre à Asia ; le chemin de mémoire Windows était absent. Les tours d'agents sont sérialisés pour éviter des écritures concurrentes |
 | Droits des autres agents | Refus explicite des trois serveurs MCP pour Développement et Recherche | Politiques locales à une Gateway de confiance ; pas une isolation hostile entre utilisateurs |
-| Texte, images, audio | Routage LiteLLM, transcription Speaches et synthèse Microsoft déjà configurée | Photo/vocal de bout en bout sur le compte Telegram Asia à valider après transfert |
+| Texte, images, audio | Routage LiteLLM, transcription Speaches et synthèse Microsoft déjà configurée ; texte/photo/vocal Asia confirmés par le propriétaire sur Telegram | Cette confirmation ne valide pas la livraison d'une réponse vocale de synthèse ni les médias des deux spécialistes |
 | Tâches Windows | Plugin natif `asia-opencode`, sessions propres à la passerelle, permissions OpenCode conservées | Commande synthétique testée avec refus puis accord unique natif ; suivi explicite des tâches longues, pas de notification autonome de fin |
 | Historique Windows | OpenCode reste installé et son historique est sauvegardé | Les anciennes conversations ne deviennent pas automatiquement des conversations OpenClaw |
 
@@ -81,6 +81,6 @@ Le retour arrière arrête OpenClaw, fige l'enveloppe Docker, conserve ses nouve
 
 Un échec pendant l'activation déclenche cette procédure. Une impossibilité de retour arrière laisse le nouveau consommateur arrêté et exige une inspection du journal privé ; elle ne justifie jamais deux consommateurs du même token.
 
-**Validation réalisée :** préparation, refus du double consommateur, tests unitaires de fusion et de budget, restaurations isolées Windows/Docker, bascule effective, contrôle des deux comptes et de la réponse Asia, passerelle Windows via le nouveau budget. **Non réalisée à ce stade :** scénario d'échec réel de cette transaction, redémarrage complet de Windows, veille/réveil et essais utilisateur Telegram Asia.
+**Validation réalisée :** préparation, refus du double consommateur, tests unitaires de fusion et de budget, restaurations isolées Windows/Docker, bascule effective, contrôle des comptes et de la réponse Asia, passerelle Windows via le nouveau budget ; confirmation du propriétaire pour les conversations des trois bots et les médias entrants d'Asia. **Non réalisée à ce stade :** scénario d'échec réel de cette transaction, redémarrage complet de Windows, veille/réveil et approbations Telegram.
 
 Références : [MCP OpenClaw](https://docs.openclaw.ai/cli/mcp/registry), [Tavily](https://docs.tavily.com/documentation/mcp), [Playwright MCP](https://github.com/microsoft/playwright-mcp), [mémoire MCP](https://github.com/modelcontextprotocol/servers/tree/main/src/memory).
