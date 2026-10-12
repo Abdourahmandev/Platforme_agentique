@@ -54,6 +54,14 @@ def copy_job_receipts(source,destination):
             shutil.copy2(receipt,destination/'jobs'/receipt.name)
 
 
+def copy_approval_receipts(source, destination):
+    # Keep native decision evidence without copying chat traces or CLI logs.
+    for receipt in source.glob('telegram-approval-test*-private.json'):
+        if re.fullmatch(r'telegram-approval-test(?:-[a-z0-9-]{1,40})?-private\.json', receipt.name) and receipt.is_file() and not receipt.is_symlink():
+            destination.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(receipt, destination / receipt.name)
+
+
 def create():
     backup.private(backup.STATE)
     backup.private(backup.DEST)
@@ -76,6 +84,7 @@ def create():
                          'telegram-add-recherche-private.json','delegation-private.json'):
             if (RUNTIME / filename).exists():
                 shutil.copy2(RUNTIME / filename, private / filename)
+        copy_approval_receipts(RUNTIME, private)
         shutil.copytree(RUNTIME / 'secrets', private / 'secrets')
         # Training keys, rollback journal and evaluation receipts remain private.
         # Large disposable job snapshots and dependency caches are reinstallable.
@@ -157,6 +166,9 @@ def verify(archive, restore=False):
         compose('exec','-T','openclaw','node','dist/index.js','backup','verify',remote,'--json')
         result = {'archive':str(archive),'files_verified':len(manifest['files']),
                   'handoff_journal_preserved':handoff.exists(),
+                  'approval_receipts_verified':sum(bool(re.fullmatch(
+                      r'runtime/telegram-approval-test(?:-[a-z0-9-]{1,40})?-private\.json',name))
+                      for name in manifest['files']),
                   'training_receipts_verified':sum(bool(re.fullmatch(
                       r'runtime/training/(?:cycles/cycle-[1-9][0-9]{0,3}/)?jobs/[a-f0-9]{32}\.(?:started|result)\.json',name))
                       for name in manifest['files']),

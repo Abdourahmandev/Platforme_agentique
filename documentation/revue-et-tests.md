@@ -1,6 +1,6 @@
 # Revue et bilan de migration
 
-État au 11 octobre 2026. **Le bot habituel Asia fonctionne maintenant dans OpenClaw, en phase pilote.** L'ancien consommateur Windows est arrêté. Le propriétaire confirme les trois conversations Telegram et les médias entrants d'Asia. Les approbations Telegram et la reprise Windows restent à valider avant de déclarer la migration entièrement terminée.
+État au 11 octobre 2026. **Le bot habituel Asia fonctionne maintenant dans OpenClaw, en phase pilote.** L'ancien consommateur Windows est arrêté. Le propriétaire confirme les trois conversations Telegram et les médias entrants d'Asia. Les approbations Telegram sont maintenant vérifiées ; la reprise Windows reste à valider avant de déclarer la migration entièrement terminée.
 
 Asia conserve le bot actuel ; Développement et Recherche utilisent chacun un bot distinct. Les trois comptes OpenClaw sont connectés. Après la pause administrateur exécutée par le propriétaire, la transaction a contrôlé l'arrêt de l'ancien consommateur, transféré le budget et activé Asia sans conflit de polling observé. Recherche a ensuite été ajouté par une fusion validée, sans modifier les comptes Asia/Développement ni les limites budgétaires.
 
@@ -83,7 +83,7 @@ Restaurations de contrôle réussies sur les points Docker `docker-20261011T2103
 
 | Priorité | Observation | Action et critère de réussite |
 | --- | --- | --- |
-| Validation du pilote | Trois conversations et photo/vocal d'Asia confirmés par le propriétaire | Valider les approbations d'Asia et, si utilisés, les médias des spécialistes |
+| Validation du pilote | Trois conversations et photo/vocal d'Asia confirmés ; accord unique et refus Telegram vérifiés | Valider les médias des spécialistes si utilisés ; voir les autres parcours restant ci-dessous |
 | Coordination | Asia délègue et reçoit les résultats dans des sessions séparées | Valider une synthèse sur Telegram, l'annulation et les scénarios de délai/panne ; garder les spécialistes sans échanges directs |
 | Stabilisation | PC de 12 Go, moins de 1 Go libre observé avec Windows et Docker en parallèle | Mesurer au repos et pendant deux tâches avec audio ; arrêter les services remplacés seulement après validation ; garder une marge mémoire suffisante sans boucle de redémarrage |
 | Validation après reprise | Démarrage Docker maintenant planifié et testé manuellement | Tester véritable ouverture de session, veille/réveil, réseau retardé et reprise des bots |
@@ -104,6 +104,8 @@ Le [premier cycle de formation supervisée](formation/bilan-cycle-1.md) ajoute u
 La [reprise ciblée suivante](formation/bilan-reprise.md) valide les nouveaux scénarios d'Asia et les actions de Développement, avec une correction de formulation sur la lecture seule. Elle utilise une Gateway distincte, sans redémarrer les trois bots. Le dépôt passe alors 57 tests Node et 39 tests Python. Les procédures revues sont installées ; les permissions de production restent inchangées. Cette réussite limitée aux cas évalués ne constitue pas une qualification d'autonomie générale.
 
 La [campagne de robustesse suivante](tests-robustesse.md) exerce de vraies coupures du transport et du processus de l'exécuteur de formation, sans modèle. Elle corrige la perte possible des reçus et leur omission dans la sauvegarde. Six scénarios réels, 57 tests Node et 47 tests Python passent ; la restauration vérifie 246 fichiers, dont 38 reçus, et 91 tables PostgreSQL. La confirmation Telegram du propriétaire est enregistrée séparément des résultats automatiques.
+
+La [validation des approbations Telegram](approbations-telegram.md) corrige leur destination privée et distingue expiration et refus humain. Après un premier essai expiré sans boutons, le propriétaire a réellement autorisé une commande puis refusé une autre. Les preuves natives et OpenCode confirment une exécution unique pour la première et aucune pour la seconde. Le dépôt passe 61 tests Node et 48 tests Python ; les journaux privés des approbations sont désormais inclus dans la sauvegarde chiffrée.
 
 Le pilote utilise les bots Asia, Développement et Recherche dans OpenClaw. Les anciennes données et les archives sont conservées pour le retour arrière. L'activation réelle et les contrôles techniques sont passés ; ils ne prouvent pas encore tous les parcours utilisateur Telegram ni la disponibilité après redémarrage Windows.
 

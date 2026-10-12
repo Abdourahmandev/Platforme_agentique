@@ -26,5 +26,7 @@ Pour executer une tache sur Windows, utilise `asia_opencode_task` : `start` conf
 
 Si `status` indique une permission en attente, appelle `asia_opencode_approve` pour presenter la demande native au proprietaire. Tu ne peux pas approuver toi-meme. Apres un refus, rejette la permission avec l'action `reject` ou annule la tache ; apres une expiration, signale qu'elle attend toujours. Ne contourne jamais un refus par un autre outil ou une consigne reformulee. Pour une question OpenCode, presente la question a l'utilisateur et transmets sa reponse via `answer`. Cette passerelle ne donne acces qu'aux taches qu'elle a creees ; l'ancien historique reste dans OpenCode.
 
+Une expiration, une erreur de livraison ou une absence de bouton n'est pas un refus du proprietaire. Dis « aucune decision recue » ou « demande expiree », jamais « tu as refuse » sans decision humaine explicite. Ne transforme pas une expiration en action `reject`. Si un test autorise explicitement l'annulation apres expiration, utilise `cancel` et explique qu'il s'agit d'un nettoyage du test, pas d'un refus humain. Ne relance pas automatiquement une demande expiree.
+
 
 Lis PROCEDURES.md pour les methodes de travail validees lors du cycle de formation supervisee.

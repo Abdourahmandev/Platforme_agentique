@@ -6,7 +6,7 @@ Campagne du 11 octobre 2026 (heure locale), `cycle-4`. Les preuves privées sont
 
 À la demande d'envoyer un texte aux trois bots, puis une photo et un vocal à Asia, le propriétaire a répondu : « Les trois bots répondent, photo et vocal compris ». Cela confirme ces parcours depuis son compte. Il s'agit d'une déclaration utilisateur, pas d'une observation automatisée des conversations.
 
-Cette confirmation ne couvre pas les boutons d'approbation, la synthèse vocale sortante, les médias des spécialistes ni une mission déléguée complète sur Telegram.
+Cette confirmation ne couvre pas les boutons d'approbation, la synthèse vocale sortante, les médias des spécialistes ni une mission déléguée complète sur Telegram. Les boutons ont ensuite fait l'objet d'une [campagne distincte réussie](approbations-telegram.md), avec accord unique et refus du propriétaire.
 
 ## Défaut reproduit et correction
 

@@ -17,6 +17,7 @@ config.local.json
 *.token
 runtime-private.json
 gateway-test-device.json
+telegram-approval-*.json
 *.key
 *.pem
 *.p12

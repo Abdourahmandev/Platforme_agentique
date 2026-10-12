@@ -56,7 +56,7 @@ def patch_for(config, owner):
         'tokenFile': '/home/node/.openclaw/credentials/telegram-asia.token',
         'dmPolicy': 'allowlist', 'allowFrom': [str(owner)], 'groupPolicy': 'disabled',
         'configWrites': False, 'joinIntro': False, 'mediaMaxMb': 20, 'streaming': {'mode': 'partial'},
-        'execApprovals': {'enabled': True, 'approvers': [str(owner)], 'target': 'channel', 'agentFilter': ['asia']},
+        'execApprovals': {'enabled': True, 'approvers': [str(owner)], 'target': 'dm', 'agentFilter': ['asia']},
     }
     bindings.append({'type': 'route', 'agentId': 'asia', 'match': {'channel': 'telegram', 'accountId': 'asia'}})
     return {'channels': {'telegram': channel}, 'bindings': bindings}

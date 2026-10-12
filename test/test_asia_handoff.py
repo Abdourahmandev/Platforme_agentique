@@ -42,6 +42,7 @@ class AsiaHandoffTests(unittest.TestCase):
         asia = patch['channels']['telegram']['accounts']['asia']
         self.assertEqual(asia['allowFrom'], ['42'])
         self.assertEqual(asia['groupPolicy'], 'disabled')
+        self.assertEqual(asia['execApprovals'], {'enabled': True, 'approvers': ['42'], 'target': 'dm', 'agentFilter': ['asia']})
         self.assertNotIn('botToken', asia)
         with self.assertRaisesRegex(ValueError, 'already enabled'):
             module.patch_for(patch, '42')

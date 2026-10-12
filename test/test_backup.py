@@ -106,6 +106,20 @@ class BackupTests(unittest.TestCase):
                          ['jobs/'+job+'.result.json','jobs/'+job+'.started.json'])
         self.assertEqual((destination/'jobs'/(job+'.result.json')).read_text(),'{"evidence":true}')
 
+    def test_approval_evidence_is_saved_without_chat_traces(self):
+        runtime = self.root / 'runtime'
+        runtime.mkdir()
+        receipts = ['telegram-approval-test-private.json', 'telegram-approval-test-dm-1-private.json']
+        excluded = ['telegram-approval-test-private.log', 'telegram-approval-test-dm-1-trace.json',
+                    'telegram-approval-other-private.json', 'unrelated-private.json']
+        for name in receipts + excluded:
+            (runtime / name).write_text('{"terminal_reason":"timeout"}')
+        destination = self.root / 'saved'
+        backup_docker.copy_approval_receipts(runtime, destination)
+        self.assertEqual(sorted(p.name for p in destination.iterdir()), sorted(receipts))
+        for name in receipts:
+            self.assertEqual((destination / name).read_bytes(), (runtime / name).read_bytes())
+
 
 if __name__ == '__main__':
     unittest.main()
