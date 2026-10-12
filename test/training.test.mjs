@@ -46,3 +46,15 @@ test('training writes stay in the four reviewed candidate paths including patche
   assert.equal(mutationError({toolName:'apply_patch',params:{input:'*** Begin Patch\n*** Update File: repo/infra/task-outcome.mjs\n@@\n-old\n+new\n*** End Patch'}},ctx),undefined);
   assert.equal(mutationError({toolName:'write',params:{path:'NOT_A_TRAINING_PATH'}},{agentId:'asia'}),undefined);
 });
+
+test('a mission can narrow the mutation scope, including to read only, but cannot expand it',()=>{
+  const ctx={agentId:'formation-developpement'};
+  const event={toolName:'write',params:{path:'repo/test/task-outcome.test.mjs'}};
+  assert.equal(mutationError(event,ctx,[event.params.path]),undefined);
+  assert.ok(mutationError(event,ctx,[]));
+  assert.ok(mutationError(event,ctx,null));
+  assert.ok(mutationError({toolName:'write',params:{path:'repo/package.json'}},ctx,['repo/package.json']));
+  const patch={toolName:'apply_patch',params:{input:'*** Begin Patch\n*** Update File: repo/infra/task-outcome.mjs\n@@\n-x\n+y\n*** End Patch'}};
+  assert.ok(mutationError(patch,ctx,[event.params.path]));
+  assert.ok(mutationError(patch,ctx,[]));
+});

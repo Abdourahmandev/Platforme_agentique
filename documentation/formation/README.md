@@ -2,6 +2,32 @@
 
 La formation porte sur les instructions, les methodes de travail et les outils. Aucun poids de DeepSeek/Gemini n'est reentraine. Le superviseur observe les vrais appels et recus, corrige les ecarts et ne retient que les procedures verifiees.
 
+La [reprise ciblee](bilan-reprise.md) utilise desormais une Gateway de formation distincte : volume, appareil operateur, cles et journaux propres, sans Telegram. Ce mode evite de redemarrer les bots. Le fonctionnement historique du premier cycle reste documente plus bas pour comprendre ses preuves et son rollback.
+
+## Nouveau cycle isole
+
+Utiliser un numero neuf : les journaux d'un cycle existant ne doivent jamais etre ecrases. `cycle-2` conserve une preparation en echec sans inference ; `cycle-3` contient la reprise terminee. Les noms de roles `formation-asia` et `formation-developpement` sont reutilisables parce que chaque Gateway possede un volume distinct.
+
+```powershell
+$env:ASIA_TRAINING_CYCLE = 'cycle-4' # exemple pour le prochain cycle
+python infra/training/isolated.py prepare
+node infra/training/probe.mjs
+```
+
+Le probe cree un appareil dedie et, au premier passage, conserve son identifiant de demande dans le fichier prive `pairing-request.json`. L'operateur approuve uniquement cet appareil avec la CLI `devices approve` dans le conteneur de ce cycle, puis relance le probe. Aucune cle ni aucun token ne doit etre colle dans Git ou un rapport. L'absence d'appairage n'autorise pas a desactiver l'authentification.
+
+Le plafond du cycle est le minimum entre 0,50 USD, le reste de l'enveloppe initiale de 5 USD, le credit fournisseur moins 0,25 USD et la marge de l'equipe existante. Les depenses de tous les cycles restent comptabilisees, meme leurs cles bloquees. Les campagnes sont en sequence. Les prochains scenarios doivent etre revus par l'operateur avant execution.
+
+Dans un autre terminal portant **la meme variable de cycle**, lancer `python infra/training/runner.py --seconds 3600`. A la racine du depot, executer ensuite `python infra/training/test_mutations.py`, `python infra/training/test_live.py`, puis `python infra/training/evidence.py baseline`. Les dependances des images officielles doivent avoir ete initialisees une fois avec `python infra/training/configure.py dependencies`.
+
+Une mission : `node infra/training/campaign.mjs reprise-asia`. Les missions nommees sont dans `curriculum-followup.json`, jamais dans la copie de travail initiale de l'agent. Un recu existant bloque toute resoumission. Le controle `mutationPaths` peut restreindre les ecritures aux deux tests ou a `[]` pour une mission en lecture seule. Son changement appartient uniquement au superviseur.
+
+Apres les missions, `python infra/training/evidence.py check` compare les fichiers, puis le superviseur examine aussi les appels d'outils. Une comparaison finale ne detecte pas a elle seule une ecriture ensuite effacee. Des fichiers SOUL/USER nouvellement materialises ne sont distingues comme modeles natifs que si leurs hashes correspondent exactement aux fichiers embarques ; les historiques restent a revoir.
+
+Cloture : `python infra/training/isolated.py stop` bloque les cles, arrete le runner, verifie/restaure l'archive native et arrete la Gateway separee. Les volumes, journaux et conteneur arrete sont conserves pour investigation ; un cycle neuf peut utiliser un autre nom. Une erreur de preparation ou d'arret ne declenche ni rejeu d'inference ni suppression de preuves. Examiner le journal avant toute reprise ; des jobs sans resultat doivent etre annules/reconcilies avant l'archivage.
+
+Retirer ensuite la variable du terminal avec `Remove-Item Env:ASIA_TRAINING_CYCLE`. Pour installer des procedures **revues** en production, `python infra/training/promote.py apply --revision cycle-4` cree un journal distinct. Le rollback correspondant utilise `rollback --revision cycle-4` et refuse d'ecraser des modifications ulterieures. La variable de formation doit etre absente pour cette promotion. Terminer par `python ops/backup-docker.py --restore-check` : les cycles et leurs archives natives sont inclus dans la sauvegarde chiffree.
+
 ## Programme et roles
 
 Douze missions principales : trois evaluations initiales, six exercices accompagnes et trois evaluations finales, chacune avec trois variantes. Une mission de correction explicite peut suivre un exercice en echec. Les tentatives incompletes restent dans le bilan ; elles ne sont pas effacees pour ameliorer les scores.

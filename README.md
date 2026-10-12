@@ -10,6 +10,8 @@ Asia peut désormais [déléguer des missions à Recherche et Développement](do
 
 Le [programme de formation supervisée](documentation/formation/README.md) entraîne les méthodes de travail sur une copie isolée du vrai projet. Son [bilan](documentation/formation/bilan-cycle-1.md) conserve les échecs, les corrections et les preuves. Il ne modifie pas les poids des modèles ni les permissions des bots. Le diagnostic local est disponible avec `node infra/platform-health.mjs`.
 
+La [reprise ciblée](documentation/formation/bilan-reprise.md) améliore la gestion des effets incertains par Asia et le respect du périmètre par Développement. Les exercices tournent désormais sur une Gateway distincte, sans redémarrer les bots ; leurs résultats et limites restent documentés.
+
 ```mermaid
 flowchart LR
     Browser[Téléphone / laptop] --> Tailscale[Tailscale privé]

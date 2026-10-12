@@ -125,6 +125,30 @@ test('token/password fields are excluded and the input is unchanged', () => {
   assert.deepEqual(Object.keys(result).sort(), ['issues', 'status']);
 });
 
+// Objet et sous-objets geles : assessHealth reste pure face a un instantane
+// profondement fige. ageHours=Infinity doit rester unknown (jamais ok), et une
+// donnee supplementaire (token) ne doit jamais etre recopiee dans le rapport.
+test('snapshot entierement gele, backup.ageHours=Infinity unknown, donnee en trop exclue', () => {
+  const input = Object.freeze({
+    services: Object.freeze([Object.freeze({name: 'gateway', healthy: true})]),
+    backup: Object.freeze({verified: true, ageHours: Infinity, token: 'TEST_CANARY_TOKEN'}),
+    delegation: Object.freeze({state: 'succeeded'}),
+  });
+  const before = structuredClone(input);
+  const result = assessHealth(input);
+  // Infinity n'est pas un age valide : etat inconnu, surtout pas un succes.
+  assert.equal(result.status, 'unknown');
+  // Aucune donnee supplementaire recopiee dans la sortie.
+  const serialized = JSON.stringify(result);
+  assert.ok(!serialized.includes('TEST_CANARY_TOKEN'));
+  assert.deepEqual(Object.keys(result).sort(), ['issues', 'status']);
+  // L'entree et ses sous-objets n'ont pas ete remplaces ni mutes.
+  assert.ok(Object.isFrozen(input.services));
+  assert.ok(Object.isFrozen(input.backup));
+  assert.equal(input.backup.ageHours, Infinity);
+  assert.deepEqual(input, before);
+});
+
 // Regressions finales : aucun texte arbitraire provenant de service.name ou
 // d'un delegation.state inconnu ne doit etre recopie dans le rapport.
 test('arbitrary service.name and unknown delegation.state are not echoed', () => {

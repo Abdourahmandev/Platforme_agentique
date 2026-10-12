@@ -73,6 +73,16 @@ def create():
             training.mkdir()
             for source in (RUNTIME / 'training').glob('*.json'):
                 shutil.copy2(source, training / source.name)
+            # Named cycles keep private receipts and an independently verified
+            # native Gateway archive. Never copy job snapshots or dependency caches.
+            for cycle in (RUNTIME / 'training/cycles').glob('cycle-*'):
+                if not cycle.is_dir() or cycle.is_symlink():
+                    continue
+                destination = training / 'cycles' / cycle.name
+                destination.mkdir(parents=True)
+                for source in [*cycle.glob('*.json'), cycle / 'openclaw.tar.gz']:
+                    if source.is_file() and not source.is_symlink():
+                        shutil.copy2(source, destination / source.name)
         shutil.copy2(ROOT / 'infra/compose.yaml', stage / 'compose.yaml')
         for folder in ('gateway','infra','ops'):
             shutil.copytree(ROOT / folder, stage / 'code' / folder,

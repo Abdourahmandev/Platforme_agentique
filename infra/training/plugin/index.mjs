@@ -16,7 +16,7 @@ export default {id:'asia-training',name:'Formation isolee',register(api){
     try{
       const control=JSON.parse(fs.readFileSync(root+'/control.json','utf8'));
       if(!control.active)throw Error('Formation suspendue');
-      const deniedMutation=mutationError(event,context);
+      const deniedMutation=mutationError(event,context,control.mutationPaths);
       if(deniedMutation)throw Error(deniedMutation);
       if(event.toolName==='training_run'&&context.agentId!=='formation-developpement')throw Error('Execution reservee au specialiste');
       if(event.toolName?.startsWith('tavily__')){

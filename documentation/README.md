@@ -16,6 +16,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Délégation entre agents](delegation.md) | Asia coordinatrice, missions séparées, résultats, permissions, coûts et tests |
 | [Formation supervisée](formation/README.md) | Exercices sur le projet, bac à sable, budget, qualification et retour arrière |
 | [Bilan du premier cycle](formation/bilan-cycle-1.md) | Résultats réels, corrections, limites et promotion revue par le superviseur |
+| [Reprise ciblée](formation/bilan-reprise.md) | Réconciliation d'Asia, périmètre de Développement et formation sans redémarrer les bots |
 | [Exploitation et sauvegardes](exploitation.md) | Démarrage, état, coûts, mises à jour et restauration |
 | [Retour arrière](rollback.md) | Arrêter le candidat et conserver/reprendre l'installation Windows |
 | [API de la future application](api.md) | Identités, sessions, streaming, annulation et reconnexion |

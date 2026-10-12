@@ -1,6 +1,7 @@
 """Private training state and bounded, non-shell Docker transport."""
 import json
 import os
+import re
 from pathlib import Path
 import subprocess
 import time
@@ -8,12 +9,15 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[2]
 PRIVATE = Path(os.environ.get('LOCALAPPDATA', '/tmp')) / 'AsiaDocker'
-STATE = PRIVATE / 'training'
+CYCLE = os.environ.get('ASIA_TRAINING_CYCLE', '')
+if CYCLE and not re.fullmatch(r'cycle-[1-9][0-9]{0,3}', CYCLE):
+    raise ValueError('Invalid training cycle; expected cycle-N')
+STATE = PRIVATE / 'training' / 'cycles' / CYCLE if CYCLE else PRIVATE / 'training'
 DOCKER = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker'
-GATEWAY = 'asia-platform-staging-openclaw-1'
+GATEWAY = 'asia-training-' + CYCLE if CYCLE else 'asia-platform-staging-openclaw-1'
 BASE = '/home/node/.openclaw'
 CONTROL = BASE + '/training-control'
-IDS = ['formation-asia', 'formation-recherche', 'formation-developpement']
+IDS = ['formation-asia', 'formation-developpement'] if CYCLE else ['formation-asia', 'formation-recherche', 'formation-developpement']
 TEAM = 'asia-platform-staging'
 NODE = 'node@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20'
 PYTHON = 'python@sha256:a1165e272e578941b84abc79e4ab38a0305cd12803a5c4247979ac7655f4d641'
@@ -63,12 +67,14 @@ def envfile(name):
              if '=' in line and not line.lstrip().startswith('#'))}
 
 
-def balances():
+def balances(include_search=True):
     result = {}
     for name, file, key, url in [
         ('deepseek', 'litellm.env', 'DEEPSEEK_API_KEY', 'https://api.deepseek.com/user/balance'),
         ('tavily', 'openclaw.env', 'ASIA_TAVILY_API_KEY', 'https://api.tavily.com/usage'),
     ]:
+        if name=='tavily' and not include_search:
+            continue
         # /usage is rate-limited independently of search. A short-lived verified
         # snapshot plus the tool quota avoids hammering this read-only endpoint.
         cache=STATE/'balance-cache.json'

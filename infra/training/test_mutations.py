@@ -16,8 +16,8 @@ script='''(async()=>{
   {toolName:"apply_patch",params:{input:"*** Begin Patch\\n*** Add File: .openclaw/tmp/formation-denied-probe.txt\\n+FIXTURE\\n*** End Patch"}}
  ];
  const result=cases.map(v=>({tool:v.toolName,...hook(v,ctx)}));
- if(result.some(v=>!v.block||!v.blockReason.includes("quatre fichiers")))throw Error("Mutation guard did not reject forbidden path");
- if(hook({toolName:"edit",params:{path:"repo/infra/task-outcome.mjs"}},ctx)!==undefined)throw Error("Allowed path blocked");
+ if(result.some(v=>!v.block||!v.blockReason.includes("fichiers autorises")))throw Error("Mutation guard did not reject forbidden path");
+ if(hook({toolName:"edit",params:{path:"repo/test/task-outcome.test.mjs"}},ctx)!==undefined)throw Error("Allowed path blocked");
  console.log(JSON.stringify({checks:result,allowed_path_preserved:true,method:"installed before_tool_call hook; no file mutation"}));
 })().catch(e=>{console.error(e.message);process.exitCode=1;});'''
 

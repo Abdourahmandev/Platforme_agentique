@@ -7,15 +7,16 @@ from configure import instructions
 
 def check():
     j=json.loads((STATE/'journal.json').read_text())
-    b=balances()
+    b=balances(include_search=j.get('search_enabled',True))
     credit=next(float(v['total_balance']) for v in b['deepseek'] if v['currency']=='USD')
     spend={a:float(api('/key/info',params={'key':key})['info'].get('spend') or 0) for a,key in j['keys'].items()}
     team=api('/team/info',params={'team_id':TEAM})['team_info']
     allowed=(j['status']=='active' and credit>0.25 and sum(spend.values())<min(4.0,j['budget_usd']*0.85)
              and float(team.get('spend') or 0)<float(team['max_budget'])
-             and b['tavily']['plan_usage']<b['tavily']['plan_limit'] and not b['tavily']['paygo_usage'])
+             and (not j.get('search_enabled',True) or
+                  (b['tavily']['plan_usage']<b['tavily']['plan_limit'] and not b['tavily']['paygo_usage'])))
     return {'continue':allowed,'deepseek_usd':credit,'spend_by_agent':spend,'training_spend_usd':sum(spend.values()),
-        'budget_usd':j['budget_usd'],'tavily':b['tavily']}
+        'budget_usd':j['budget_usd'],'tavily':b.get('tavily')}
 
 
 if __name__=='__main__':

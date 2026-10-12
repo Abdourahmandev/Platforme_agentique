@@ -141,6 +141,24 @@ test('sortie toujours limitee aux etats prevus et booleens', () => {
   }
 });
 
+// Objet gele : classifyTask ne doit ni muter l'entree ni autoriser une
+// relance quand accepted=true, terminal=cancelled et transportLost=true.
+// Un gele (Object.freeze) fait echouer toute ecriture en mode strict : le test
+// prouve l'absence de mutation, la lecture correcte et retrySafe=false.
+test('objet gele accepted=true/terminal cancelled/transportLost=true : lu sans mutation ni relance', () => {
+  const input = Object.freeze({
+    accepted: true,
+    terminal: 'cancelled',
+    transportLost: true,
+  });
+  const result = classifyTask(input);
+  assert.deepEqual(result, {state: 'cancelled', retrySafe: false});
+  assert.ok(Object.isFrozen(input));
+  assert.deepEqual(input, {accepted: true, terminal: 'cancelled', transportLost: true});
+  // Second appel : confirme qu'aucun etat cache n'a ete introduit dans l'entree.
+  assert.deepEqual(classifyTask(input), {state: 'cancelled', retrySafe: false});
+});
+
 test('aucune entree incertaine ne rend retrySafe true sans rejet confirme', () => {
   const inputs = [
     {}, {accepted: true}, {transportLost: true}, {accepted: true, transportLost: true},

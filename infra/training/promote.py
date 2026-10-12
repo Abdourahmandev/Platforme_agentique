@@ -1,8 +1,9 @@
 """Install reviewed production procedures with a compare-and-restore journal."""
 import argparse
 import json
+import re
 from datetime import datetime, timezone
-from common import BASE, ROOT, STATE, node, remote_write
+from common import BASE, CYCLE, PRIVATE, ROOT, STATE, node, remote_write
 
 JOURNAL=STATE/'promotion.json'
 LINE='\n\nLis PROCEDURES.md pour les methodes de travail validees lors du cycle de formation supervisee.\n'
@@ -56,5 +57,10 @@ def rollback():
 
 
 if __name__=='__main__':
-    p=argparse.ArgumentParser();p.add_argument('action',choices=['apply','rollback']);args=p.parse_args()
+    p=argparse.ArgumentParser();p.add_argument('action',choices=['apply','rollback']);p.add_argument('--revision');args=p.parse_args()
+    if CYCLE:raise SystemExit('Unset ASIA_TRAINING_CYCLE before promoting reviewed production procedures')
+    if args.revision:
+        if not re.fullmatch(r'cycle-[1-9][0-9]{0,3}',args.revision):raise SystemExit('Invalid procedure revision')
+        JOURNAL=PRIVATE/'training/cycles'/args.revision/'promotion.json'
+        if not JOURNAL.parent.is_dir():raise SystemExit('Unknown cycle; no procedure promotion')
     install() if args.action=='apply' else rollback()

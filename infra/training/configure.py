@@ -8,6 +8,7 @@ import os
 import subprocess
 import time
 from common import BASE, CONTROL, GATEWAY, IDS, NODE, PRIVATE, PYTHON, ROOT, STATE, TEAM, api, balances, docker, node, remote_json, remote_write
+from common import CYCLE
 
 JOURNAL = STATE / 'journal.json'
 COMM = ['agents_list','sessions_spawn','sessions_yield','subagents','sessions_send','conversations_send','conversations_turn','message']
@@ -148,6 +149,8 @@ def migrate_credentials():
 
 
 def apply():
+    if CYCLE:
+        raise RuntimeError('Use isolated.py prepare for a named cycle; legacy apply is disabled')
     if JOURNAL.exists():
         raise RuntimeError('Existing training journal; inspect before reapplying')
     backup=json.loads((PRIVATE/'docker-backup-result.json').read_text())
@@ -251,6 +254,8 @@ if __name__=='__main__':
     p=argparse.ArgumentParser()
     p.add_argument('action',choices=['dependencies','apply','stop','rollback','balances'])
     args=p.parse_args()
+    if CYCLE and args.action not in ('balances','dependencies'):
+        raise SystemExit('Use isolated.py for named cycles; legacy lifecycle is disabled')
     try:
         if args.action=='dependencies': dependencies();print('Dependencies prepared')
         elif args.action=='apply': apply()
