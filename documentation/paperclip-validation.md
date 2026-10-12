@@ -15,6 +15,7 @@
 | Développement : revue réelle | EQU-3, résultat puis correction après revue superviseur |
 | Conversation ordinaire sans tâche | Réponse finale d'Asia ; nombre de tickets inchangé, trois avant/après |
 | Demande explicite depuis une conversation | Un seul ticket supplémentaire EQU-4, créé par Asia, traité par Recherche, lien `/EQU/issues/EQU-4` retourné |
+| Demande réelle depuis Telegram du propriétaire | EQU-5 créé après clarification du périmètre ; lien retourné par Asia dans Telegram ; deux commentaires de Recherche et statut `in_review` vérifiés |
 | Clôture | Quatre tickets `in_review`, attribués au propriétaire pour validation |
 | Recréation puis redémarrage de Paperclip | Compte, entreprise, agents, tickets et commentaires conservés |
 | Redémarrage OpenClaw | Plugin chargé, Gateway accessible, trois comptes Telegram `running=true` et `probe.ok=true` |
@@ -48,7 +49,8 @@ L'archive contient la configuration finale du plugin et les secrets nécessaires
 5. **Passages annulés au transfert humain** : le moteur amont peut enregistrer `cancelled / issue_reassigned` après publication du résultat et affectation au propriétaire. Les résultats et commentaires sont conservés ; ce compteur ne prouve donc pas un échec du livrable.
 6. **Coûts** : lire LiteLLM pour les dépenses et budgets ; le zéro affiché dans Paperclip n'est pas une preuve de gratuité.
 7. **Ressources Windows** : Paperclip ajoute deux conteneurs à une machine de 12 Gio de RAM. Les limites mémoire sont configurées ; la disponibilité sous une charge prolongée n'a pas fait l'objet d'un test d'endurance.
-8. **Parcours Telegram** : le comportement conversation/ticket a été testé par Gateway dans une session synthétique privée. Il reste à essayer une demande de ticket depuis le téléphone du propriétaire. La réception Telegram est saine ; aucun nouveau message n'a été envoyé au propriétaire par les essais automatisés.
+8. **Parcours Telegram** : après les tests synthétiques, le propriétaire a envoyé une demande réelle puis précisé son périmètre. Asia a créé EQU-5 et renvoyé son lien dans Telegram ; Recherche a publié son résultat dans Paperclip. La réception, la création, l'attribution et la restitution sont vérifiées. Les traces restent privées.
+9. **Qualité du livrable EQU-5** : le comparatif demandé a été rendu sans consultation de sources web. Plusieurs affirmations sur Muse reposent sur des hypothèses du modèle. La livraison technique est validée, mais le contenu reste un brouillon à vérifier ; aucune approbation du fond ni clôture du ticket n'a été effectuée.
 
 Le test EQU-4 a été ajouté après la restauration de l'archive ci-dessus. Il vérifie la version finale du plugin : création explicite depuis une conversation, attribution à Recherche, lecture, prise en charge, commentaires et transfert humain. La limite mémoire de PostgreSQL a ensuite été relevée de 256 à 512 Mio, l'usage observé étant proche du premier plafond.
 
