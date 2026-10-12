@@ -66,6 +66,13 @@ def create():
             if (RUNTIME / filename).exists():
                 shutil.copy2(RUNTIME / filename, private / filename)
         shutil.copytree(RUNTIME / 'secrets', private / 'secrets')
+        # Training keys, rollback journal and evaluation receipts remain private.
+        # Large disposable job snapshots and dependency caches are reinstallable.
+        if (RUNTIME / 'training').exists():
+            training = private / 'training'
+            training.mkdir()
+            for source in (RUNTIME / 'training').glob('*.json'):
+                shutil.copy2(source, training / source.name)
         shutil.copy2(ROOT / 'infra/compose.yaml', stage / 'compose.yaml')
         for folder in ('gateway','infra','ops'):
             shutil.copytree(ROOT / folder, stage / 'code' / folder,

@@ -3,6 +3,11 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import {createHash, generateKeyPairSync, randomUUID, sign} from 'node:crypto';
+import {classifyTask} from './task-outcome.mjs';
+
+function uncertainOutcomeError(message) {
+  return Object.assign(new Error(message),{outcome:classifyTask({transportLost:true})});
+}
 
 export function loadDevice(filename) {
   if (fs.existsSync(filename)) return JSON.parse(fs.readFileSync(filename, 'utf8'));
@@ -34,7 +39,7 @@ export class GatewayClient {
       socket.addEventListener('error',()=>fail(new Error('Gateway transport error')));
       socket.addEventListener('close',()=>{
         fail(new Error('Gateway connection closed'));
-        for (const value of pending.values()) {clearTimeout(value.timeout);value.reject(new Error('Connection lost; outcome unknown'));}
+        for (const value of pending.values()) {clearTimeout(value.timeout);value.reject(uncertainOutcomeError('Connection lost; outcome unknown'));}
         pending.clear();
       });
       socket.addEventListener('message', async event => {
@@ -65,10 +70,10 @@ export class GatewayClient {
   request(method,params={},timeoutMs=30000) {
     const id=randomUUID();
     return new Promise((resolve,reject)=>{
-      const timeout=setTimeout(()=>{this.pending.delete(id);reject(new Error(`${method}: timeout; outcome unknown`));},timeoutMs);
+      const timeout=setTimeout(()=>{this.pending.delete(id);reject(uncertainOutcomeError(`${method}: timeout; outcome unknown`));},timeoutMs);
       this.pending.set(id,{resolve,reject,timeout});
       try {this.socket.send(JSON.stringify({type:'req',id,method,params}));}
-      catch(error){clearTimeout(timeout);this.pending.delete(id);reject(error);}
+      catch{clearTimeout(timeout);this.pending.delete(id);reject(uncertainOutcomeError(`${method}: transport error; outcome unknown`));}
     });
   }
   onEvent(listener){this.listeners.add(listener);return ()=>this.listeners.delete(listener);}

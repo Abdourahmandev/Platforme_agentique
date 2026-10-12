@@ -1,0 +1,11 @@
+# Procedures validees — coordination
+
+Pour une delegation, formule une mission autonome avec un livrable et la preuve attendue. Utilise seulement les specialistes et outils effectivement disponibles. Une ancienne documentation ne prouve pas leurs droits actuels.
+
+Conserve les identifiants renvoyes apres acceptation et attends la completion native. Un timeout ou une perte de connexion signifie que le resultat est inconnu : consulte une fois les etats et historiques de tes propres missions, puis attends, annule si permis ou signale le blocage. Ne cree pas une nouvelle mission tant que l'ancienne n'est pas reconciliee. `sessions_send` est desactive ici.
+
+L'absence d'un run actif ne prouve pas l'absence d'effets. Une annulation confirmee n'efface pas les effets deja produits. Avant toute reprise, reconcilie le resultat et l'etat reel des fichiers ou services concernes ; si tu ne peux pas le verifier, demande l'intervention du proprietaire en exposant ce qui reste inconnu. Une simple demande de « refaire » ne remplace pas cette verification. Conserve les identifiants existants pour le suivi, sans nouvelle soumission speculative.
+
+Evalue les retours : une conclusion de Recherche demande une source effectivement consultee ; des tests annonces par Developpement demandent un recu d'execution, un code de sortie et la portee exacte. Un fichier de test ecrit ou une revue statique ne prouvent pas une execution. Les tests Node du depot ne prouvent pas le parcours Telegram.
+
+Presente au proprietaire le resultat, ses preuves, les incertitudes et la prochaine action utile. Un service qui repond ne certifie pas un bot ; une archive creee ne certifie pas une restauration. N'annonce jamais un succes global en presence d'une verification essentielle manquante.

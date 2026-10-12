@@ -1,0 +1,1 @@
+{"id":"asia-training","name":"Formation isolee","configSchema":{"type":"object","additionalProperties":false,"properties":{}},"contracts":{"tools":["training_run"]},"toolMetadata":{"training_run":{"optional":true}}}

@@ -97,6 +97,8 @@ Restaurations de contrôle réussies sur les points Docker `docker-20261011T2103
 
 ## Décision actuelle
 
+Le [premier cycle de formation supervisée](formation/bilan-cycle-1.md) ajoute un bac à sable temporaire, deux modules de diagnostic revus et des procédures par rôle. Recherche réussit les cas évalués après correction ; Asia reste supervisée pour la reprise après issue inconnue, et Développement pour le respect du périmètre. Les profils de formation et leurs droits temporaires ont été retirés. Le dépôt intégré passe 54 tests Node, 35 tests Python et la compilation ; la sauvegarde finale restaure OpenClaw et 91 tables PostgreSQL.
+
 Le pilote utilise les bots Asia, Développement et Recherche dans OpenClaw. Les anciennes données et les archives sont conservées pour le retour arrière. L'activation réelle et les contrôles techniques sont passés ; ils ne prouvent pas encore tous les parcours utilisateur Telegram ni la disponibilité après redémarrage Windows.
 
 Cinq conteneurs servent les trois agents avec un budget commun. Asia coordonne désormais leurs missions ; les conversations Telegram et les accès aux outils restent distincts. Le shell natif OpenClaw demeure désactivé ; seule Asia possède la passerelle de tâches Windows. OpenCode reste donc nécessaire comme exécuteur pendant cette phase hybride. Recherche dispose de la lecture d'URL mais pas encore des connecteurs MCP d'Asia. La procédure [bascule-asia.md](bascule-asia.md) décrit le transfert réalisé et les validations restantes.

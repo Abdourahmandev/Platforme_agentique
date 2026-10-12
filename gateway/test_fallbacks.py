@@ -9,6 +9,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 from pathlib import Path
 import threading
+from types import SimpleNamespace
 import yaml
 from litellm import Router
 from routing_context import guard
@@ -80,6 +81,23 @@ async def main():
         if seen != expected:
             raise AssertionError(('Unexpected retry/fallback', seen))
         print(json.dumps({'test': 'bounded outage', 'passed': True, 'attempts': len(seen)}))
+        seen.clear()
+        failed = {'asia-rapide'}
+        data = await guard.async_pre_call_hook(SimpleNamespace(metadata={'purpose':'training'}), None,
+            {'model':'asia-rapide','messages':[{'role':'user','content':'Training fixture'}]}, None)
+        # This fixture replaces DeepSeek with an OpenAI-compatible loopback
+        # server. Preserve its provider extension across that test adapter.
+        data['extra_body'] = {'thinking':data.pop('thinking')}
+        router = Router(model_list=config['model_list'], **config['router_settings'])
+        try:
+            await router.acompletion(**data)
+        except Exception:
+            pass
+        else:
+            raise AssertionError('Expected training provider failure')
+        if seen != ['asia-rapide']:
+            raise AssertionError(('Training escaped verified provider', seen))
+        print(json.dumps({'test':'training no paid fallback','passed':True,'route':seen}))
     finally:
         server.shutdown()
         server.server_close()

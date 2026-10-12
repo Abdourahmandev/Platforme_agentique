@@ -8,6 +8,8 @@ Consulter la **[documentation du projet](documentation/README.md)** : architectu
 
 Asia peut désormais [déléguer des missions à Recherche et Développement](documentation/delegation.md) et synthétiser leurs réponses. Les spécialistes conservent leurs conversations séparées et ne peuvent pas communiquer directement entre eux.
 
+Le [programme de formation supervisée](documentation/formation/README.md) entraîne les méthodes de travail sur une copie isolée du vrai projet. Son [bilan](documentation/formation/bilan-cycle-1.md) conserve les échecs, les corrections et les preuves. Il ne modifie pas les poids des modèles ni les permissions des bots. Le diagnostic local est disponible avec `node infra/platform-health.mjs`.
+
 ```mermaid
 flowchart LR
     Browser[Téléphone / laptop] --> Tailscale[Tailscale privé]

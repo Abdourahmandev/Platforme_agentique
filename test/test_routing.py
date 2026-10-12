@@ -15,6 +15,19 @@ with patch.dict(sys.modules,{'litellm.integrations.custom_logger':stub}):
 
 
 class RoutingTests(unittest.IsolatedAsyncioTestCase):
+    async def test_training_cannot_fall_back_to_unverified_provider(self):
+        owner=types.SimpleNamespace(metadata={'purpose':'training'})
+        data={'model':'asia-rapide','messages':[{'role':'user','content':'hello'}],'fallbacks':['gemini-3.1-flash-lite']}
+        result=await routing.guard.async_pre_call_hook(owner,None,data,None)
+        self.assertEqual(result['fallbacks'],[])
+        self.assertEqual(result['max_fallbacks'],0)
+        self.assertEqual(result['thinking'],{'type':'disabled'})
+        self.assertEqual(result['reasoning_effort'],'none')
+        with self.assertRaises(ValueError):
+            await routing.guard.async_pre_call_hook(owner,None,dict(data,model='asia-auto'),None)
+        ordinary={'model':'asia-rapide','messages':data['messages'],'metadata':{'purpose':'training'}}
+        self.assertNotIn('max_fallbacks',await routing.guard.async_pre_call_hook(None,None,ordinary,None))
+
     async def test_task_identity_stable_for_tools_not_new_user_turn(self):
         messages=[{'role':'user','content':'hello'}]
         tool=messages+[{'role':'assistant','content':'calling tool'},{'role':'tool','content':'result'}]

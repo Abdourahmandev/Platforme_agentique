@@ -45,6 +45,15 @@ def task_identity(messages):
 class RoutingContext(CustomLogger):
     async def async_pre_call_hook(self, user_api_key_dict, cache, data, call_type):
         messages = data.get('messages') or []
+        # Trusted virtual-key metadata, never a flag supplied in a prompt/request.
+        # Training has confirmed DeepSeek credits only: no implicit paid fallback.
+        key_metadata = getattr(user_api_key_dict, 'metadata', None) or {}
+        if key_metadata.get('purpose') == 'training':
+            if data.get('model') != 'asia-rapide' or contains_image(messages) or requires_gemini(messages, data.get('response_format')):
+                raise ValueError('Training is restricted to the verified text route')
+            data.update(fallbacks=[], context_window_fallbacks=[], content_policy_fallbacks=[],
+                        max_fallbacks=0, num_retries=0, reasoning_effort='none', thinking={'type':'disabled'})
+            return data
         auto = data.get('model') == 'asia-auto'
         if auto and messages:
             metadata = dict(data.get('metadata') or {})
