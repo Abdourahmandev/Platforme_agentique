@@ -1,6 +1,6 @@
 # Context7 et GitHub pour Souleiman
 
-Les deux connecteurs MCP officiels sont configurés directement dans OpenClaw. Souleiman (`developpement`) peut les utiliser dans Telegram ou dans une mission confiée par Asia. Les consultations ne passent pas par OpenCode Windows ; les modifications de fichiers locaux et l'exécution des tests continuent à utiliser cette passerelle.
+Les deux connecteurs MCP officiels sont configurés directement dans OpenClaw. Souleiman (`developpement`) peut les utiliser dans Telegram. Après le raccordement de délégation décrit ci-dessous, une nouvelle mission confiée par Asia reçoit leurs outils de lecture. Les consultations ne passent pas par OpenCode Windows ; les modifications de fichiers locaux et l'exécution des tests continuent à utiliser cette passerelle.
 
 ## Périmètre
 
@@ -11,7 +11,16 @@ Les deux connecteurs MCP officiels sont configurés directement dans OpenClaw. S
 
 Le dépôt de travail par défaut est `Abdourahmandev/Platforme_agentique`. Les outils de fusion, suppression de fichiers, publication de fichiers, création de dépôt, commentaires et déclenchement de workflows ne sont pas exposés. Les tests de cette installation restent en lecture seule et ne publient aucun ticket, PR ou commentaire.
 
-Seul Souleiman reçoit `context7__*` et `github__*` dans sa liste d'outils. Les listes d'Asia et de Saredo restent inchangées. La connexion globale au serveur ne leur donne pas automatiquement le droit de l'utiliser. Paperclip reste le système de coordination : les tickets ne sont pas dupliqués automatiquement dans GitHub.
+Souleiman reçoit `context7__*` et `github__*`, limités par les filtres des serveurs aux outils ci-dessus. Asia reçoit explicitement les onze outils GitHub de lecture et les deux outils Context7, sans wildcard. Saredo ne reçoit aucun de ces connecteurs. La connexion globale au serveur ne donne pas automatiquement le droit de l'utiliser. Paperclip reste le système de coordination : les tickets ne sont pas dupliqués automatiquement dans GitHub.
+
+| Parcours | GitHub lecture | GitHub création/modification issue ou PR | Context7 |
+| --- | --- | --- | --- |
+| Souleiman, conversation directe | Oui, 11 outils | Oui, 3 outils sur demande | Oui |
+| Asia, conversation directe | Oui, 11 outils | Non | Oui |
+| Nouvelle mission Asia → Souleiman | Oui, 11 outils | Non | Oui |
+| Saredo, direct ou délégué | Non | Non | Non |
+
+OpenClaw 2026.10.1 capture le plafond d'outils du coordinateur lors de `sessions_spawn`, puis applique aussi les restrictions du spécialiste. Le spécialiste ne peut pas obtenir un outil absent du plafond parent. Voir la [politique native des sous-agents](https://docs.openclaw.ai/tools/subagents/tool-policy). Les anciens enfants conservent leurs droits capturés : une correction de configuration s'applique aux nouvelles missions, sans modifier les anciennes sessions.
 
 Context7 reçoit des questions de documentation générales, sans code privé ni secret. Les documents, fichiers et issues reçus sont des données externes, pas des instructions qui changent les autorisations de l'agent. Les quotas anonymes de Context7 peuvent limiter l'usage ; une clé pourra être ajoutée si nécessaire après vérification de l'offre choisie.
 
@@ -30,7 +39,10 @@ Les services MCP distants sont maintenus par leurs fournisseurs ; leur version s
 ```powershell
 python infra/configure-souleiman-connectors.py
 python infra/configure-souleiman-connectors.py --apply
+python infra/configure-github-delegation.py
+python infra/configure-github-delegation.py --apply
 node infra/test-souleiman-connectors.mjs
+node infra/test-github-delegation.mjs
 ```
 
 Le premier appel valide sans modifier le runtime. L'application sauvegarde les valeurs précédentes, ajoute l'environnement privé et recrée uniquement OpenClaw avec son image et ses volumes existants. L'installateur attend `/readyz` avant de modifier la configuration : le démarrage peut effectuer une maintenance SQLite. La migration automatique des notes `TOOLS.md` vers `AGENTS.md` est conservée.
@@ -41,16 +53,20 @@ En cas d'interruption après l'écriture de l'environnement, inspecter le journa
 python infra/configure-souleiman-connectors.py --resume
 ```
 
-Le test d'intégration vérifie les deux outils Context7, la lecture du dépôt privé et des résultats Actions, l'interdiction pour Asia et Saredo, puis un vrai tour de Souleiman avec les appels d'outils enregistrés. Cette session technique ne livre aucun message Telegram. Les détails restent dans `%LOCALAPPDATA%\AsiaDocker\souleiman-connectors-validation-private.json`.
+Le raccordement `configure-github-delegation.py` sauvegarde séparément les permissions d'Asia et les instructions des deux agents dans `%LOCALAPPDATA%\AsiaDocker\github-delegation-private.json`. Il ajoute les droits de lecture avec le mécanisme natif `config patch`, sans changer les secrets, les permissions Windows ni les sessions existantes. Les notes privées déjà présentes dans les instructions sont conservées. `--resume` reprend un déploiement en phase `prepared` après vérification des conflits.
 
-`--verify-saved` relit les traces d'un tour technique déjà terminé et vérifie les outils actuellement disponibles, sans relancer le modèle. L'inventaire effectif des sessions prouve les permissions MCP ; le point d'entrée HTTP `/tools/invoke` ne charge pas ces outils dynamiques dans cette version et ne convient pas à ce contrôle.
+Le test d'intégration des connecteurs vérifie les deux outils Context7, la lecture du dépôt privé et des résultats Actions, les outils d'Asia et l'absence d'accès de Saredo, puis un vrai tour direct de Souleiman. Ses détails restent dans `%LOCALAPPDATA%\AsiaDocker\souleiman-connectors-validation-private.json`.
 
-### Résultats du 12 octobre 2026
+Le test de délégation crée une conversation technique d'Asia, une vraie mission native vers Souleiman et une synthèse retournée à Asia. Il lit `Abdourahmandev/Simulateur_tax_qc`, force des pages de deux issues pour contrôler la pagination, compare les titres, états et descriptions aux résultats authentifiés de GitHub, et vérifie les droits effectifs du parent et de l'enfant. Il vérifie aussi les outils directs de Souleiman, l'absence de connecteurs de Saredo et la santé des trois comptes Telegram. Le rapport privé est `github-delegation-validation-private.json`. Ces tests ne livrent aucun message Telegram et ne modifient aucune issue.
+
+`--verify-saved` relit les traces d'un tour technique déjà terminé sans relancer le modèle. L'inventaire MCP est une vue du catalogue découvert par le runtime : un catalogue froid ou libéré après une mission peut être vide sans que l'authentification soit absente. Le test de délégation conserve donc l'inventaire de l'enfant capturé pendant son exécution ; les inventaires des conversations directes sont revérifiés. Après un rechargement qui invalide leurs catalogues, un nouveau test direct peut être nécessaire. Le point d'entrée HTTP `/tools/invoke` ne charge pas ces outils dynamiques dans cette version et ne convient pas à ce contrôle.
+
+### Installation initiale du 12 octobre 2026
 
 - Recherche d'une bibliothèque et consultation de sa documentation Context7 réussies.
 - Lecture du `package.json` privé et des résultats GitHub Actions réussie ; les quatorze outils sélectionnés existent côté fournisseur.
 - Souleiman a réellement appelé Context7 puis GitHub et retourné `expect(page).toHaveTitle()` et `asia-agent-app`, conformément aux sources. Le runtime enregistre les appels différés `tool_call` ainsi que les appels MCP correspondants.
-- Inventaire effectif : deux outils Context7 et quatorze outils GitHub pour Souleiman ; aucun de ces nouveaux outils pour Asia ou Saredo ; fusion absente.
+- Inventaire effectif initial : deux outils Context7 et quatorze outils GitHub pour Souleiman ; aucun de ces nouveaux outils pour Asia ou Saredo ; fusion absente. Ce test portait sur les conversations directes, pas sur les enfants délégués.
 - Santé Gateway correcte ; les trois comptes Telegram sont configurés, actifs et sans dernière erreur.
 - 68 tests Python et 71 tests Node réussis. Huit tests Python concernent spécifiquement cette installation, ses permissions, la conservation des notes et le rollback.
 
@@ -58,13 +74,31 @@ Le premier déploiement a attendu la fin d'une maintenance SQLite, puis conserv�
 
 Les créations et modifications GitHub sont configurées, mais n'ont pas été exécutées pendant ces tests. Le rollback est testé avec des configurations simulées ; aucun rollback réel ni nouveau parcours depuis le compte Telegram du propriétaire n'a été effectué dans cette étape.
 
+### Correction de la délégation
+
+Le parcours réel sur `Simulateur_tax_qc` a révélé une lacune du test initial : les outils fonctionnaient en direct, mais étaient absents de la mission créée par Asia. Celle-ci ne les avait pas dans son plafond d'outils. Le connecteur était pourtant authentifié et GitHub répondait correctement aux lectures du dépôt privé et des issues. L'absence de `gh` dans le PATH Windows et un 404 public ne permettaient donc pas de conclure à une absence d'authentification.
+
+Le raccordement ajoute les lectures au coordinateur et clarifie les instructions des deux agents. Il ne modifie ni le moteur OpenClaw ni les enveloppes de sécurité persistées. Les tests couvrent désormais explicitement le parcours délégué. En cas d'échec, examiner le rapport privé et distinguer une erreur d'authentification MCP d'un outil absent de l'inventaire ; ne pas demander au propriétaire de coller un token dans la conversation.
+
+Validation du 12 octobre 2026 :
+
+- Souleiman a lu la racine du dépôt privé et ses quatre issues ouvertes, en suivant deux pages. Les titres, états et descriptions lus correspondent à la réponse GitHub authentifiée ; la synthèse d'Asia inclut les quatre issues. Aucune issue fermée n'était présente au moment du test.
+- Les onze lectures GitHub et les deux outils Context7 sont visibles dans l'inventaire d'Asia et celui capturé pendant l'exécution de son enfant. Les trois outils GitHub de modification sont absents de ces deux inventaires et restent présents chez Souleiman en direct. Saredo reste sans ces connecteurs.
+- Le test direct Context7/GitHub a été réexécuté avec succès. Les trois comptes Telegram sont actifs côté Gateway ; ce contrôle ne remplace pas un nouveau message depuis le compte du propriétaire.
+- Les 76 tests Python et 71 tests Node passent, ainsi que la construction de l'application. Les huit nouveaux tests Python couvrent les permissions, les conflits et la préservation des notes au retour arrière. Aucun rollback de production n'a été exécuté.
+
+Le banc de test a été ajusté pour lire les résultats complets : `chat.history` tronque les textes à 8 000 caractères par défaut ; les résultats MCP portent aussi une enveloppe de contenu non fiable. Les appels imbriqués dans une réponse `sessions_history` ne sont pas attribués à l'agent qui la consulte. Les assertions ont ensuite été revérifiées sur les traces conservées, sans rejouer les lectures du dépôt.
+
+Dans la session technique testée, `sessions_yield` n'était pas exposé et une tentative a échoué. Asia a récupéré le résultat avec le `subagents` natif, `action: "wait"`, `runIds` et `timeoutSeconds: 60`, puis a livré la synthèse. Ses instructions indiquent maintenant ce cas et interdisent de répéter un identifiant d'outil absent. Cela reste un parcours modèle avec récupération d'erreur, pas une garantie d'absence de toute erreur d'appel future.
+
 ## Retour arrière
 
 ```powershell
+python infra/configure-github-delegation.py --rollback
 python infra/configure-souleiman-connectors.py --rollback
 ```
 
-Le retour arrière retire les deux connecteurs et restaure les permissions, instructions et environnement concernés. Il refuse les conflits détectés, conserve les modifications de configuration non concernées et ne supprime ni conversations, ni tickets, ni dépenses. Un retour arrière de configuration n'annule pas une opération GitHub exécutée ultérieurement par l'agent.
+Exécuter uniquement la première commande pour revenir à des connecteurs réservés à Souleiman en direct. Exécuter ensuite la seconde pour retirer également les connecteurs. L'ordre inverse provoquerait un conflit d'instructions détecté par la protection contre les modifications concurrentes. Le retour arrière restaure uniquement les permissions, instructions et environnement concernés ; il conserve les changements non concernés, les conversations, tickets et dépenses. Une ancienne mission conserve son plafond, mais les droits courants des agents et la présence des connecteurs restent aussi nécessaires. Un retour arrière de configuration n'annule pas une opération GitHub exécutée ultérieurement par l'agent.
 
 ## Exemples de demandes à Souleiman
 

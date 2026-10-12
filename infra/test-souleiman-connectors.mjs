@@ -77,11 +77,16 @@ try{
   const inventory=await client.request('sessions.list',{limit:200});
   report.otherAgents={};
   for(const agent of ['asia','recherche']){
-    const session=inventory.sessions?.find(s=>s.agentId===agent);
+    const session=inventory.sessions?.find(s=>s.agentId===agent&&!s.key.includes(':subagent:'));
     if(!session)throw Error('Missing existing session for '+agent);
     const tools=toolIds(await client.request('tools.effective',{sessionKey:session.key},70000));
     report.otherAgents[agent]={connectors:tools.filter(n=>/^(context7|github)__/.test(n))};
-    check(agent+'_new_connectors_unavailable',report.otherAgents[agent].connectors.length===0);
+    if(agent==='recherche')check('saredo_new_connectors_unavailable',report.otherAgents[agent].connectors.length===0);
+    else {
+      check('asia_read_connectors_available',tools.includes('github__list_issues')&&tools.includes('context7__query-docs'));
+      check('asia_github_writes_unavailable',['issue_write','create_pull_request','update_pull_request']
+        .every(name=>!tools.includes('github__'+name)));
+    }
   }
   const health=await client.request('health',{},70000);
   report.health=health;
