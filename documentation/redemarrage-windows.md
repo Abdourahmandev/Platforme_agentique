@@ -22,11 +22,19 @@ Le journal `%LOCALAPPDATA%/AsiaDocker/training/windows-restart-result.json` cons
 
 Le démarrage a été lent : presque huit minutes entre le démarrage Windows et le succès de la tâche. Pendant cette attente, l'application Ollama inutilisée s'était relancée avec environ 2,5 Gio de mémoire résidente, sans modèle chargé. La mémoire libre observée est descendue à 398 Mio. Les services et la passerelle avaient commencé à répondre avant son arrêt ; la tâche a terminé quatre secondes après. Cela ne prouve pas qu'Ollama soit l'unique cause du délai.
 
-Ollama a été arrêté, puis son seul raccourci `Ollama.lnk` retiré du dossier de démarrage automatique. Il est conservé sous `%LOCALAPPDATA%/AsiaDocker/training/disabled-startup`. Le journal `ollama-startup-disabled.json` contient le chemin d'origine, l'empreinte SHA-256 et les octets du raccourci pour la sauvegarde chiffrée. Aucun modèle ni programme n'a été désinstallé. Pour annuler cette modification, restaurer le raccourci à son chemin d'origine après vérification de l'empreinte et de l'absence d'un nouveau raccourci à cet endroit.
+Ollama a d'abord été arrêté, puis son seul raccourci `Ollama.lnk` retiré du dossier de démarrage automatique. Il est conservé sous `%LOCALAPPDATA%/AsiaDocker/training/disabled-startup`. Le journal `ollama-startup-disabled.json` contient le chemin d'origine, l'empreinte SHA-256 et les octets du raccourci pour la sauvegarde chiffrée. À cette étape, aucun modèle ni programme n'avait été désinstallé. La désinstallation demandée ensuite est décrite ci-dessous ; restaurer ce seul raccourci ne réinstalle pas le programme.
 
 La sauvegarde finale `D:\AsiaBackups\docker-20261012T042220-7dc044d5.aes` inclut les preuves privées du redémarrage et du retrait du raccourci. Sa restauration de contrôle réussit : 259 fichiers vérifiés, archive native OpenClaw restaurée dans un répertoire distinct et 91 tables PostgreSQL restaurées dans une base temporaire. Les données actives ne sont pas remplacées.
 
 Limite relevée : les appels Docker de `ops/start-docker.ps1` utilisent encore une attente de processus non bornée ; la boucle de quatre minutes ne garantit donc pas une échéance si un appel reste bloqué. Le Planificateur impose une limite globale de 25 minutes. Un délai par commande et un état explicite « démarrage en cours » constituent les prochains durcissements ; le rapport de succès doit toujours être daté après le démarrage Windows pour être valable. La veille/réveil reste distincte de ce test.
+
+## Désinstallation d'Ollama demandée ensuite
+
+Le 12 octobre, le propriétaire a demandé de désinstaller Ollama. Le désinstalleur enregistré et signé par Ollama Inc. a retiré la version 0.40.0 avec un code de sortie 0, sans redémarrage Windows. Les paramètres silencieux et `/NORESTART` sont documentés par [Inno Setup](https://jrsoftware.org/ishelp/topic_uninstcmdline.htm) ; Ollama décrit son [désinstalleur Windows](https://docs.ollama.com/windows).
+
+Contrôles réussis : absence d'entrée de désinstallation, de répertoire du programme, de processus et service Ollama, et d'écoute sur le port 11434. L'entrée Ollama du PATH utilisateur et l'ancien réglage réseau `OLLAMA_HOST` ont également été retirés. Les cinq services Docker restent sains et les trois comptes Telegram passent leur sonde native. Les preuves restent privées dans `training/ollama-uninstall.json` et `training/ollama-uninstall-platform-check.json`.
+
+Le dossier de modèles contenait encore `qwen2.5-coder:3b` (1 929 913 483 octets), non chargé et inutilisé par la plateforme. Le désinstalleur l'a laissé en place. La suppression complémentaire de `%USERPROFILE%/.ollama/models` a été bloquée par le contrôle automatique d'approbation (« blocked by policy ») et n'a pas été exécutée par l'agent. Le propriétaire a ensuite confirmé sa suppression manuelle ; un contrôle indépendant a vérifié l'absence du dossier. Le journal porte l'état `removed-by-owner-verified`. La corbeille n'a pas été contrôlée : cette vérification ne mesure pas l'espace disque effectivement libéré.
 
 ## État conservé avant le test
 
