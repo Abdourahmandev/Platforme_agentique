@@ -47,6 +47,23 @@ test('Paperclip: creation is attributed, reviewed by owner and replayed once',as
   assert.equal(body.executionPolicy.stages[0].participants[0].userId,'owner');
   await assert.rejects(client.call(normal,{...params,title:'Different'}),/parametres differents/);
 });
+test('Paperclip: human review is visible and a comment does not promise a restart',async t=>{
+  const pending={...item,status:'in_review',assigneeAgentId:null,assigneeUserId:'owner',
+    executionState:{returnAssignee:{type:'agent',agentId:agent},internalField:'private-state'}};
+  const {client,calls}=fixture(t,(url,options)=>url.pathname.endsWith('/comments')?
+    (options.method==='POST'?{id:'comment-1'}:[]):pending);
+  const result=await client.call(normal,{action:'get',issueId:issue});
+  assert.equal(result.ticket.assigneeUserId,'owner');assert.equal(result.ticket.awaitingHumanReview,true);
+  assert.equal(result.ticket.returnAgentId,agent);assert.equal(result.ticket.executionState,undefined);
+  const posted=await client.call(normal,{action:'comment',issueId:issue,requestId:'review-comment-1',body:'Merci de corriger les sources'});
+  assert.equal(posted.posted,true);assert.match(posted.notice,/ne confirme pas une relance/);
+  assert.equal(calls.filter(c=>c.options.method!=='GET').length,1);
+  assert.equal(calls.at(-1).route,`/api/issues/${issue}/comments`);
+  for(const active of [{...item,status:'in_review',assigneeUserId:null},{...pending,status:'done'}]){
+    const {client:reader}=fixture(t,url=>url.pathname.endsWith('/comments')?[]:active);
+    assert.equal((await reader.call(normal,{action:'get',issueId:issue})).ticket.awaitingHumanReview,false);
+  }
+});
 test('Paperclip: uncertain mutations are never silently retried',async t=>{
   const {client,calls}=fixture(t,()=>{throw Error('Connection lost');});
   const params={action:'create',requestId:'uncertain-test',ownerRequest:'Cree un ticket',title:'Etude',description:'Comparer'};

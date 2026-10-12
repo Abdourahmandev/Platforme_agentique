@@ -9,7 +9,7 @@ Installation du 12 octobre 2026. Paperclip complète les trois bots existants : 
 - Asia retourne le numéro du ticket et son lien. Les précisions sur cette même tâche deviennent des commentaires.
 - Dans Paperclip, **Tasks** affiche une liste ou un tableau. Ouvrir un ticket pour lire le travail, les échanges et les sous-tâches. **Agents** montre les trois responsables.
 - Un résultat passe en **In Review** et revient au propriétaire. Lire les livrables avant de le valider. Un résultat bloqué doit préciser la prochaine action attendue.
-- Pour demander une correction : commenter et réaffecter le ticket à l'agent concerné, avec le statut **Todo**. Cette réaffectation a été testée.
+- **Un commentaire seul ne relance pas un ticket In Review attribué au propriétaire.** Il faut une décision de demande de modifications pour rendre le travail à l'agent. De même, écrire « Je valide » ne clôture pas la tâche. Asia peut enregistrer un commentaire depuis Telegram, mais son outil actuel ne peut pas prendre ces décisions humaines ; elle doit expliquer cette limite.
 - Un commentaire dans Paperclip n'est pas automatiquement envoyé dans Telegram. Les discussions privées des bots ne sont pas recopiées dans les tickets.
 
 Accès privé : `https://desktop-ep5nvk0.taild656dc.ts.net:10443/EQU/issues`, avec Tailscale connecté sur le téléphone ou le laptop et ce PC disponible. L'accès distant a besoin de Tailscale **et** de la connexion Paperclip. L'adresse locale `http://localhost:3100` sert aux diagnostics ; utiliser l'adresse HTTPS pour se connecter, car les cookies de session sont sécurisés.
@@ -72,6 +72,13 @@ Le plugin [`asia-paperclip`](../infra/paperclip/plugin/index.mjs) expose `asia_t
 - Journal de mutations persistant avec création atomique du reçu avant l'appel. Une réponse perdue reste bloquée pour réconciliation ; aucun nouvel envoi automatique.
 - Un `requestId` réutilisé avec un contenu différent est refusé. Les relectures de résultats validés ne soumettent pas une seconde création.
 - Les 30 commentaires les plus récents sont triés chronologiquement, même si l'API les retourne dans l'ordre inverse.
+- Les lectures exposent aussi l'attribution humaine, `awaitingHumanReview` et l'agent de retour. La réponse d'ajout de commentaire précise qu'elle ne confirme pas une relance.
+
+### Retour après validation humaine
+
+Dans la version figée, l'opérateur connecté comme approbateur peut demander une correction par `PATCH /api/issues/<UUID>` avec `status: "in_progress"` et `comment` **dans la même requête**. Paperclip enregistre `changes_requested`, restaure automatiquement l'agent de retour et déclenche son travail. Le commentaire de décision peut référencer les précisions déjà publiées. Une validation finale utilise `status: "done"` avec son commentaire dans la même requête ; cette décision appartient au propriétaire. Les commentaires précédents ne satisfont pas cette exigence native.
+
+Ne pas remplacer ce mécanisme par un simple passage en `todo` : le compte administrateur peut alors contourner et effacer l'étape de revue au lieu d'enregistrer la décision. Ne pas multiplier les commentaires pour tenter de réveiller un agent. Vérifier ensuite le statut, l'attribution, le nouveau passage et le résultat livré. Ces transitions ne sont pas autorisées par l'outil des agents.
 
 La distinction conversation/tâche combine les instructions d'agent et la vérification d'une citation explicite (`ownerRequest`). **La citation est fournie par le modèle : ce n'est pas une preuve cryptographique du message Telegram d'origine.** Le test réel de conversation ordinaire passe, mais une future passerelle vérifiant directement le message utilisateur renforcerait ce contrôle. Les clés restent des clés d'agents Paperclip standard : le filtre du projet est une protection du plugin, pas une restriction intrinsèque de ces clés en cas de compromission.
 

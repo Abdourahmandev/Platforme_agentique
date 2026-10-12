@@ -25,7 +25,9 @@ export function assertCreate(context,params){
   if(!AGENTS.includes(params.assignee||'asia'))throw Error('Responsable inconnu');
 }
 const publicIssue=(item,url)=>Object.fromEntries(Object.entries({id:item.id,identifier:item.identifier,title:item.title,
-  description:item.description,status:item.status,assigneeAgentId:item.assigneeAgentId,parentId:item.parentId,
+  description:item.description,status:item.status,assigneeAgentId:item.assigneeAgentId,assigneeUserId:item.assigneeUserId,
+  awaitingHumanReview:item.status==='in_review'&&Boolean(item.assigneeUserId),
+  returnAgentId:item.executionState?.returnAssignee?.agentId??null,parentId:item.parentId,
   projectId:item.projectId,url:`${url}/issues/${item.identifier||item.id}`}).filter(([,v])=>v!==undefined));
 
 export class Tickets {
@@ -109,7 +111,8 @@ export class Tickets {
         expectedStatuses:['todo','backlog','blocked','in_review']},runId),cfg.publicUrl);
     }else if(params.action==='comment'){
       const comment=await request('POST',`/issues/${item.id}/comments`,{body:params.body},runId);
-      value={id:comment.id,issueId:item.id,posted:true};
+      value={id:comment.id,issueId:item.id,posted:true,
+        notice:'Commentaire enregistre; cela ne confirme pas une relance. Relire le ticket. Si in_review et attribue a un humain, une decision de demande de modifications est necessaire pour le rendre a l agent.'};
     }else{
       value=publicIssue(await request('PATCH',`/issues/${item.id}`,{status:params.status,comment:params.body},runId),cfg.publicUrl);
     }
