@@ -1,0 +1,1 @@
+{"id":"asia-publication","name":"Publication documentaire durable","configSchema":{"type":"object","additionalProperties":false,"properties":{}},"contracts":{"tools":["asia_publication"]},"toolMetadata":{"asia_publication":{"optional":true}}}

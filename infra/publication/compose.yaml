@@ -1,0 +1,36 @@
+name: asia-publication
+services:
+  publication:
+    image: node@sha256:d6aa754f16b3197301076f047b5def2f02ea1dbbc2ca920407d46d7ec7f87b20
+    restart: unless-stopped
+    user: '1000:1000'
+    working_dir: /app
+    command: [node, server.mjs]
+    read_only: true
+    cap_drop: [ALL]
+    security_opt: [no-new-privileges:true]
+    volumes:
+      - ${ASIA_PUBLICATION_DIR:?Private directory required}/app:/app:ro
+      - ${ASIA_PUBLICATION_DIR}/config.json:/run/private/config.json:ro
+    ports: ['127.0.0.1:18820:18820']
+    networks: [agents, database, outbound]
+    mem_limit: 256m
+    cpus: 0.5
+    pids_limit: 60
+    stop_grace_period: 30s
+    healthcheck:
+      test: [CMD, node, -e, 'fetch("http://127.0.0.1:18820/health").then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))']
+      interval: 20s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options: {max-size: 5m, max-file: '3'}
+networks:
+  agents:
+    external: true
+    name: asia-platform-staging_agents
+  database:
+    external: true
+    name: asia-paperclip_database
+  outbound: {}
