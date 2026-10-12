@@ -70,4 +70,3 @@ class WindowsAccessTests(unittest.TestCase):
                 write.assert_any_call('config', 'before');write.assert_any_call('plugin', 'old')
                 reload.assert_called_once()
                 self.assertEqual(json.loads(journal.read_text())['phase'], 'rolled-back')
-
