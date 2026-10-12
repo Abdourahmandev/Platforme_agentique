@@ -6,7 +6,7 @@ Le client technique [gateway-client.mjs](../infra/gateway-client.mjs) et ses [te
 
 | Identifiant | Usage |
 | --- | --- |
-| `agentId` | Identité stable : `asia`, `developpement`, `recherche` |
+| `agentId` | Identité stable : `asia` (Asia), `developpement` (Souleiman), `recherche` (Saredo) |
 | `accountId` | Compte du canal, par exemple le bot Telegram associé |
 | `sessionKey` | Conversation appartenant à un agent ; à conserver telle que renvoyée par OpenClaw |
 | `idempotencyKey` | Identité d'un envoi utilisateur, conservée jusqu'à confirmation |

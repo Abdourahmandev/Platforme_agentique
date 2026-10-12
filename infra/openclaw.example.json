@@ -36,8 +36,8 @@
     },
     "entries": {
       "asia": {"name": "Asia", "workspace": "/home/node/.openclaw/workspaces/asia", "agentDir": "/home/node/.openclaw/agents/asia/agent"},
-      "developpement": {"name": "Developpement", "workspace": "/home/node/.openclaw/workspaces/developpement", "agentDir": "/home/node/.openclaw/agents/developpement/agent"},
-      "recherche": {"name": "Recherche", "workspace": "/home/node/.openclaw/workspaces/recherche", "agentDir": "/home/node/.openclaw/agents/recherche/agent"}
+      "developpement": {"name": "Souleiman", "workspace": "/home/node/.openclaw/workspaces/developpement", "agentDir": "/home/node/.openclaw/agents/developpement/agent"},
+      "recherche": {"name": "Saredo", "workspace": "/home/node/.openclaw/workspaces/recherche", "agentDir": "/home/node/.openclaw/agents/recherche/agent"}
     }
   },
   "tools": {

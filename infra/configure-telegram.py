@@ -17,6 +17,7 @@ RUNTIME=Path(os.environ['LOCALAPPDATA'])/'AsiaDocker'
 DOCKER=r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
 EXEC=[DOCKER,'exec','-i','asia-platform-staging-openclaw-1']
 ACCOUNTS={'asia-test':'asia','developpement':'developpement','recherche':'recherche'}
+NAMES={key:value['name'] for key,value in json.loads((Path(__file__).parent/'agents/catalogue.json').read_text(encoding='utf-8')).items()}
 
 
 def run(args,data=None):
@@ -75,7 +76,7 @@ def main():
             if telegram(token,'getWebhookInfo').get('url'):
                 raise RuntimeError('A supplied bot already has a webhook; resolve its ownership first')
             ids.add(bot['id']);tokens[account]=token
-        accounts[account]={'name':agent,'enabled':True,
+        accounts[account]={'name':NAMES[agent],'enabled':True,
             'tokenFile':'/home/node/.openclaw/credentials/telegram-'+account+'.token',
             'dmPolicy':'allowlist','allowFrom':[owner],'groupPolicy':'disabled',
             'configWrites':False,'joinIntro':False,'mediaMaxMb':20,

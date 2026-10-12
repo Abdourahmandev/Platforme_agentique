@@ -37,6 +37,20 @@ test('Paperclip: latest comments are retained even when API returns newest first
   assert.equal(result.comments.length,30);assert.equal(result.comments[0].id,'5');
   assert.equal(result.comments.at(-1).id,'34');
 });
+test('Paperclip: display names resolve to existing IDs without exposing credentials',async t=>{
+  const {client,cfg}=fixture(t,url=>url.pathname.endsWith('/comments')?[]:
+    url.pathname.includes('/companies/')?[item]:item);
+  cfg.agents.developpement={id:project,name:'Souleiman',token:'private-dev'};
+  cfg.agents.recherche={id:company,name:'Saredo',token:'private-research'};
+  for(const params of [{action:'get',issueId:issue},{action:'list'}]){
+    const result=await client.call(normal,params);
+    assert.deepEqual(result.agentDirectory.find(a=>a.name==='Souleiman'),{agentId:'developpement',paperclipId:project,name:'Souleiman'});
+    assert.deepEqual(result.agentDirectory.find(a=>a.name==='Saredo'),{agentId:'recherche',paperclipId:company,name:'Saredo'});
+    assert.ok(!JSON.stringify(result).includes('private-dev'));
+    assert.ok(!JSON.stringify(result).includes('private-research'));
+  }
+  assert.throws(()=>assertCreate(normal,{ownerRequest:'Cree un ticket',assignee:'Souleiman'}),/Responsable inconnu/);
+});
 test('Paperclip: creation is attributed, reviewed by owner and replayed once',async t=>{
   const {client,calls}=fixture(t,()=>item);
   const params={action:'create',requestId:'create-test-1',ownerRequest:'Cree un ticket',title:'Etude',description:'Comparer les options'};

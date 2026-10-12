@@ -8,7 +8,7 @@
 | `server.mjs` | Accès local/Tailscale propriétaire, CSRF, API de façade, flux OpenCode | API Gateway OpenClaw pour la future application |
 | `request-journal.mjs` | Journal SQLite et réconciliation des envois incertains, sans répétition aveugle | Idempotence et historique Gateway testés ; garanties après crash à approfondir |
 | OpenCode et `integrations/opencode/` | Exécution d'agent et outils MCP | OpenClaw pour la conversation ; `infra/opencode-bridge/` conserve les tâches Windows d'Asia via OpenCode et ses permissions. Le spécialiste n'a pas cette passerelle |
-| `integrations/telegram/` | Bot unique, correctif autorisant seulement les conversations privées | Ancien consommateur arrêté ; comptes natifs Asia, Développement et Recherche actifs, un bot distinct par agent |
+| `integrations/telegram/` | Bot unique, correctif autorisant seulement les conversations privées | Ancien consommateur arrêté ; comptes natifs Asia, Souleiman et Saredo actifs, un bot distinct par agent |
 | `integrations/speech/` | Transcription Whisper dans un service Python Windows | Image Speaches et volume de modèles |
 | `gateway/` | LiteLLM, catalogue et routage économique | Même configuration dans l'image LiteLLM, désormais utilisée par OpenClaw et OpenCode avec le budget commun |
 | PostgreSQL Windows | Clés, limites et comptabilité LiteLLM | PostgreSQL 17.11, migration logique de 91 tables |
@@ -44,7 +44,7 @@ Définir un identifiant stable, une mission et un bot distinct. Prévoir un work
 
 Les instructions `AGENTS.md` orientent le comportement du modèle. Elles ne remplacent ni les contrôles d'outils, ni les budgets, ni une séparation de processus lorsque des identités doivent être réellement isolées.
 
-Recherche est joignable sur Telegram, avec sa clé, ses sessions et son workspace. Son activation ne lui accorde pas les connecteurs d'Asia : la lecture d'URL est disponible, mais la recherche web spécialisée et ses connecteurs restent à configurer et valider séparément.
+Saredo (identifiant stable `recherche`, anciennement Recherche) est joignable sur Telegram, avec sa clé, ses sessions et son workspace. Son activation ne lui accorde pas les connecteurs d'Asia : la lecture d'URL est disponible, mais la recherche web spécialisée et ses connecteurs restent à configurer et valider séparément. Souleiman conserve l'identifiant `developpement` ; voir le [catalogue des noms et le changement contrôlé](renommage-agents.md).
 
 La [délégation native](delegation.md) permet à Asia de confier des missions aux deux spécialistes. `infra/configure-delegation.py` applique les permissions, la portée des sessions et les instructions ; `infra/test-delegation.mjs` vérifie les appels et retours réels. Les résultats remontent à Asia sans messagerie directe entre spécialistes.
 

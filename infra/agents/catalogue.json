@@ -1,0 +1,5 @@
+{
+  "asia": {"name": "Asia", "role": "Coordination et assistance personnelle", "aliases": []},
+  "developpement": {"name": "Souleiman", "role": "Conception et revue de code", "aliases": ["Developpement", "Développement"]},
+  "recherche": {"name": "Saredo", "role": "Analyse et verification des sources", "aliases": ["Recherche"]}
+}

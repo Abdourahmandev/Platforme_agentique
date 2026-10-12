@@ -11,7 +11,7 @@ export default {id:'asia-paperclip',name:'Tickets des agents',register(api){
       action:{type:'string',enum:['list','get','create','checkout','comment','update']},issueId:string,
       requestId:{type:'string',description:'Identifiant stable de mutation, 8 a 100 caracteres; conserver en cas de resultat incertain.'},
       runId:{type:'string',description:'PAPERCLIP_RUN_ID du reveil courant, requis pour les mutations depuis un ticket.'},
-      title:string,description:string,assignee:{type:'string',enum:['asia','developpement','recherche']},parentId:string,
+      title:string,description:string,assignee:{type:'string',enum:['asia','developpement','recherche'],description:'Identifiant stable, jamais le nom affiche : Souleiman = developpement, Saredo = recherche, Asia = asia. Voir agentDirectory dans list/get.'},parentId:string,
       ownerRequest:{type:'string',description:'Citation exacte de la demande explicite de creation du proprietaire, pour un nouveau ticket depuis Telegram.'},
       body:string,status:{type:'string',enum:['blocked','in_review']}}},
     async execute(callId,params){try{const value=await tickets.call(context,params);return {content:[{type:'text',text:JSON.stringify(value)}],details:value};}

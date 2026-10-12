@@ -5,7 +5,7 @@ Installation du 12 octobre 2026. Paperclip complète les trois bots existants : 
 ## Utilisation
 
 - Une question ou une conversation normale ne crée **aucun ticket**.
-- Pour suivre un travail : demander à Asia « Crée une tâche pour comparer les solutions de sauvegarde et confie-la à Recherche ».
+- Pour suivre un travail : demander à Asia « Crée une tâche pour comparer les solutions de sauvegarde et confie-la à Saredo ».
 - Asia retourne le numéro du ticket et son lien. Les précisions sur cette même tâche deviennent des commentaires.
 - Dans Paperclip, **Tasks** affiche une liste ou un tableau. Ouvrir un ticket pour lire le travail, les échanges et les sous-tâches. **Agents** montre les trois responsables.
 - Un résultat passe en **In Review** et revient au propriétaire. Lire les livrables avant de le valider. Un résultat bloqué doit préciser la prochaine action attendue.
@@ -33,7 +33,7 @@ flowchart LR
 
 Paperclip utilise l'adaptateur officiel `openclaw_gateway`. Les agents ne sont pas recréés dans un nouveau moteur : leurs profils Paperclip désignent les agents OpenClaw `asia`, `recherche`, `developpement`. Les sessions de travail sont `agent:<nom>:paperclip:issue:<UUID>`, distinctes des conversations Telegram.
 
-Asia coordonne et crée les sous-tâches. Recherche et Développement lisent et commentent les tickets du projet partagé, avec attribution de leur identité ; ils ne créent pas d'autres agents ni de nouvelles tâches. Les permissions OpenClaw existantes restent applicables : Développement produit des propositions sans shell, Recherche dispose de ses outils actuels, et les actions Windows d'Asia restent soumises au mécanisme d'approbation OpenCode. Paperclip n'ajoute pas de connecteur Google.
+Asia coordonne et crée les sous-tâches. Saredo et Souleiman lisent et commentent les tickets du projet partagé, avec attribution de leur identité ; ils ne créent pas d'autres agents ni de nouvelles tâches. Les permissions OpenClaw existantes restent applicables : Souleiman produit des propositions sans shell, Saredo dispose de ses outils actuels, et les actions Windows d'Asia restent soumises au mécanisme d'approbation OpenCode. Paperclip n'ajoute pas de connecteur Google.
 
 Une tâche suivie dans Paperclip doit être déléguée par sous-tâche, sans doubler la même mission avec `sessions_spawn`. La délégation conversationnelle historique reste disponible hors tickets. Les agents peuvent lire les tickets du projet partagé ; cette installation n'est pas un système d'isolation entre plusieurs clients confidentiels.
 
@@ -116,9 +116,9 @@ La sauvegarde antérieure à l'ajout, vérifiée avec restauration, est `docker-
 
 ## Validation et limites constatées
 
-Le pilote comprend **EQU-1** (coordination Asia), **EQU-2** (Recherche) et **EQU-3** (Développement, créé par Asia). Les commentaires sont attribués aux bons agents et visibles dans l'interface HTTPS. Recherche a fourni trois recommandations ; Asia les a lues et transmises dans sa sous-tâche ; Développement a livré une revue puis une correction demandée par le superviseur. Ce sont des propositions, pas du code appliqué automatiquement.
+Le pilote comprend **EQU-1** (coordination Asia), **EQU-2** (Saredo) et **EQU-3** (Souleiman, créé par Asia). Les commentaires sont attribués aux bons agents et visibles dans l'interface HTTPS. Saredo a fourni trois recommandations ; Asia les a lues et transmises dans sa sous-tâche ; Souleiman a livré une revue puis une correction demandée par le superviseur. Ce sont des propositions, pas du code appliqué automatiquement.
 
-La première proposition de Développement permettait encore un retry après une réponse perdue. Elle a été rejetée et corrigée dans le ticket : ce cas illustre pourquoi la revue humaine reste nécessaire, même quand le transport et les contrôles techniques fonctionnent.
+La première proposition de Souleiman permettait encore un retry après une réponse perdue. Elle a été rejetée et corrigée dans le ticket : ce cas illustre pourquoi la revue humaine reste nécessaire, même quand le transport et les contrôles techniques fonctionnent.
 
 Dans cette version amont, le transfert d'une tâche à l'approbateur humain peut terminer le passage avec `cancelled / issue_reassigned`. Cela n'efface pas le commentaire livré ni le statut **In Review**. Vérifier le ticket et le résultat, pas seulement le compteur de passages « Succeeded ». Cette particularité de présentation reste présente.
 

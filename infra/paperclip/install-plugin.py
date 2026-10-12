@@ -21,7 +21,8 @@ def install():
     for source in (c.ROOT/'infra/paperclip/plugin').iterdir():
         if source.is_file():g.remote_write(g.BASE+'/extensions/asia-paperclip/'+source.name,source.read_text(encoding='utf-8'))
     state=c.read('deployment.json')
-    keys={name:{'id':value['id'],'token':c.read('key-'+name+'.json')['token']} for name,value in state['agents'].items()}
+    catalogue=json.loads((c.ROOT/'infra/agents/catalogue.json').read_text(encoding='utf-8'))
+    keys={name:{'id':value['id'],'name':catalogue[name]['name'],'token':c.read('key-'+name+'.json')['token']} for name,value in state['agents'].items()}
     credentials={'enabled':True,'apiUrl':'http://paperclip:3100','publicUrl':state['public_url'].rstrip('/')+'/'+c.read('company.json')['issuePrefix'],
                  'companyId':c.read('company.json')['id'],'projectId':c.read('project.json')['id'],
                  'ownerId':c.read('owner.json')['userId'],'agents':keys}

@@ -1,18 +1,18 @@
 # Délégation coordonnée par Asia
 
-Depuis le 11 octobre 2026, Asia peut confier des missions à Recherche et Développement et réunir leurs résultats. Chaque spécialiste garde son bot Telegram, son workspace et sa clé LiteLLM. Les missions utilisent des sessions natives OpenClaw distinctes des conversations Telegram personnelles.
+Depuis le 11 octobre 2026, Asia peut confier des missions à Saredo et Souleiman et réunir leurs résultats. Chaque spécialiste garde son bot Telegram, son workspace et sa clé LiteLLM. Les missions utilisent des sessions natives OpenClaw distinctes des conversations Telegram personnelles.
 
 ```mermaid
 flowchart TD
     U[Propriétaire dans Telegram] --> A[Asia coordonne]
-    A -->|Mission et contexte utile| R[Recherche]
-    A -->|Mission et contexte utile| D[Développement]
+    A -->|Mission et contexte utile| R[Saredo]
+    A -->|Mission et contexte utile| D[Souleiman]
     R -->|Résultat de mission| A
     D -->|Résultat de mission| A
     A -->|Synthèse| U
 ```
 
-Recherche et Développement ne peuvent pas se contacter directement ni créer leurs propres sous-agents. Le retour vers Asia passe par la livraison native du résultat ; ils n'ont pas d'outil d'envoi inter-agent. Les trois bots restent utilisables directement par le propriétaire.
+Saredo et Souleiman ne peuvent pas se contacter directement ni créer leurs propres sous-agents. Le retour vers Asia passe par la livraison native du résultat ; ils n'ont pas d'outil d'envoi inter-agent. Les trois bots restent utilisables directement par le propriétaire.
 
 ## Mécanisme et permissions
 
@@ -23,7 +23,7 @@ La version installée est OpenClaw 2026.10.1. La délégation utilise `sessions_
 - `tools.sessions.visibility` passe à `tree` : le demandeur voit sa conversation et ses missions. Il n'obtient pas l'accès aux conversations Telegram des spécialistes. La session canonique `main` conserve l'exception native pour les sessions de son propre agent.
 - Les spécialistes ont un refus explicite des outils d'orchestration, de messagerie et d'envoi externe. Le même refus est appliqué aux sous-agents. La profondeur maximale est de un niveau ; Swarm est désactivé.
 - Le contexte demandé est `isolated`. Les instructions imposent de transmettre uniquement la consigne et les données utiles. Le test place une donnée privée artificielle dans la conversation mère et vérifie son absence dans les deux missions.
-- Les outils existants d'Asia et les permissions Windows restent en place. Une mission ne vaut jamais autorisation d'exécuter une commande Windows. Recherche dispose actuellement de lecture d'URL ; Développement propose et révise du code sans shell.
+- Les outils existants d'Asia et les permissions Windows restent en place. Une mission ne vaut jamais autorisation d'exécuter une commande Windows. Saredo dispose actuellement de lecture d'URL ; Souleiman propose et révise du code sans shell.
 
 Le résultat d'un spécialiste reste une donnée à vérifier. Les instructions ne remplacent pas les contrôles de permissions ; les espaces et processus restent ceux d'une Gateway de confiance à propriétaire unique.
 
@@ -57,8 +57,8 @@ Cette commande restaure les politiques et les fichiers `AGENTS.md` précédents.
 
 ## Validation
 
-`infra/test-delegation.mjs` crée une conversation WebChat artificielle, puis fait déléguer par Asia une tâche à Recherche et une à Développement. Il contrôle les deux sessions réelles, leurs réponses, le retour dans la conversation mère, l'attente native, l'absence de la donnée privée, la lecture des missions par Asia, le refus de lecture entre spécialistes et le refus de lecture d'une conversation étrangère par Asia. Il vérifie aussi les refus HTTP des outils d'envoi/création chez les spécialistes et la facturation des trois agents. Ces refus HTTP complètent les politiques vérifiées ; ils ne suffisent pas seuls à prouver toute l'isolation du moteur.
+`infra/test-delegation.mjs` crée une conversation WebChat artificielle, puis fait déléguer par Asia une tâche à Saredo et une à Souleiman. Il contrôle les deux sessions réelles, leurs réponses, le retour dans la conversation mère, l'attente native, l'absence de la donnée privée, la lecture des missions par Asia, le refus de lecture entre spécialistes et le refus de lecture d'une conversation étrangère par Asia. Il vérifie aussi les refus HTTP des outils d'envoi/création chez les spécialistes et la facturation des trois agents. Ces refus HTTP complètent les politiques vérifiées ; ils ne suffisent pas seuls à prouver toute l'isolation du moteur.
 
-Les essais n'envoient aucun message Telegram. La restitution sur le bot réel doit encore être essayée par le propriétaire, par exemple : « Asia, demande à Recherche d'analyser cette idée, puis à Développement de proposer une solution, et fais-moi une synthèse. » Les tests de timeout, panne pendant une mission et reprise après redémarrage ne sont pas encore réalisés.
+Les essais n'envoient aucun message Telegram. La restitution sur le bot réel doit encore être essayée par le propriétaire, par exemple : « Asia, demande à Saredo d'analyser cette idée, puis à Souleiman de proposer une solution, et fais-moi une synthèse. » Les tests de timeout, panne pendant une mission et reprise après redémarrage ne sont pas encore réalisés.
 
 Rapport synthétique privé : `delegation-test-result.json`. Les historiques artificiels restent hors Git. Références : [outils de sous-agents](https://docs.openclaw.ai/tools/subagents/tool-reference), [permissions](https://docs.openclaw.ai/tools/subagents/tool-policy), [retour au parent](https://docs.openclaw.ai/tools/subagents/announce).

@@ -8,7 +8,7 @@ import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = Path(os.environ['LOCALAPPDATA']) / 'AsiaDocker'
-AGENTS = {'asia': 'Asia', 'developpement': 'Developpement', 'recherche': 'Recherche'}
+AGENTS = {key: value['name'] for key, value in json.loads((ROOT / 'infra/agents/catalogue.json').read_text(encoding='utf-8')).items()}
 TEAM = 'asia-platform-staging'
 ROUTES = ['/chat/completions', '/v1/chat/completions', '/models', '/v1/models',
           '/embeddings', '/v1/embeddings', '/images/generations', '/v1/images/generations',
@@ -43,7 +43,7 @@ def main():
     for agent_id in AGENTS:
         if agent_id not in keys:
             keys[agent_id] = post('/key/generate', {
-                'key_alias': 'staging-' + agent_id, 'team_id': TEAM, 'models': models,
+                'key_alias': 'staging-asia' if agent_id == 'asia' else AGENTS[agent_id], 'team_id': TEAM, 'models': models,
                 'allowed_routes': ROUTES, 'key_type': 'llm_api', 'max_budget': 0.3,
                 'budget_duration': '30d', 'rpm_limit': 15, 'max_parallel_requests': 2,
                 'metadata': {'agent_id': agent_id, 'environment': 'staging'},

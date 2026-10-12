@@ -4,11 +4,12 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 
 **État au 12 octobre 2026 : Asia a basculé dans OpenClaw, en phase pilote.** Le propriétaire confirme les réponses Telegram des trois bots, ainsi que la photo et le vocal d'Asia. Les boutons d'approbation ont été reçus et les deux décisions vérifiées : accord unique avec exécution, refus sans exécution. Les contrôles techniques après redémarrage Windows passent, avec sessions, fichiers et budgets conservés. Le démarrage a été lent ; Ollama inutilisé a ensuite été désinstallé à la demande du propriétaire. Voir les [résultats, limites et nettoyage du modèle résiduel](redemarrage-windows.md).
 
-**Asia conserve [son bot habituel](https://t.me/Absourahman03_bot)** ; Développement utilise [Rassdevbot](https://t.me/Rassdevbot) et Recherche [Rassresearchbot](https://t.me/Rassresearchbot). Cinq services Docker sont sains, dont Playwright. L'ancien consommateur Telegram est arrêté et sa relance bloquée par un marqueur persistant. OpenCode reste disponible comme exécuteur Windows et partage désormais le budget Docker. Voir la [bascule Asia](bascule-asia.md), ses limites et son retour arrière.
+**Asia conserve [son bot habituel](https://t.me/Absourahman03_bot)** ; Souleiman utilise [Rassdevbot](https://t.me/Rassdevbot) et Saredo [Rassresearchbot](https://t.me/Rassresearchbot). Développement et Recherche ont été renommés le 12 octobre, avec leurs identifiants et historiques conservés. L'ancien consommateur Telegram est arrêté et sa relance bloquée par un marqueur persistant. OpenCode reste disponible comme exécuteur Windows et partage désormais le budget Docker. Voir la [bascule Asia](bascule-asia.md), ses limites et son retour arrière.
 
 | Document | Contenu |
 | --- | --- |
 | [Architecture](architecture.md) | Composants, flux, agents, données et frontières de confiance |
+| [Noms Souleiman et Saredo](renommage-agents.md) | Correspondance des identités, tests du renommage et retour arrière ciblé |
 | [Guide des composantes](composantes.md) | Rôle du code, outils MCP, ajout d'agents et limites de portabilité |
 | [Catalogue des modèles](modeles.md) | Les 34 routes et leurs capacités déclarées |
 | [Installation et migration](migration.md) | Reproduire le socle Docker, configurer les secrets et valider chaque étape |

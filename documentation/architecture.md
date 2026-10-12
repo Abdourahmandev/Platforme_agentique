@@ -2,19 +2,19 @@
 
 ## Architecture pendant la phase pilote
 
-Depuis le 11 octobre 2026, les bots Asia, Développement et Recherche sont reçus par OpenClaw dans Docker. L'ancien consommateur Telegram Windows est arrêté. Asia Web et OpenChamber restent des interfaces d'OpenCode, qui sert aussi d'exécuteur Windows à Asia. OpenCode et OpenClaw utilisent tous deux LiteLLM Docker. Les connecteurs MCP sont exécutés par les moteurs d'agents, pas par LiteLLM.
+Depuis le 11 octobre 2026, les bots Asia, Souleiman et Saredo sont reçus par OpenClaw dans Docker. L'ancien consommateur Telegram Windows est arrêté. Asia Web et OpenChamber restent des interfaces d'OpenCode, qui sert aussi d'exécuteur Windows à Asia. OpenCode et OpenClaw utilisent tous deux LiteLLM Docker. Les connecteurs MCP sont exécutés par les moteurs d'agents, pas par LiteLLM.
 
 L'installation Docker utilise des images publiées, figées par empreinte dans [Compose](../infra/compose.yaml). Les configurations et scripts d'exploitation sont versionnés, sans construction d'image personnalisée. Les anciens LiteLLM et PostgreSQL Windows sont conservés pour le retour arrière.
 
 ```mermaid
 flowchart TD
     TA[Bot Asia actif] --> O[OpenClaw Gateway]
-    TD[Bot Développement actif] --> O
-    TR[Bot Recherche actif] --> O
+    TD[Bot Souleiman actif] --> O
+    TR[Bot Saredo actif] --> O
     APP[Future application] -. WebSocket authentifié .-> O
     O --> A[Asia : espace et sessions]
-    O --> D[Développement : espace et sessions]
-    O --> R[Recherche : espace et sessions]
+    O --> D[Souleiman : espace et sessions]
+    O --> R[Saredo : espace et sessions]
     A -->|Missions natives| D
     A -->|Missions natives| R
     D -->|Résultats| A
@@ -53,6 +53,8 @@ Le réseau `database` est interne et relie PostgreSQL à LiteLLM. `agents` est i
 ## Identités et droits
 
 Les identifiants stables sont `asia`, `developpement` et `recherche`. Chaque agent possède son répertoire d'état, son espace de fichiers et une clé LiteLLM propre. Le test de facturation vérifie une augmentation de dépense sur la clé de l'agent réellement appelé.
+
+Depuis le 12 octobre, les noms affichés sont Asia, Souleiman et Saredo. Le [catalogue des identités](../infra/agents/catalogue.json) sépare nom et identifiant ; voir les [contrôles et le retour arrière du renommage](renommage-agents.md).
 
 Les comptes Telegram actifs sont associés explicitement aux agents. `session.dmScope=per-account-channel-peer` sépare les conversations par compte et correspondant. Les groupes sont désactivés et les messages directs réservés à l'identifiant numérique du propriétaire.
 

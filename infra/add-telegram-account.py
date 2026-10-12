@@ -40,7 +40,7 @@ def patch_for(config, agent, owner):
     bindings = deepcopy(config.get('bindings', []))
     if any(b.get('agentId') == agent or b.get('match', {}).get('accountId') == agent for b in bindings):
         raise ValueError('Existing agent binding requires review')
-    account = {'name': agent, 'enabled': True,
+    account = {'name': setup.NAMES[agent], 'enabled': True,
         'tokenFile': '/home/node/.openclaw/credentials/telegram-' + agent + '.token',
         'dmPolicy': 'allowlist', 'allowFrom': [str(owner)], 'groupPolicy': 'disabled',
         'configWrites': False, 'joinIntro': False, 'mediaMaxMb': 20,

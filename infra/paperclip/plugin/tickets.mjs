@@ -36,6 +36,7 @@ export class Tickets {
     if(!AGENTS.includes(context.agentId))throw Error('Agent non autorise');
     const cfg=this.credentials(),actor=cfg.agents[context.agentId];
     if(!cfg.enabled||!actor)throw Error('Integration Paperclip suspendue');
+    const agentDirectory=Object.entries(cfg.agents).map(([agentId,v])=>({agentId,paperclipId:v.id,name:v.name||agentId}));
     const base=new URL(cfg.apiUrl);
     if(base.origin!=='http://paperclip:3100')throw Error('Destination Paperclip invalide');
     const request=async(method,route,body,runId)=>{
@@ -53,13 +54,13 @@ export class Tickets {
     };
     if(params.action==='list'){
       const rows=await request('GET',`/companies/${cfg.companyId}/issues?projectId=${cfg.projectId}&limit=50`);
-      return {tickets:rows.filter(i=>i.projectId===cfg.projectId).slice(0,50).map(i=>publicIssue(i,cfg.publicUrl))};
+      return {tickets:rows.filter(i=>i.projectId===cfg.projectId).slice(0,50).map(i=>publicIssue(i,cfg.publicUrl)),agentDirectory};
     }
     if(params.action==='get'){
       const item=await get(params.issueId);
       const comments=await request('GET',`/issues/${item.id}/comments`);
       return {ticket:publicIssue(item,cfg.publicUrl),comments:[...comments].sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt))).slice(-30).map(c=>({id:c.id,authorAgentId:c.authorAgentId,
-        authorUserId:c.authorUserId,body:c.body,createdAt:c.createdAt})),agents:Object.fromEntries(Object.entries(cfg.agents).map(([k,v])=>[k,v.id]))};
+        authorUserId:c.authorUserId,body:c.body,createdAt:c.createdAt})),agents:Object.fromEntries(Object.entries(cfg.agents).map(([k,v])=>[k,v.id])),agentDirectory};
     }
     if(!['create','checkout','comment','update'].includes(params.action))throw Error('Action inconnue');
     if(!/^[a-zA-Z0-9_-]{8,100}$/.test(params.requestId||''))throw Error('requestId stable de 8 a 100 caracteres requis');
