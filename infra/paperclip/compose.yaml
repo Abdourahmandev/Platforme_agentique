@@ -1,0 +1,63 @@
+name: asia-paperclip
+
+services:
+  postgres:
+    image: postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    restart: unless-stopped
+    env_file: ${ASIA_PAPERCLIP_DIR:?Private Paperclip directory required}/postgres.env
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks: [database]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U paperclip -d paperclip']
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    mem_limit: 512m
+    cpus: 0.5
+    pids_limit: 100
+    logging: &logging
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+
+  paperclip:
+    # Upstream 2026.1005.0, revision 467125fafb47a8520856504fecc48d6e32055db1.
+    image: ghcr.io/paperclipai/paperclip@sha256:de762433b50d56ed9180fef96a13fa236b37856c5c7a7718e8f19afe3d1e8670
+    restart: unless-stopped
+    stop_grace_period: 90s
+    env_file: ${ASIA_PAPERCLIP_DIR}/paperclip.env
+    environment:
+      HOST: 0.0.0.0
+      PORT: '3100'
+      SERVE_UI: 'true'
+      PAPERCLIP_HOME: /paperclip
+      PAPERCLIP_DEPLOYMENT_MODE: authenticated
+      PAPERCLIP_DEPLOYMENT_EXPOSURE: private
+      NODE_OPTIONS: --max-old-space-size=768
+      TZ: America/New_York
+    ports: ['127.0.0.1:3100:3100']
+    volumes: [paperclip-data:/paperclip]
+    networks: [database, agents, outbound]
+    depends_on:
+      postgres: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, node, -e, 'fetch("http://127.0.0.1:3100/api/health",{signal:AbortSignal.timeout(4000)}).then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))']
+      interval: 20s
+      timeout: 5s
+      retries: 15
+      start_period: 120s
+    mem_limit: 1024m
+    cpus: 1.0
+    pids_limit: 250
+    logging: *logging
+
+networks:
+  database: {internal: true}
+  agents:
+    external: true
+    name: asia-platform-staging_agents
+  outbound: {}
+
+volumes:
+  postgres-data:
+  paperclip-data:

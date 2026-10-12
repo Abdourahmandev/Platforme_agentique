@@ -1,6 +1,6 @@
 # Documentation de la plateforme agentique
 
-Ce dossier décrit l'installation réelle, ses limites et les procédures de reprise. Il peut être consulté directement sur GitHub. Les fichiers contenant des secrets ou des conversations ne sont jamais inclus dans le dépôt.
+Ce dossier décrit l'installation réelle, ses limites et les procédures de reprise. Il peut être consulté directement sur GitHub. Les fichiers contenant des secrets ou des conversations ne sont jamais inclus dans le dépôt. [Paperclip](paperclip.md) ajoute le suivi des tâches aux trois agents, avec deux conteneurs supplémentaires et des sauvegardes vérifiées.
 
 **État au 12 octobre 2026 : Asia a basculé dans OpenClaw, en phase pilote.** Le propriétaire confirme les réponses Telegram des trois bots, ainsi que la photo et le vocal d'Asia. Les boutons d'approbation ont été reçus et les deux décisions vérifiées : accord unique avec exécution, refus sans exécution. Les contrôles techniques après redémarrage Windows passent, avec sessions, fichiers et budgets conservés. Le démarrage a été lent ; Ollama inutilisé a ensuite été désinstallé à la demande du propriétaire. Voir les [résultats, limites et nettoyage du modèle résiduel](redemarrage-windows.md).
 
@@ -14,6 +14,8 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Installation et migration](migration.md) | Reproduire le socle Docker, configurer les secrets et valider chaque étape |
 | [Bascule Asia](bascule-asia.md) | Connecteurs conservés, transfert du token et du budget, intervention Windows et rollback |
 | [Délégation entre agents](delegation.md) | Asia coordinatrice, missions séparées, résultats, permissions, coûts et tests |
+| [Paperclip : suivi des tâches](paperclip.md) | Conversations sans ticket automatique, discussions entre agents, accès privé, sauvegarde et rollback |
+| [Validation Paperclip](paperclip-validation.md) | Pilote des trois agents, corrections et tests de reprise |
 | [Formation supervisée](formation/README.md) | Exercices sur le projet, bac à sable, budget, qualification et retour arrière |
 | [Bilan du premier cycle](formation/bilan-cycle-1.md) | Résultats réels, corrections, limites et promotion revue par le superviseur |
 | [Reprise ciblée](formation/bilan-reprise.md) | Réconciliation d'Asia, périmètre de Développement et formation sans redémarrer les bots |

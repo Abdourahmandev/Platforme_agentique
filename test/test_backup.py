@@ -120,6 +120,34 @@ class BackupTests(unittest.TestCase):
         for name in receipts:
             self.assertEqual((destination / name).read_bytes(), (runtime / name).read_bytes())
 
+    def test_paperclip_partial_snapshot_is_rejected(self):
+        (self.root / 'paperclip').mkdir()
+        with self.assertRaisesRegex(ValueError, 'Incomplete Paperclip'):
+            backup_docker.verify_paperclip(self.root, False)
+
+    def test_paperclip_dump_failure_removes_only_isolated_database(self):
+        import tarfile
+        target = self.root / 'paperclip'
+        target.mkdir()
+        for name in ('deployment.json','paperclip.env','postgres.env','owner-login.json',
+                     'openclaw-before.json','postgres.dump'):
+            (target / name).write_text('{}')
+        with tarfile.open(target / 'data.tar.gz', 'w:gz') as archive:
+            entry = tarfile.TarInfo('instances/default')
+            entry.type = tarfile.DIRTYPE
+            archive.addfile(entry)
+        calls = []
+        def run(args, **kwargs):
+            calls.append(args)
+            if 'pg_restore' in args and '--exit-on-error' in args:
+                raise RuntimeError('Restore failed')
+            return b''
+        with patch.object(backup_docker, 'run', side_effect=run):
+            with self.assertRaisesRegex(RuntimeError, 'Restore failed'):
+                backup_docker.verify_paperclip(self.root, True)
+        self.assertIn('dropdb', calls[-1])
+        self.assertRegex(calls[-1][-1], '^asia_paperclip_restore_[a-f0-9]{12}$')
+
 
 if __name__ == '__main__':
     unittest.main()

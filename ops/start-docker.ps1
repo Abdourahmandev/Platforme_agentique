@@ -31,6 +31,13 @@ try {
     $compose=Join-Path $PSScriptRoot '../infra/compose.yaml'
     $code=Invoke-StartupDocker @('compose','-f',('"'+$compose+'"'),'--profile','audio','up','-d','--wait','--wait-timeout','360','postgres','litellm','openclaw','speaches','playwright') 'startup'
     if($code -ne 0) {throw 'Docker services did not become healthy.'}
+    $paperclipState=Join-Path $env:LOCALAPPDATA 'AsiaPaperclip'
+    if((Test-Path -LiteralPath (Join-Path $paperclipState 'deployment.json')) -and !(Test-Path -LiteralPath (Join-Path $paperclipState 'suspended'))) {
+        $env:ASIA_PAPERCLIP_DIR=$paperclipState.Replace('\','/')
+        $paperclipCompose=Join-Path $PSScriptRoot '../infra/paperclip/compose.yaml'
+        $code=Invoke-StartupDocker @('compose','-f',('"'+$paperclipCompose+'"'),'up','-d','--wait','--wait-timeout','240') 'startup-paperclip'
+        if($code -ne 0) {throw 'Paperclip services did not become healthy.'}
+    }
     @{completed_at=[DateTimeOffset]::UtcNow.ToString('o');passed=$true} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $state 'startup-result.json')
 } catch {
     @{completed_at=[DateTimeOffset]::UtcNow.ToString('o');passed=$false;error_type=$_.Exception.GetType().Name} | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $state 'startup-result.json')

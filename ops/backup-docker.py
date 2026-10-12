@@ -15,6 +15,7 @@ import secrets
 import shutil
 import subprocess
 import tempfile
+import tarfile
 import zipfile
 import backup
 
@@ -23,6 +24,56 @@ RUNTIME = Path(os.environ['LOCALAPPDATA']) / 'AsiaDocker'
 DOCKER = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
 ENV = dict(os.environ, ASIA_RUNTIME_DIR=RUNTIME.as_posix())
 COMPOSE = [DOCKER, 'compose', '-f', str(ROOT / 'infra/compose.yaml')]
+PAPERCLIP = Path(os.environ['LOCALAPPDATA']) / 'AsiaPaperclip'
+
+
+def snapshot_paperclip(stage):
+    """Optional deployment, but fail the backup if installed and unavailable."""
+    if not (PAPERCLIP / 'deployment.json').exists():
+        return
+    target = stage / 'paperclip'
+    target.mkdir()
+    for source in PAPERCLIP.iterdir():
+        if source.is_file() and not source.is_symlink() and source.suffix in {'.json', '.env'}:
+            shutil.copy2(source, target / source.name)
+    (target / 'postgres.dump').write_bytes(run([DOCKER, 'exec', 'asia-paperclip-postgres-1',
+        'pg_dump', '-U', 'paperclip', '-d', 'paperclip', '-Fc']))
+    (target / 'data.tar.gz').write_bytes(run([DOCKER, 'exec', 'asia-paperclip-paperclip-1',
+        'tar', '-czf', '-', '-C', '/paperclip', '.']))
+
+
+def verify_paperclip(base, restore):
+    target = base / 'paperclip'
+    if not target.exists():
+        return {'included': False}
+    for name in ('deployment.json', 'paperclip.env', 'postgres.env', 'owner-login.json',
+                 'openclaw-before.json', 'postgres.dump', 'data.tar.gz'):
+        if not (target / name).is_file():
+            raise ValueError('Incomplete Paperclip recovery point: ' + name)
+    # Extraction is confined to the already-private verification staging folder.
+    with tarfile.open(target / 'data.tar.gz', 'r:gz') as archive:
+        archive.extractall(target / 'restored-data', filter='data')
+    if not (target / 'restored-data/instances/default').is_dir():
+        raise ValueError('Paperclip data volume is incomplete')
+    cmd = [DOCKER, 'exec', '-i', 'asia-paperclip-postgres-1']
+    run(cmd + ['pg_restore', '--list'], data=(target / 'postgres.dump').read_bytes())
+    result = {'included': True, 'volume_restored': True, 'postgres_restored': False}
+    if restore:
+        database = 'asia_paperclip_restore_' + secrets.token_hex(6)
+        run(cmd + ['createdb', '-U', 'paperclip', database])
+        try:
+            run(cmd + ['pg_restore', '-U', 'paperclip', '-d', database, '--no-owner',
+                       '--no-privileges', '--exit-on-error'], data=(target / 'postgres.dump').read_bytes())
+            counts = run(cmd + ['psql', '-U', 'paperclip', '-d', database, '-Atc',
+                "SELECT (SELECT count(*) FROM companies), (SELECT count(*) FROM agents), "
+                "(SELECT count(*) FROM issues), (SELECT count(*) FROM issue_comments)"])
+            companies, agents, issues, comments = map(int, counts.decode().strip().split('|'))
+            if companies < 1 or agents < 3:
+                raise ValueError('Paperclip company or agent data missing after restore')
+            result.update(postgres_restored=True, companies=companies, agents=agents, issues=issues, comments=comments)
+        finally:
+            run(cmd + ['dropdb', '-U', 'paperclip', database])
+    return result
 
 
 def run(args, data=None):
@@ -75,6 +126,7 @@ def create():
                 'process.stdout.write(require("fs").readFileSync(process.argv[1]))',remote))
         (stage / 'litellm.dump').write_bytes(compose('exec','-T','postgres','pg_dump',
                 '-U','litellm','-d','litellm','-Fc'))
+        snapshot_paperclip(stage)
         # Include runtime env, original migration inputs and dedicated test device
         # credentials. Never include the recovery key in its own encrypted archive.
         private = stage / 'runtime'
@@ -189,6 +241,7 @@ def verify(archive, restore=False):
                 result.update(postgres_restored=True,postgres_tables=tables)
             finally:
                 compose('exec','-T','postgres','dropdb','-U','postgres',database)
+        result['paperclip'] = verify_paperclip(base, restore)
         return result
     finally:
         try:

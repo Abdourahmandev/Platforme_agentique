@@ -1,0 +1,1 @@
+{"id":"asia-paperclip","name":"Tickets des agents","description":"Tickets explicites et suivi partage du projet dans Paperclip.","configSchema":{"type":"object","additionalProperties":false,"properties":{}},"contracts":{"tools":["asia_ticket"]},"toolMetadata":{"asia_ticket":{"optional":true}}}

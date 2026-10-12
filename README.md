@@ -2,11 +2,11 @@
 
 Plateforme d'agents accessible sur Telegram. OpenClaw gère les conversations et les outils ; LiteLLM route les appels vers DeepSeek et Gemini. L'ancienne interface web française, avec thèmes clair et sombre, reste disponible via OpenCode pour les tâches Windows.
 
-**Asia, Développement et Recherche sont actifs dans OpenClaw depuis le 11 octobre 2026.** Asia conserve son bot Telegram habituel ; Recherche utilise [Rassresearchbot](https://t.me/Rassresearchbot). OpenClaw, LiteLLM, PostgreSQL, Speaches et Playwright fonctionnent dans Docker ; les connecteurs d'Asia hors Google sont configurés. L'ancien consommateur Telegram Windows est arrêté et sa relance neutralisée. La phase pilote attend encore les essais utilisateur Telegram et de reprise Windows. Voir la [bascule contrôlée d'Asia](documentation/bascule-asia.md).
+**Asia, Développement et Recherche sont actifs dans OpenClaw depuis le 11 octobre 2026.** Asia conserve son bot Telegram habituel ; Recherche utilise [Rassresearchbot](https://t.me/Rassresearchbot). OpenClaw, LiteLLM, PostgreSQL, Speaches et Playwright fonctionnent dans Docker ; les connecteurs d'Asia hors Google sont configurés. L'ancien consommateur Telegram Windows est arrêté et sa relance neutralisée. Les essais utilisateur Telegram et la reprise Windows ont été confirmés ; voir le [bilan de redémarrage](documentation/redemarrage-windows.md). Paperclip et sa base dédiée complètent ce socle depuis le 12 octobre.
 
 Consulter la **[documentation du projet](documentation/README.md)** : architecture, composantes, modèles, installation, exploitation, retour arrière et résultats des tests. Le [plan de migration](docs/plan-plateforme-agents.md) explique la cible. Voici les flux actifs pendant la phase pilote :
 
-Asia peut désormais [déléguer des missions à Recherche et Développement](documentation/delegation.md) et synthétiser leurs réponses. Les spécialistes conservent leurs conversations séparées et ne peuvent pas communiquer directement entre eux.
+Asia peut [déléguer des missions à Recherche et Développement](documentation/delegation.md) et synthétiser leurs réponses. [Paperclip](documentation/paperclip.md) ajoute les tâches, sous-tâches, discussions partagées et validations humaines. Les conversations Telegram restent séparées et ne deviennent pas automatiquement des tickets.
 
 Le [programme de formation supervisée](documentation/formation/README.md) entraîne les méthodes de travail sur une copie isolée du vrai projet. Son [bilan](documentation/formation/bilan-cycle-1.md) conserve les échecs, les corrections et les preuves. Il ne modifie pas les poids des modèles ni les permissions des bots. Le diagnostic local est disponible avec `node infra/platform-health.mjs`.
 
@@ -20,6 +20,10 @@ flowchart LR
     Claw --> Speech[Speaches local :18000]
     Claw --> MCP[Outils MCP Asia]
     Claw --> LiteLLM[LiteLLM Docker :14000]
+    Tailscale --> Paperclip[Paperclip :3100]
+    Paperclip -->|Missions par ticket| Claw
+    Claw -->|Commentaires et résultats| Paperclip
+    Paperclip --> PaperDB[PostgreSQL Paperclip dédié]
     Claw --> Bridge[Passerelle Windows Asia]
     Bridge --> OpenCode
     Asia --> OpenCode[OpenCode :4096]
