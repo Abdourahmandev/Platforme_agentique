@@ -145,7 +145,8 @@ try{
       await client.request('tools.effective',{sessionKey:key},70000);
     report.effective[name]=effective;const ids=toolIds(effective);
     check(name+'_github_reads_available',readonly.every(n=>ids.includes(n)));
-    check(name+'_github_writes_absent',writes.every(n=>!ids.includes(n)));
+    check(name+'_github_pr_creation_available',ids.includes('github__create_pull_request'));
+    check(name+'_github_other_writes_absent',writes.filter(n=>n!=='github__create_pull_request').every(n=>!ids.includes(n)));
     check(name+'_context7_available',ids.includes('context7__query-docs')&&ids.includes('context7__resolve-library-id'));
   }
   const inventory=await client.request('sessions.list',{limit:200});

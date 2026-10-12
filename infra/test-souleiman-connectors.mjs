@@ -84,7 +84,8 @@ try{
     if(agent==='recherche')check('saredo_new_connectors_unavailable',report.otherAgents[agent].connectors.length===0);
     else {
       check('asia_read_connectors_available',tools.includes('github__list_issues')&&tools.includes('context7__query-docs'));
-      check('asia_github_writes_unavailable',['issue_write','create_pull_request','update_pull_request']
+      check('asia_github_pr_creation_available',tools.includes('github__create_pull_request'));
+      check('asia_github_other_writes_unavailable',['issue_write','update_pull_request']
         .every(name=>!tools.includes('github__'+name)));
     }
   }

@@ -81,7 +81,7 @@ def deploy(journal, rollback=False):
     connectors.docker('exec', connectors.GATEWAY, 'node', 'dist/index.js', 'config', 'validate', timeout=90)
     journal['phase'] = 'rolled-back' if rollback else 'deployed'
     save(journal)
-    print('Delegation settings restored.' if rollback else 'Read-only connector delegation configured; live test required.')
+    print('Delegation settings restored.' if rollback else journal.get('deployed_message', 'Read-only connector delegation configured; live test required.'))
 
 
 def main():

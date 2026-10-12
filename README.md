@@ -6,7 +6,7 @@ Plateforme d'agents accessible sur Telegram. OpenClaw gère les conversations et
 
 Consulter la **[documentation du projet](documentation/README.md)** : architecture, composantes, modèles, installation, exploitation, retour arrière et résultats des tests. Le [plan de migration](docs/plan-plateforme-agents.md) explique la cible. Voici les flux actifs pendant la phase pilote :
 
-Asia peut [déléguer des missions à Saredo et Souleiman](documentation/delegation.md) et synthétiser leurs réponses. [Paperclip](documentation/paperclip.md) ajoute les tâches, sous-tâches, discussions partagées et validations humaines. Les conversations Telegram restent séparées et ne deviennent pas automatiquement des tickets.
+Asia peut [déléguer des missions à Saredo et Souleiman](documentation/delegation.md) et synthétiser leurs réponses. [Paperclip](documentation/paperclip.md) ajoute les tâches, sous-tâches, discussions partagées et validations humaines. Les conversations Telegram restent séparées et ne deviennent pas automatiquement des tickets. La [publication GitHub](documentation/publication-github.md) distingue la préparation des documents, les commandes Windows validées et l’ouverture de PR par le connecteur natif.
 
 Le [programme de formation supervisée](documentation/formation/README.md) entraîne les méthodes de travail sur une copie isolée du vrai projet. Son [bilan](documentation/formation/bilan-cycle-1.md) conserve les échecs, les corrections et les preuves. Il ne modifie pas les poids des modèles ni les permissions des bots. Le diagnostic local est disponible avec `node infra/platform-health.mjs`.
 

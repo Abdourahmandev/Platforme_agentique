@@ -23,9 +23,11 @@ La version installée est OpenClaw 2026.10.1. La délégation utilise `sessions_
 - `tools.sessions.visibility` passe à `tree` : le demandeur voit sa conversation et ses missions. Il n'obtient pas l'accès aux conversations Telegram des spécialistes. La session canonique `main` conserve l'exception native pour les sessions de son propre agent.
 - Les spécialistes ont un refus explicite des outils d'orchestration, de messagerie et d'envoi externe. Le même refus est appliqué aux sous-agents. La profondeur maximale est de un niveau ; Swarm est désactivé.
 - Le contexte demandé est `isolated`. Les instructions imposent de transmettre uniquement la consigne et les données utiles. Le test place une donnée privée artificielle dans la conversation mère et vérifie son absence dans les deux missions.
-- Les outils existants d'Asia et les permissions Windows restent en place. Une mission ne vaut jamais autorisation d'exécuter une commande Windows. Saredo dispose actuellement de lecture d'URL ; Souleiman propose et révise du code sans shell.
+- Les outils existants d'Asia et les permissions Windows restent en place. Une mission ne vaut jamais autorisation d'exécuter une commande Windows. Saredo dispose actuellement de lecture d'URL ; Souleiman prépare et révise les changements ; les commandes Windows passent par OpenCode avec validation native dans une conversation directe. Une sous-mission ne dispose pas du scope operator.approvals nécessaire à ces validations interactives.
 
 Le résultat d'un spécialiste reste une donnée à vérifier. Les instructions ne remplacent pas les contrôles de permissions ; les espaces et processus restent ceux d'une Gateway de confiance à propriétaire unique.
+
+Pour une publication GitHub, transmettre le contenu complet des documents et leurs chemins cibles. Asia et les nouvelles missions de Souleiman peuvent ouvrir une PR demandée sur une branche déjà poussée. Le transfert de documents et la préparation Windows suivent [la procédure de publication](publication-github.md).
 
 ## Attente, résultats et coûts
 

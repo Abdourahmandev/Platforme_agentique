@@ -1,6 +1,6 @@
 # Context7 et GitHub pour Souleiman
 
-Les deux connecteurs MCP officiels sont configurés directement dans OpenClaw. Souleiman (`developpement`) peut les utiliser dans Telegram. Après le raccordement de délégation décrit ci-dessous, une nouvelle mission confiée par Asia reçoit leurs outils de lecture. Les consultations ne passent pas par OpenCode Windows ; les modifications de fichiers locaux et l'exécution des tests continuent à utiliser cette passerelle.
+Les deux connecteurs MCP officiels sont configurés directement dans OpenClaw. Souleiman (`developpement`) peut les utiliser dans Telegram. Après le raccordement de délégation décrit ci-dessous, une nouvelle mission confiée par Asia reçoit leurs outils de lecture. Le raccordement de publication ajoute la création de PR sur une branche déjà poussée. Les consultations ne passent pas par OpenCode Windows ; les modifications de fichiers locaux et l'exécution des tests continuent à utiliser cette passerelle.
 
 ## Périmètre
 
@@ -9,15 +9,15 @@ Les deux connecteurs MCP officiels sont configurés directement dans OpenClaw. S
 | [Context7, Upstash](https://github.com/upstash/context7) | Trouver une bibliothèque, consulter documentation et exemples | `https://mcp.context7.com/mcp`, deux outils, sans clé dans cette installation |
 | [GitHub MCP officiel](https://github.com/github/github-mcp-server) | Lire fichiers, commits, branches, issues, PR et résultats Actions ; créer/modifier une issue, créer/modifier une PR sur demande | `https://api.githubcopilot.com/mcp/`, quatorze outils explicitement sélectionnés |
 
-Le dépôt de travail par défaut est `Abdourahmandev/Platforme_agentique`. Les outils de fusion, suppression de fichiers, publication de fichiers, création de dépôt, commentaires et déclenchement de workflows ne sont pas exposés. Les tests de cette installation restent en lecture seule et ne publient aucun ticket, PR ou commentaire.
+Le dépôt de travail par défaut est `Abdourahmandev/Platforme_agentique`. Les outils de fusion, suppression de fichiers, publication de fichiers, création de dépôt, commentaires et déclenchement de workflows ne sont pas exposés. Les tests récurrents des connecteurs et de délégation restent en lecture seule. Une publication réelle explicitement demandée sert séparément à valider la création de PR ; voir [la procédure de publication](publication-github.md).
 
-Souleiman reçoit `context7__*` et `github__*`, limités par les filtres des serveurs aux outils ci-dessus. Asia reçoit explicitement les onze outils GitHub de lecture et les deux outils Context7, sans wildcard. Saredo ne reçoit aucun de ces connecteurs. La connexion globale au serveur ne donne pas automatiquement le droit de l'utiliser. Paperclip reste le système de coordination : les tickets ne sont pas dupliqués automatiquement dans GitHub.
+Souleiman reçoit `context7__*` et `github__*`, limités par les filtres des serveurs aux outils ci-dessus. Asia reçoit explicitement les onze outils GitHub de lecture, `github__create_pull_request` et les deux outils Context7, sans wildcard. Saredo ne reçoit aucun de ces connecteurs. La connexion globale au serveur ne donne pas automatiquement le droit de l'utiliser. Paperclip reste le système de coordination : les tickets ne sont pas dupliqués automatiquement dans GitHub.
 
 | Parcours | GitHub lecture | GitHub création/modification issue ou PR | Context7 |
 | --- | --- | --- | --- |
 | Souleiman, conversation directe | Oui, 11 outils | Oui, 3 outils sur demande | Oui |
-| Asia, conversation directe | Oui, 11 outils | Non | Oui |
-| Nouvelle mission Asia → Souleiman | Oui, 11 outils | Non | Oui |
+| Asia, conversation directe | Oui, 11 outils | Création de PR seulement, sur demande | Oui |
+| Nouvelle mission Asia → Souleiman | Oui, 11 outils | Création de PR seulement, sur demande | Oui |
 | Saredo, direct ou délégué | Non | Non | Non |
 
 OpenClaw 2026.10.1 capture le plafond d'outils du coordinateur lors de `sessions_spawn`, puis applique aussi les restrictions du spécialiste. Le spécialiste ne peut pas obtenir un outil absent du plafond parent. Voir la [politique native des sous-agents](https://docs.openclaw.ai/tools/subagents/tool-policy). Les anciens enfants conservent leurs droits capturés : une correction de configuration s'applique aux nouvelles missions, sans modifier les anciennes sessions.
@@ -41,6 +41,8 @@ python infra/configure-souleiman-connectors.py
 python infra/configure-souleiman-connectors.py --apply
 python infra/configure-github-delegation.py
 python infra/configure-github-delegation.py --apply
+python infra/configure-github-publication.py
+python infra/configure-github-publication.py --apply
 node infra/test-souleiman-connectors.mjs
 node infra/test-github-delegation.mjs
 ```
@@ -94,11 +96,12 @@ Dans la session technique testée, `sessions_yield` n'était pas exposé et une 
 ## Retour arrière
 
 ```powershell
+python infra/configure-github-publication.py --rollback
 python infra/configure-github-delegation.py --rollback
 python infra/configure-souleiman-connectors.py --rollback
 ```
 
-Exécuter uniquement la première commande pour revenir à des connecteurs réservés à Souleiman en direct. Exécuter ensuite la seconde pour retirer également les connecteurs. L'ordre inverse provoquerait un conflit d'instructions détecté par la protection contre les modifications concurrentes. Le retour arrière restaure uniquement les permissions, instructions et environnement concernés ; il conserve les changements non concernés, les conversations, tickets et dépenses. Une ancienne mission conserve son plafond, mais les droits courants des agents et la présence des connecteurs restent aussi nécessaires. Un retour arrière de configuration n'annule pas une opération GitHub exécutée ultérieurement par l'agent.
+La première commande retire la création de PR d’Asia et conserve ses lectures. La deuxième revient à des connecteurs réservés à Souleiman en direct. La troisième retire également les connecteurs. Ne lancer que les étapes dont le journal existe. L'ordre inverse provoquerait un conflit d'instructions détecté par la protection contre les modifications concurrentes. Le retour arrière restaure uniquement les permissions, instructions et environnement concernés ; il conserve les changements non concernés, les conversations, tickets et dépenses. Une ancienne mission conserve son plafond, mais les droits courants des agents et la présence des connecteurs restent aussi nécessaires. Un retour arrière de configuration n'annule pas une opération GitHub exécutée ultérieurement par l'agent.
 
 ## Exemples de demandes à Souleiman
 
