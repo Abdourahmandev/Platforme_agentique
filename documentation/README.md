@@ -19,6 +19,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Reprise ciblée](formation/bilan-reprise.md) | Réconciliation d'Asia, périmètre de Développement et formation sans redémarrer les bots |
 | [Tests de robustesse](tests-robustesse.md) | Confirmation Telegram, coupures réelles de l'exécuteur, reçus durables et limites d'exécution |
 | [Approbations Telegram](approbations-telegram.md) | Boutons privés, distinction expiration/refus, accord unique et preuves d'exécution |
+| [Redémarrage Windows](redemarrage-windows.md) | État de référence avant interruption et contrôles de reprise après ouverture de session |
 | [Exploitation et sauvegardes](exploitation.md) | Démarrage, état, coûts, mises à jour et restauration |
 | [Retour arrière](rollback.md) | Arrêter le candidat et conserver/reprendre l'installation Windows |
 | [API de la future application](api.md) | Identités, sessions, streaming, annulation et reconnexion |
