@@ -5,11 +5,12 @@ from pathlib import Path
 from contextlib import closing
 from cryptography.hazmat.primitives.ciphers import Cipher,algorithms,modes
 
-APP=Path(__file__).resolve().parents[1];HOME=Path.home();LOCAL=Path(os.environ['LOCALAPPDATA'])
-STATE=LOCAL/'AsiaBackup';DEST=Path('D:/AsiaBackups');PG=LOCAL/'Programs/AsiaPostgreSQL/pgsql/bin'
+APP=Path(__file__).resolve().parents[1];HOME=Path.home();LOCAL=Path(os.environ.get('LOCALAPPDATA') or HOME/'.local/share')
+STATE=LOCAL/'AsiaBackup';DEST=Path(os.environ.get('ASIA_BACKUP_DIR') or ('D:/AsiaBackups' if os.name=='nt' else LOCAL/'AsiaBackups'));PG=LOCAL/'Programs/AsiaPostgreSQL/pgsql/bin'
 EXCLUDE={'node_modules','venv','__pycache__','.playwright-mcp','dist','.git'}
 def private(path):
  path.mkdir(parents=True,exist_ok=True)
+ if os.name!='nt':path.chmod(0o700);return
  who=subprocess.check_output(['whoami'],text=True).strip()
  subprocess.run(['icacls',str(path),'/inheritance:r','/grant:r',who+':(OI)(CI)F','*S-1-5-18:(OI)(CI)F'],check=True,stdout=subprocess.DEVNULL,creationflags=subprocess.CREATE_NO_WINDOW)
 def pg(args,**kwargs):
@@ -32,7 +33,8 @@ def key(create=False):
  p=STATE/'recovery-key.txt'
  if not p.exists():
   if not create:raise RuntimeError('Recovery key missing; refusing to replace it.')
-  p.write_text(secrets.token_hex(32),encoding='ascii')
+  fd=os.open(p,os.O_WRONLY|os.O_CREAT|os.O_EXCL,0o600)
+  with os.fdopen(fd,'w',encoding='ascii') as f:f.write(secrets.token_hex(32))
  return bytes.fromhex(p.read_text().strip())
 def encrypt(source,target):
  nonce=secrets.token_bytes(12);enc=Cipher(algorithms.AES(key()),modes.GCM(nonce)).encryptor()
