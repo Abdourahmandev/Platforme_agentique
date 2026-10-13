@@ -8,6 +8,28 @@ $python = "$env:LOCALAPPDATA\AsiaDockerOps\venv\Scripts\python.exe"
 & $python -m pip install -r ops/requirements.txt
 ```
 
+## Avant de formater : protéger les secrets et prouver la reprise
+
+Les archives produites par `ops/backup-docker.py` sont chiffrées avec AES-GCM. Elles contiennent des données privées du runtime, notamment les tokens Telegram des agents, les fichiers d'environnement et les autres secrets présents dans `AsiaDocker`. Traiter l'archive comme un coffre de secrets : ne pas la publier dans GitHub, la joindre à une issue ou la partager sans contrôle d'accès.
+
+La clé de récupération n'est **pas** incluse dans l'archive. Sur l'installation Windows actuelle, elle se trouve dans `%LOCALAPPDATA%\AsiaBackup\recovery-key.txt` (64 caractères hexadécimaux). Elle est nécessaire pour déchiffrer les sauvegardes. Le script de sauvegarde refuse d'en créer silencieusement une nouvelle si celle qui protège les archives est absente.
+
+Avant tout formatage :
+
+1. Créer une note sécurisée dans un gestionnaire de mots de passe de confiance et y conserver la clé de récupération. Ne jamais inscrire la clé, un token ou un mot de passe dans ce dépôt, même privé, dans une conversation, un ticket GitHub ou un fichier texte non chiffré. Ne pas mettre la clé en clair dans le même Drive que l'archive.
+2. Vérifier que l'accès au gestionnaire de mots de passe fonctionne depuis un autre appareil, avec les moyens de récupération du coffre disponibles. La clé doit pouvoir être récupérée après l'effacement de ce PC.
+3. Conserver l'archive `.aes` sur un stockage distinct du coffre. Confirmer sa présence depuis un autre appareil ou une session Drive indépendante; une copie visible dans le dossier Google Drive local ne prouve pas à elle seule qu'elle est synchronisée.
+4. Avec la clé récupérée depuis le coffre, effectuer une répétition de restauration sur un environnement isolé. Le contrôle de référence Windows est :
+
+   ```powershell
+   & $python ops/backup-docker.py --verify 'D:\AsiaBackups\NOM_ARCHIVE_DOCKER.aes' --restore-check
+   ```
+
+   Ce contrôle vérifie l'archive, restaure OpenClaw vers une cible temporaire et restaure PostgreSQL dans une base temporaire. Il ne prouve pas à lui seul que la procédure complète fonctionne sur Ubuntu : avant d'effacer Windows, réaliser aussi la répétition sur Ubuntu (ou une VM Ubuntu), y récupérer la clé depuis le coffre et y démarrer la stack restaurée.
+5. Conserver séparément le dépôt et les projets nécessaires à la réinstallation. L'archive Docker ne remplace pas une sauvegarde complète de la machine ni du répertoire de travail. Le manifeste enregistre si le dépôt était modifié, mais le code embarqué dans l'archive est limité aux chemins explicitement copiés par le script.
+
+**GO/NO-GO : ne pas formater tant que la clé n'a pas été récupérée depuis le coffre sur un autre appareil, que l'archive distante n'a pas été vérifiée et qu'une restauration complète isolée n'a pas réussi.** Si l'un de ces contrôles manque, garder ce PC intact et corriger le point manquant avant la migration.
+
 ## 1. Sauvegarder et prouver la reprise
 
 ```powershell
@@ -16,7 +38,7 @@ npm.cmd test
 npm.cmd run build
 ```
 
-La sauvegarde contrôle les empreintes, l'intégrité SQLite et restaure PostgreSQL dans une base temporaire. Ne pas commencer une bascule si cette commande échoue. Conserver le chemin de l'archive et sa clé de récupération dans des emplacements protégés distincts.
+La sauvegarde Windows historique contrôle les empreintes, l'intégrité SQLite et restaure PostgreSQL dans une base temporaire. Pour la pile Docker actuelle, créer et vérifier une archive avec `ops/backup-docker.py` comme indiqué ci-dessus. Ne pas commencer une bascule si ces contrôles échouent. Conserver l'emplacement de l'archive et sa clé de récupération dans des emplacements protégés distincts.
 
 ## 2. Préparer le candidat
 

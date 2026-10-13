@@ -12,7 +12,7 @@ Ce dossier décrit l'installation réelle, ses limites et les procédures de rep
 | [Noms Souleiman et Saredo](renommage-agents.md) | Correspondance des identités, tests du renommage et retour arrière ciblé |
 | [Guide des composantes](composantes.md) | Rôle du code, outils MCP, ajout d'agents et limites de portabilité |
 | [Catalogue des modèles](modeles.md) | Les 34 routes et leurs capacités déclarées |
-| [Installation et migration](migration.md) | Reproduire le socle Docker, configurer les secrets et valider chaque étape |
+| [Installation et migration](migration.md) | Reproduire le socle Docker, protéger les secrets et la clé de récupération, répéter la restauration avant formatage |
 | [Bascule Asia](bascule-asia.md) | Connecteurs conservés, transfert du token et du budget, intervention Windows et rollback |
 | [Accès Windows de Souleiman](acces-windows-souleiman.md) | Fichiers, commandes, programmes et réseau du PC via OpenCode ; autorisations et rollback |
 | [Context7 et GitHub pour Souleiman](connecteurs-souleiman.md) | Documentation des bibliothèques, dépôt privé, résultats Actions, permissions et rollback |
