@@ -1,0 +1,12 @@
+[Unit]
+Description=Asia platform encrypted backup with restore check
+Wants=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=rass
+Environment=LOCALAPPDATA=/home/rass/.local/share
+ExecStart=/home/rass/Platforme_agentique/ops/run-docker-backup.sh
+TimeoutStartSec=30min
+Nice=10
