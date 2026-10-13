@@ -4,6 +4,7 @@ Default: validate the proposed configuration without enabling a consumer.
 --activate: requires tokens for the selected agents, owner allowlist, no webhooks.
 --agent: select one or more agents without requiring the other bot credentials.
 --reuse-existing-asia: prepare the existing Asia identity instead of a test bot.
+--owner-id: owner allowlist for a fresh install without the legacy Windows bot files.
 Its activation remains blocked here until the controlled legacy handoff is done.
 """
 import argparse
@@ -13,8 +14,9 @@ from pathlib import Path
 import subprocess
 import requests
 
-RUNTIME=Path(os.environ['LOCALAPPDATA'])/'AsiaDocker'
-DOCKER=r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+LOCAL=Path(os.environ.get('LOCALAPPDATA') or Path.home()/'.local/share')
+RUNTIME=LOCAL/'AsiaDocker'
+DOCKER=(r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
 EXEC=[DOCKER,'exec','-i','asia-platform-staging-openclaw-1']
 ACCOUNTS={'asia-test':'asia','developpement':'developpement','recherche':'recherche'}
 NAMES={key:value['name'] for key,value in json.loads((Path(__file__).parent/'agents/catalogue.json').read_text(encoding='utf-8')).items()}
@@ -47,6 +49,7 @@ def main():
     parser.add_argument('--reuse-existing-asia',action='store_true')
     parser.add_argument('--agent',action='append',choices=['asia','developpement','recherche'],
                         help='Select an agent; repeat to select several. Defaults to all three.')
+    parser.add_argument('--owner-id',help='Telegram user id allowed to message the bots (fresh install).')
     args=parser.parse_args()
     selected_accounts=({'asia':'asia','developpement':'developpement','recherche':'recherche'}
                        if args.reuse_existing_asia else ACCOUNTS)
@@ -54,8 +57,11 @@ def main():
         selected_accounts={account:agent for account,agent in selected_accounts.items() if agent in args.agent}
     state=json.loads((RUNTIME/'runtime-private.json').read_text())
     if state.get('phase')!='staging': raise RuntimeError('Staging initializer only')
-    legacy=json.loads((Path(os.environ['LOCALAPPDATA'])/'OpenCodeTelegramSetup/bot-credentials.json').read_text())
-    owner=str(legacy['AllowedUserId'])
+    # A fresh install has no legacy Windows consumer to hand off from.
+    legacy_path=LOCAL/'OpenCodeTelegramSetup/bot-credentials.json'
+    legacy=json.loads(legacy_path.read_text()) if legacy_path.exists() else None
+    if not legacy and not args.owner_id: raise RuntimeError('No legacy bot files: pass --owner-id')
+    owner=str(args.owner_id or legacy['AllowedUserId'])
     if not owner.isdecimal() or int(owner)<=0: raise RuntimeError('Invalid owner allowlist')
     current=json.loads(run(['node','-e','process.stdout.write(require("fs").readFileSync("/home/node/.openclaw/openclaw.json"))']))
     if current.get('channels',{}).get('telegram',{}).get('enabled'):
@@ -70,7 +76,7 @@ def main():
             if not path.exists(): raise RuntimeError('Missing token for '+account+'; run set-telegram-token.ps1')
             token=path.read_text().strip()
             bot=telegram(token,'getMe')
-            if str(bot['id'])==legacy['Token'].split(':')[0]:
+            if legacy and str(bot['id'])==legacy['Token'].split(':')[0]:
                 raise RuntimeError('The existing Asia bot requires a controlled legacy handoff. This staging initializer does not stop its supervisor or authorize a second consumer.')
             if bot['id'] in ids: raise RuntimeError('Each agent must have a distinct Telegram bot')
             if telegram(token,'getWebhookInfo').get('url'):
