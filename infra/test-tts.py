@@ -8,7 +8,7 @@ import uuid
 import requests
 
 RUNTIME=Path(os.environ['LOCALAPPDATA'])/'AsiaDocker'
-DOCKER=r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+DOCKER=(r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
 EXEC=[DOCKER,'exec','-i','asia-platform-staging-openclaw-1']
 
 
@@ -18,7 +18,7 @@ def main():
         return subprocess.run(EXEC+args,capture_output=True,timeout=150)
     checks={}
     try:
-        p=run(['node','dist/index.js','infer','tts','convert','--provider','microsoft',
+        p=run(['node','dist/index.js','infer','tts','convert',
                '--text','Bonjour, ceci est un test audio.','--output',filename,'--gateway','--json'])
         try: result=json.loads(p.stdout)
         except ValueError: result={}
