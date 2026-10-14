@@ -12,6 +12,8 @@ services:
       - atelier-host-keys:/etc/ssh/host
       - ${ATELIER_DIR:?Private atelier directory required}/authorized_keys:/etc/ssh/authorized/authorized_keys:ro
       - atelier-work:/work
+      # Atelier's own GitHub credential (see set-github-token.sh), used by git and gh.
+      - ${ATELIER_DIR}/gh:/home/node/.config/gh:ro
     networks: [workshop, outbound]
     security_opt: [no-new-privileges:true]
     cap_drop: [ALL]

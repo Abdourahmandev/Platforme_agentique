@@ -17,6 +17,9 @@ RUN apt-get update \
  && rm -f /etc/ssh/ssh_host_*
 
 COPY sshd_config /etc/ssh/sshd_config
+# git authenticates to GitHub through gh (credential read from ~/.config/gh/hosts.yml).
+RUN git config --system credential.https://github.com.helper '' \
+ && git config --system --add credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential'
 # Models through LiteLLM only; each agent's key arrives per run as LITELLM_API_KEY.
 COPY --chown=node:node opencode.json /home/node/.config/opencode/opencode.json
 COPY entrypoint.sh /usr/local/bin/atelier-entrypoint
