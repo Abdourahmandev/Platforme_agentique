@@ -39,7 +39,8 @@ def tts_config(key):
     overrides = {'enabled': True, 'allowText': True, 'allowProvider': False, 'allowVoice': False,
                  'allowModelId': False, 'allowVoiceSettings': False, 'allowNormalization': False,
                  'allowSeed': False}
-    return dict(current, provider='openai', providers=providers, modelOverrides=overrides)
+    # Gemini TTS needs more than the 30 s default for longer spoken replies.
+    return dict(current, provider='openai', providers=providers, modelOverrides=overrides, timeoutMs=120000)
 
 
 def main():
