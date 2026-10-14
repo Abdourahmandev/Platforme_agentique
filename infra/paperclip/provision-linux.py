@@ -98,7 +98,7 @@ def main():
                     'url': 'ws://openclaw:18789', 'authToken': gateway_token, 'agentId': name,
                     'sessionKeyStrategy': 'issue', 'role': 'operator', 'scopes': ['operator.read', 'operator.write'],
                     'disableDeviceAuth': False, 'devicePrivateKeyPem': device['devicePrivateKeyPem'],
-                    'autoPairOnFirstConnect': False, 'timeoutSec': 240, 'paperclipApiUrl': 'http://paperclip:3100'},
+                    'autoPairOnFirstConnect': False, 'timeoutSec': 600, 'waitTimeoutMs': 590000, 'paperclipApiUrl': 'http://paperclip:3100'},
                 'runtimeConfig': {'heartbeat': HEARTBEAT},
                 'permissions': {'canCreateAgents': False, 'canCreateSkills': False},
                 'metadata': {'openclawAgentId': name}})
