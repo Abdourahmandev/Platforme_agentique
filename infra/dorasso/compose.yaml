@@ -1,0 +1,30 @@
+name: dorasso
+
+# Personal assistant, separate from Decidata: own bot, data, LiteLLM team and budget.
+# Reaches LiteLLM only through the internal `personal` network (no OpenClaw/Paperclip).
+services:
+  hermes:
+    # Hermes Agent stable image (Nous Research), pinned by digest.
+    image: nousresearch/hermes-agent@sha256:444b42594e7f467425872fc35e077a227d377f0fe0726bc818706d62175fad8b
+    command: [gateway, run]
+    restart: unless-stopped
+    environment:
+      HERMES_UID: '1000'
+      HERMES_GID: '1000'
+      TZ: America/Toronto
+    volumes:
+      - ${DORASSO_DATA_DIR:?Private Dorasso directory required}:/opt/data
+    networks: [personal, outbound]
+    security_opt: [no-new-privileges:true]
+    mem_limit: 1536m
+    cpus: 2.0
+    pids_limit: 300
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+
+networks:
+  personal:
+    external: true
+    name: asia-platform-staging_personal
+  outbound: {}

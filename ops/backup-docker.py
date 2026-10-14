@@ -25,6 +25,7 @@ DOCKER = (r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name 
 ENV = dict(os.environ, ASIA_RUNTIME_DIR=RUNTIME.as_posix())
 COMPOSE = [DOCKER, 'compose', '-f', str(ROOT / 'infra/compose.yaml')]
 PAPERCLIP = Path(os.environ['LOCALAPPDATA']) / 'AsiaPaperclip'
+DORASSO = 'dorasso-hermes-1'
 
 
 def snapshot_paperclip(stage):
@@ -40,6 +41,35 @@ def snapshot_paperclip(stage):
         'pg_dump', '-U', 'paperclip', '-d', 'paperclip', '-Fc']))
     (target / 'data.tar.gz').write_bytes(run([DOCKER, 'exec', 'asia-paperclip-paperclip-1',
         'tar', '-czf', '-', '-C', '/paperclip', '.']))
+
+
+def snapshot_dorasso(stage):
+    """Optional personal assistant (Hermes): its own consistent backup archive."""
+    names = run([DOCKER, 'ps', '--filter', 'name=^' + DORASSO + '$', '--format', '{{.Names}}']).decode().split()
+    if DORASSO not in names:
+        return
+    remote = '/tmp/dorasso-backup-' + secrets.token_hex(8) + '.zip'
+    hermes = [DOCKER, 'exec', '-u', '1000', '-e', 'HOME=/opt/data', DORASSO]
+    try:
+        run(hermes + ['hermes', 'backup', '--output', remote, '--keep', '0'])
+        (stage / 'dorasso').mkdir()
+        (stage / 'dorasso' / 'hermes-backup.zip').write_bytes(run(hermes + ['cat', remote]))
+    finally:
+        run(hermes + ['rm', '-f', remote])
+
+
+def verify_dorasso(base):
+    archive = base / 'dorasso' / 'hermes-backup.zip'
+    if not archive.exists():
+        return {'included': False}
+    with zipfile.ZipFile(archive) as z:
+        if z.testzip() is not None:
+            raise ValueError('Dorasso backup archive is corrupt')
+        names = z.namelist()
+    for required in ('config.yaml', 'state.db'):
+        if not any(n == required or n.endswith('/' + required) for n in names):
+            raise ValueError('Incomplete Dorasso recovery point: ' + required)
+    return {'included': True, 'files': len(names)}
 
 
 def verify_paperclip(base, restore):
@@ -128,6 +158,7 @@ def create():
         (stage / 'litellm.dump').write_bytes(compose('exec','-T','postgres','pg_dump',
                 '-U','litellm','-d','litellm','-Fc'))
         snapshot_paperclip(stage)
+        snapshot_dorasso(stage)
         # Include runtime env, original migration inputs and dedicated test device
         # credentials. Never include the recovery key in its own encrypted archive.
         private = stage / 'runtime'
@@ -243,6 +274,7 @@ def verify(archive, restore=False):
             finally:
                 compose('exec','-T','postgres','dropdb','-U','postgres',database)
         result['paperclip'] = verify_paperclip(base, restore)
+        result['dorasso'] = verify_dorasso(base)
         return result
     finally:
         try:

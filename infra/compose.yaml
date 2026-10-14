@@ -166,7 +166,7 @@ services:
       - litellm-metrics:/var/lib/asia
     ports:
       - '127.0.0.1:${ASIA_LITELLM_PORT:-14000}:4000'
-    networks: [database, agents, outbound]
+    networks: [database, agents, outbound, personal]
     depends_on:
       postgres: {condition: service_healthy}
     healthcheck:
@@ -229,6 +229,8 @@ networks:
   browser_egress: {}
   database: {internal: true}
   agents: {internal: true}
+  # Personal assistant (Dorasso) <-> LiteLLM only; no route to OpenClaw or Paperclip.
+  personal: {internal: true}
   outbound: {}
 
 volumes:
