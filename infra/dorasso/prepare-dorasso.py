@@ -28,6 +28,24 @@ providers:
       {MODEL}: {{}}
       gemini-3.1-pro-preview: {{}}
       gemini-3.1-flash-lite: {{}}
+stt:
+  enabled: true
+  echo_transcripts: false
+  provider: openai
+  language: fr
+  openai:
+    # Speaches on this server: voice notes are transcribed locally.
+    model: Systran/faster-whisper-base
+    base_url: http://speaches:8000/v1
+    api_key: "${{DORASSO_SPEECH_KEY}}"
+tts:
+  provider: openai
+  openai:
+    # tts-proxy converts Gemini WAV to Opus; billed to Dorasso's LiteLLM key.
+    model: gemini-3.8-flash-lite-tts
+    voice: Kore
+    base_url: http://tts-proxy:8080/v1
+    api_key: "${{DORASSO_LITELLM_KEY}}"
 """
 
 
@@ -44,7 +62,8 @@ def main():
         raise SystemExit('Dorasso data already initialized; refusing to replace it.')
     token = (ROOT / 'telegram.token').read_text().strip()
     key = json.loads((ROOT / 'litellm-key.json').read_text())['key']
-    for value in (token, key):
+    speech = json.loads((ROOT.parent / 'AsiaDocker/runtime-private.json').read_text())['speech_key']
+    for value in (token, key, speech):
         if any(c in value for c in '\r\n "\'\\$'):
             raise ValueError('Unsupported character in secret')
     DATA.mkdir(mode=0o700, parents=True, exist_ok=True)
@@ -52,6 +71,7 @@ def main():
         'TELEGRAM_BOT_TOKEN': token,
         'TELEGRAM_ALLOWED_USERS': sys.argv[1],
         'DORASSO_LITELLM_KEY': key,
+        'DORASSO_SPEECH_KEY': speech,
     }.items()))
     write_private(DATA / 'config.yaml', CONFIG)
     write_private(DATA / 'SOUL.md', (HERE / 'SOUL.md').read_text(encoding='utf-8'))

@@ -72,7 +72,7 @@ services:
       - speech-models:/home/ubuntu/.cache/huggingface/hub
     ports:
       - '127.0.0.1:18000:8000'
-    networks: [agents, outbound]
+    networks: [agents, outbound, personal]
     healthcheck:
       test: [CMD, python, -c, 'import os, urllib.request; urllib.request.urlopen(urllib.request.Request("http://127.0.0.1:8000/health", headers={"Authorization": "Bearer " + os.environ["API_KEY"]}), timeout=4)']
       interval: 20s
@@ -99,7 +99,7 @@ services:
     read_only: true
     tmpfs:
       - /tmp:size=32m
-    networks: [agents]
+    networks: [agents, personal]
     depends_on:
       litellm: {condition: service_healthy}
     healthcheck:
