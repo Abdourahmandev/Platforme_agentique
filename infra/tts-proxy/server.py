@@ -9,6 +9,7 @@ Standard library only; no credential is stored or logged here.
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
+import struct
 import subprocess
 import urllib.error
 import urllib.request
@@ -22,6 +23,35 @@ FORMATS = {
     'aac': (['-c:a', 'aac', '-b:a', '64k', '-f', 'adts'], 'audio/aac'),
     'flac': (['-c:a', 'flac', '-f', 'flac'], 'audio/flac'),
 }
+
+
+def clean_wav(audio, depth=0):
+    """Return a WAV holding only the fmt and data chunks.
+
+    Gemini returns a complete WAV (with a trailing C2PA provenance chunk) that
+    LiteLLM wraps again as if it were raw PCM. Played as-is, the inner header
+    clicks and the C2PA manifest is heard as a scratch at the end.
+    """
+    if audio[:4] != b'RIFF' or audio[8:12] != b'WAVE' or depth > 2:
+        return None
+    fmt = data = None
+    i = 12
+    while i + 8 <= len(audio):
+        chunk, size = audio[i:i + 4], struct.unpack('<I', audio[i + 4:i + 8])[0]
+        body = audio[i + 8:i + 8 + size]
+        if chunk == b'fmt ':
+            fmt = body
+        elif chunk == b'data':
+            data = body
+        i += 8 + size + (size & 1)
+    if fmt is None or data is None:
+        return None
+    inner = clean_wav(data, depth + 1) if data[:4] == b'RIFF' else None
+    if inner:
+        return inner
+    data = data[:len(data) - len(data) % 2]
+    return (b'RIFF' + struct.pack('<I', 4 + 8 + len(fmt) + 8 + len(data)) + b'WAVE'
+            + b'fmt ' + struct.pack('<I', len(fmt)) + fmt + b'data' + struct.pack('<I', len(data)) + data)
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -58,7 +88,7 @@ class Handler(BaseHTTPRequestHandler):
         wanted = request.get('response_format') or 'mp3'
         if wanted not in FORMATS and wanted not in ('wav', 'pcm'):
             return self.error(400, 'unsupported response_format: ' + str(wanted))
-        upstream = dict(request, response_format='pcm' if wanted == 'pcm' else 'wav')
+        upstream = dict(request, response_format='wav')
         call = urllib.request.Request(UPSTREAM + '/v1/audio/speech', data=json.dumps(upstream).encode(),
                                       headers={'Content-Type': 'application/json',
                                                'Authorization': self.headers.get('Authorization', '')})
@@ -69,8 +99,11 @@ class Handler(BaseHTTPRequestHandler):
             return self.reply(exc.code, exc.read(), exc.headers.get('Content-Type', 'application/json'))
         except (urllib.error.URLError, TimeoutError):
             return self.error(502, 'speech gateway unavailable')
-        if wanted in ('wav', 'pcm'):
-            return self.reply(200, audio, 'audio/wav' if wanted == 'wav' else 'audio/pcm')
+        audio = clean_wav(audio) or audio
+        if wanted == 'wav':
+            return self.reply(200, audio, 'audio/wav')
+        if wanted == 'pcm':
+            return self.reply(200, audio[44:] if audio[:4] == b'RIFF' else audio, 'audio/pcm')
         args, content_type = FORMATS[wanted]
         result = subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-i', 'pipe:0', '-ac', '1',
                                  *args, 'pipe:1'], input=audio, capture_output=True, timeout=60)
