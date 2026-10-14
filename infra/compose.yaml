@@ -86,6 +86,30 @@ services:
     pids_limit: 150
     logging: *logging
 
+  tts-proxy:
+    # Gemini TTS returns WAV only; converts to OGG/Opus for Telegram voice notes.
+    profiles: [audio]
+    build: ./tts-proxy
+    image: asia-tts-proxy:local
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=32m
+    networks: [agents]
+    depends_on:
+      litellm: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=4)']
+      interval: 20s
+      timeout: 5s
+      retries: 6
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    mem_limit: 256m
+    cpus: 1.0
+    pids_limit: 64
+    logging: *logging
+
   openclaw-init:
     profiles: [bootstrap]
     image: ghcr.io/openclaw/openclaw@sha256:97a692e91a99b514318dd43e7925dffdacfc7499f401f842912bf15ccbf083ff
