@@ -20,7 +20,7 @@ ROOT = Path(__file__).resolve().parents[1]
 LOCAL = Path(os.environ['LOCALAPPDATA'])
 RUNTIME = LOCAL / 'AsiaDocker'
 JOURNAL = RUNTIME / 'asia-handoff-private.json'
-DOCKER = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+DOCKER = (r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
 CONTAINER = 'asia-platform-staging-openclaw-1'
 TEAM = 'asia-platform-staging'
 

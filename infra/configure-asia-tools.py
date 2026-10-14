@@ -14,7 +14,7 @@ import subprocess
 
 ROOT = Path(__file__).resolve().parents[1]
 RUNTIME = Path(os.environ['LOCALAPPDATA']) / 'AsiaDocker'
-DOCKER = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+DOCKER = (r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
 CONTAINER = 'asia-platform-staging-openclaw-1'
 TOOLS = ['playwright__*', 'tavily__*', 'asia-memory__*']
 BRIDGE_TOOLS = ['asia_opencode_task', 'asia_opencode_approve']

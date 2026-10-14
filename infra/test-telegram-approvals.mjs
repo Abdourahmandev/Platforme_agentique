@@ -11,7 +11,7 @@ const attempt=process.env.ASIA_TELEGRAM_APPROVAL_TEST||'';
 if(attempt&&!/^[a-z0-9-]{1,40}$/.test(attempt))throw Error('Invalid test attempt name');
 const file=path.join(root,'telegram-approval-test'+(attempt?'-'+attempt:'')+'-private.json');
 const state=JSON.parse(fs.readFileSync(path.join(root,'runtime-private.json'),'utf8'));
-const docker='C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe';
+const docker=(process.platform === 'win32' ? 'C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe' : 'docker');
 const container='asia-platform-staging-openclaw-1';
 const [action,choice]=process.argv.slice(2);
 if(!['prepare','present','observe','verify','cancel'].includes(action)||!['deny','allow'].includes(choice))throw Error('Use prepare|present|observe|verify|cancel deny|allow');

@@ -38,7 +38,7 @@ def main():
     def check(name, passed, **detail):
         checks[name] = {'passed':bool(passed),**detail}
         print(json.dumps({name:checks[name]}),flush=True)
-    docker = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+    docker = (r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
     def filesystem(script, data):
         result = subprocess.run([docker,'exec','-i','asia-platform-staging-openclaw-1','node','-e',script],
                                 input=json.dumps(data).encode(),capture_output=True)

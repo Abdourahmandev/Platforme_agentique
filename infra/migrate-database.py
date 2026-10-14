@@ -12,7 +12,7 @@ import subprocess
 ROOT = Path(__file__).resolve().parents[1]
 LOCAL = Path(os.environ['LOCALAPPDATA'])
 RUNTIME = LOCAL / 'AsiaDocker'
-DOCKER = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+DOCKER = (r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
 ENV = dict(os.environ, ASIA_RUNTIME_DIR=RUNTIME.as_posix())
 COMPOSE = [DOCKER, 'compose', '-f', str(ROOT / 'infra/compose.yaml')]
 

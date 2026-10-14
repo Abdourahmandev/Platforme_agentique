@@ -94,7 +94,7 @@ try {
   const done = await waitStatus(s => s.completed && !s.permissions.length && s.status === 'idle');
   check('approved_echo_completed',done.text.includes(marker));
   const traceCode=`import fs from 'node:fs';const {Bridge,bridgeStateFile}=await import('/home/node/.openclaw/extensions/asia-opencode/bridge.mjs');const b=new Bridge({agentId:process.argv[1],stateFile:bridgeStateFile('/home/node/.openclaw',process.argv[1]),credentials:()=>JSON.parse(fs.readFileSync('/home/node/.openclaw/credentials/asia-opencode.json'))});const task=b.own(process.argv[2]);console.log(JSON.stringify(await b.request('/session/'+task.sessionId+'/message')));`;
-  const trace=JSON.parse(execFileSync('C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe',
+  const trace=JSON.parse(execFileSync((process.platform === 'win32' ? 'C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe' : 'docker'),
     ['exec','asia-platform-staging-openclaw-1','node','--input-type=module','-e',traceCode,agentId,taskId],{encoding:'utf8',windowsHide:true,timeout:35000}));
   const calls=trace.flatMap(m=>(m.parts||[]).filter(p=>p.type==='tool'));
   check('real_windows_command_executed_once',calls.length===1&&calls[0].tool==='bash'&&calls[0].state?.input?.command===command&&calls[0].state?.status==='completed'&&calls[0].state?.output?.trim()===marker);

@@ -50,7 +50,7 @@ def main():
     args = parser.parse_args()
     path = RUNTIME / 'runtime-private.json'
     state = json.loads(path.read_text())
-    key = state.get('tts_key', 'sk-placeholder-for-validation')
+    key = state.get('tts_key', 'validation-only')
     if args.apply and 'tts_key' not in state:
         r = requests.post('http://127.0.0.1:14000/key/generate', timeout=30,
                           headers={'Authorization': 'Bearer ' + state['master_key']},

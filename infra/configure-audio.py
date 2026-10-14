@@ -10,7 +10,7 @@ import subprocess
 import requests
 
 RUNTIME = Path(os.environ['LOCALAPPDATA'])/'AsiaDocker'
-DOCKER = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+DOCKER = (r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
 CLI = [DOCKER,'exec','-i','asia-platform-staging-openclaw-1','node','dist/index.js']
 
 

@@ -7,7 +7,7 @@ import requests
 
 ROOT = Path(__file__).resolve().parents[2]
 PRIVATE = Path(os.environ['LOCALAPPDATA']) / 'AsiaPaperclip'
-DOCKER = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe'
+DOCKER = (r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
 BASE = os.environ.get('ASIA_PAPERCLIP_URL', 'https://desktop-ep5nvk0.taild656dc.ts.net:10443')
 
 

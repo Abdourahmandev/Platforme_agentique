@@ -34,7 +34,7 @@ try:
     # The public team update schema cannot set spend. Seed a spent balance only
     # in this fresh fixture, then refresh it through the normal update endpoint.
     query='UPDATE "LiteLLM_TeamTable" SET spend=1 WHERE team_id=\''+team+'\';'
-    p=subprocess.run([r'C:\Program Files\Docker\Docker\resources\bin\docker.exe','exec','-i',
+    p=subprocess.run([(r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker'),'exec','-i',
         'asia-platform-staging-postgres-1','psql','-U','postgres','-d','litellm','-v','ON_ERROR_STOP=1'],
         input=query.encode(),capture_output=True)
     if p.returncode: raise RuntimeError('Cannot seed team budget fixture')
