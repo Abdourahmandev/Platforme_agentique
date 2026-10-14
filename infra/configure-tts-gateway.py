@@ -17,7 +17,7 @@ RUNTIME = Path(os.environ.get('LOCALAPPDATA') or Path.home() / '.local/share') /
 DOCKER = r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker'
 CLI = [DOCKER, 'exec', '-i', 'asia-platform-staging-openclaw-1', 'node', 'dist/index.js']
 TEAM = 'asia-platform-staging'
-MODEL = 'gemini-3.8-flash-tts'
+MODELS = ['gemini-3.8-flash-tts', 'gemini-3.8-flash-lite-tts']  # lite: about twice as fast
 VOICE = 'Kore'
 
 
@@ -29,10 +29,10 @@ def command(args, data=None):
     return result.stdout
 
 
-def tts_config(key):
+def tts_config(key, model):
     current = json.loads(command(['config', 'get', 'tts', '--json']))
     providers = dict(current.get('providers', {}))
-    providers['openai'] = {'baseUrl': 'http://tts-proxy:8080/v1', 'apiKey': key, 'model': MODEL,
+    providers['openai'] = {'baseUrl': 'http://tts-proxy:8080/v1', 'apiKey': key, 'model': model,
                            'speakerVoice': VOICE}
     # Only [[tts:text]] is honoured: agents may make a reply voice-only, never switch
     # provider, voice or model. An empty visible text makes OpenClaw send audio alone.
@@ -46,6 +46,7 @@ def tts_config(key):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--apply', action='store_true')
+    parser.add_argument('--model', choices=MODELS, default=MODELS[0])
     args = parser.parse_args()
     path = RUNTIME / 'runtime-private.json'
     state = json.loads(path.read_text())
@@ -53,7 +54,7 @@ def main():
     if args.apply and 'tts_key' not in state:
         r = requests.post('http://127.0.0.1:14000/key/generate', timeout=30,
                           headers={'Authorization': 'Bearer ' + state['master_key']},
-                          json={'key_alias': 'tts', 'team_id': TEAM, 'models': [MODEL],
+                          json={'key_alias': 'tts', 'team_id': TEAM, 'models': MODELS,
                                 'allowed_routes': ['/audio/speech', '/v1/audio/speech'], 'key_type': 'llm_api',
                                 'max_budget': 3, 'budget_duration': '30d', 'rpm_limit': 15,
                                 'max_parallel_requests': 2, 'metadata': {'purpose': 'openclaw-tts'}})
@@ -61,14 +62,21 @@ def main():
             raise RuntimeError(f'LiteLLM /key/generate returned HTTP {r.status_code}')
         key = state['tts_key'] = r.json()['key']
         path.write_text(json.dumps(state))
-    config = tts_config(key)
+    if args.apply:
+        # Keys created before MODELS had two entries only allowed the first one.
+        r = requests.post('http://127.0.0.1:14000/key/update', timeout=30,
+                          headers={'Authorization': 'Bearer ' + state['master_key']},
+                          json={'key': key, 'models': MODELS})
+        if not r.ok:
+            raise RuntimeError(f'LiteLLM /key/update returned HTTP {r.status_code}')
+    config = tts_config(key, args.model)
     command(['config', 'set', 'tts', json.dumps(config), '--strict-json', '--dry-run'])
     if not args.apply:
         print('TTS gateway configuration validated; no change applied.')
         return
     command(['config', 'set', 'tts', json.dumps(config), '--strict-json'])
     command(['config', 'validate'])
-    print(f'TTS now uses {MODEL} ({VOICE}) through LiteLLM with a dedicated $3/30d key.')
+    print(f'TTS now uses {args.model} ({VOICE}) through LiteLLM with a dedicated $3/30d key.')
 
 
 if __name__ == '__main__':
