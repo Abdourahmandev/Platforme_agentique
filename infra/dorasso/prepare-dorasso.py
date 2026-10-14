@@ -6,6 +6,7 @@ Usage: prepare-dorasso.py <owner Telegram user id>
 """
 import json
 import os
+import secrets
 import shutil
 from pathlib import Path
 import sys
@@ -50,6 +51,10 @@ tts:
 plugins:
   enabled:
     - dorasso-voice-only
+web:
+  # Private SearXNG for search; page reading via Exa keyless (sends only the URL).
+  search_backend: searxng
+  extract_backend: exa
 """
 
 
@@ -76,8 +81,11 @@ def main():
         'TELEGRAM_ALLOWED_USERS': sys.argv[1],
         'DORASSO_LITELLM_KEY': key,
         'DORASSO_SPEECH_KEY': speech,
+        'SEARXNG_URL': 'http://searxng:8080',
     }.items()))
     write_private(DATA / 'config.yaml', CONFIG)
+    if not (ROOT / 'searxng.env').exists():
+        write_private(ROOT / 'searxng.env', 'SEARXNG_SECRET=' + secrets.token_hex(32) + chr(10))
     write_private(DATA / 'SOUL.md', (HERE / 'SOUL.md').read_text(encoding='utf-8'))
     # Voice notes answered with a voice bubble only (see the plugin docstring).
     shutil.copytree(HERE / 'plugins', DATA / 'plugins', dirs_exist_ok=True)

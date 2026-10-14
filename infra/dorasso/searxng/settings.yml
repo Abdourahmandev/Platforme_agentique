@@ -1,0 +1,20 @@
+# Private SearXNG for Dorasso only (no published port). The secret comes from
+# SEARXNG_SECRET in the private runtime, never from this file.
+use_default_settings: true
+
+general:
+  instance_name: Dorasso
+  enable_metrics: false
+
+server:
+  limiter: false        # single trusted client on an internal network
+  public_instance: false
+  image_proxy: false
+
+search:
+  safe_search: 0
+  default_lang: fr
+  formats: [html, json] # Hermes queries /search?format=json
+
+ui:
+  query_in_title: false

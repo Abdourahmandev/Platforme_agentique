@@ -14,7 +14,7 @@ services:
       TZ: America/Toronto
     volumes:
       - ${DORASSO_DATA_DIR:?Private Dorasso directory required}:/opt/data
-    networks: [personal, outbound]
+    networks: [personal, search, outbound]
     security_opt: [no-new-privileges:true]
     mem_limit: 1536m
     cpus: 2.0
@@ -23,7 +23,32 @@ services:
       driver: json-file
       options: {max-size: 10m, max-file: '3'}
 
+  searxng:
+    # Private metasearch for Dorasso's web_search; reachable only from hermes.
+    image: searxng/searxng@sha256:9b61996edcc679fb6665290f95fda15389a14eda6060e41a25c63ab2758f2436
+    restart: unless-stopped
+    env_file:
+      - path: ${DORASSO_DIR:?Private Dorasso directory required}/searxng.env
+        required: true
+    volumes:
+      - ./searxng/settings.yml:/etc/searxng/settings.yml:ro
+    networks: [search, outbound]
+    healthcheck:
+      test: [CMD, python3, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/healthz", timeout=4)']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    security_opt: [no-new-privileges:true]
+    mem_limit: 512m
+    cpus: 1.0
+    pids_limit: 200
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+
 networks:
+  search: {internal: true}
   personal:
     external: true
     name: asia-platform-staging_personal
