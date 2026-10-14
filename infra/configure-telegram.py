@@ -14,8 +14,7 @@ from pathlib import Path
 import subprocess
 import requests
 
-LOCAL=Path(os.environ.get('LOCALAPPDATA') or Path.home()/'.local/share')
-RUNTIME=LOCAL/'AsiaDocker'
+RUNTIME=Path(os.environ.get('LOCALAPPDATA') or Path.home()/'.local/share')/'AsiaDocker'
 DOCKER=(r'C:\Program Files\Docker\Docker\resources\bin\docker.exe' if os.name == 'nt' else 'docker')
 EXEC=[DOCKER,'exec','-i','asia-platform-staging-openclaw-1']
 ACCOUNTS={'asia-test':'asia','developpement':'developpement','recherche':'recherche'}
@@ -58,7 +57,7 @@ def main():
     state=json.loads((RUNTIME/'runtime-private.json').read_text())
     if state.get('phase')!='staging': raise RuntimeError('Staging initializer only')
     # A fresh install has no legacy Windows consumer to hand off from.
-    legacy_path=LOCAL/'OpenCodeTelegramSetup/bot-credentials.json'
+    legacy_path=Path(os.environ.get('LOCALAPPDATA') or Path.home()/'.local/share')/'OpenCodeTelegramSetup/bot-credentials.json'
     legacy=json.loads(legacy_path.read_text()) if legacy_path.exists() else None
     if not legacy and not args.owner_id: raise RuntimeError('No legacy bot files: pass --owner-id')
     owner=str(args.owner_id or legacy['AllowedUserId'])

@@ -88,10 +88,14 @@ services:
 
   tts-proxy:
     # Gemini TTS returns WAV only; converts to OGG/Opus for Telegram voice notes.
+    # Reuses the pinned Speaches image for its Python and ffmpeg; no local build.
     profiles: [audio]
-    build: ./tts-proxy
-    image: asia-tts-proxy:local
+    image: ghcr.io/speaches-ai/speaches@sha256:21e3df06d842fb7802ab470dd77c25f0e8c0d22950e8d8c6ae886e851af53ef8
     restart: unless-stopped
+    user: '1000:1000'
+    entrypoint: [python3, /opt/tts-proxy/server.py]
+    volumes:
+      - ./tts-proxy/server.py:/opt/tts-proxy/server.py:ro
     read_only: true
     tmpfs:
       - /tmp:size=32m
@@ -99,7 +103,7 @@ services:
     depends_on:
       litellm: {condition: service_healthy}
     healthcheck:
-      test: [CMD, python, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=4)']
+      test: [CMD, python3, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=4)']
       interval: 20s
       timeout: 5s
       retries: 6
