@@ -1,0 +1,16 @@
+#!/bin/sh
+# Atelier guard (free alternative to GitHub branch protection on private repos):
+# agents push their own branches only; main/master change through a PR merged by the owner.
+# Not tamper-proof (an agent could bypass hooks); complements the role rules and QA review.
+while read -r local_ref local_sha remote_ref remote_sha; do
+    case "$remote_ref" in
+        refs/heads/main|refs/heads/master)
+            echo "atelier: envoi refuse vers ${remote_ref#refs/heads/}. Pousse ta propre branche et ouvre une PR." >&2
+            exit 1 ;;
+    esac
+    if [ "$local_sha" = 0000000000000000000000000000000000000000 ]; then
+        echo "atelier: suppression de branche distante refusee (${remote_ref#refs/heads/})." >&2
+        exit 1
+    fi
+done
+exit 0
