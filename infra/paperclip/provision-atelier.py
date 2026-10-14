@@ -30,6 +30,8 @@ HEARTBEAT = {'enabled': False, 'intervalSec': 0, 'wakeOnDemand': True, 'maxConcu
 AGENTS = {
     'developpement': {'name': 'Souleiman', 'role': 'engineer', 'model': 'litellm/asia-pro', 'key': 'souleiman'},
     'maryam': {'name': 'Maryam', 'role': 'qa', 'model': 'litellm/gemini-3.8-flash', 'key': 'maryam'},
+    # Paperclip refuses to resume a failed OpenClaw (legacy) run on a ticket; atelier runs can be retried.
+    'recherche': {'name': 'Saredo', 'role': 'researcher', 'model': 'litellm/gemini-3.8-flash', 'key': 'saredo'},
 }
 
 
@@ -76,7 +78,8 @@ def main():
     secrets = atelier.setdefault('secrets', {})
     litellm = json.loads((ATELIER / 'litellm-keys.json').read_text())
     wanted = {'ATELIER_SSH_KEY': (ATELIER / 'paperclip_ed25519').read_text(),
-              'LITELLM_KEY_SOULEIMAN': litellm['souleiman'], 'LITELLM_KEY_MARYAM': litellm['maryam']}
+              'LITELLM_KEY_SOULEIMAN': litellm['souleiman'], 'LITELLM_KEY_MARYAM': litellm['maryam'],
+              'LITELLM_KEY_SAREDO': litellm['saredo']}
     existing = {s['name']: s['id'] for s in board.call('GET', f"/companies/{company['id']}/secrets")}
     for name, value in wanted.items():
         if name not in secrets:

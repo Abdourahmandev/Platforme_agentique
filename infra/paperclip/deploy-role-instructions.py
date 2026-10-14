@@ -14,7 +14,8 @@ ROOT = Path(__file__).resolve().parents[2]
 PRIVATE = Path(os.environ.get('LOCALAPPDATA') or Path.home() / '.local/share') / 'AsiaPaperclip'
 API = 'http://127.0.0.1:3100/api'
 BEGIN, END = '<!-- decidata-role:begin -->', '<!-- decidata-role:end -->'
-ROLES = {'developpement': 'infra/agents/developpement/PAPERCLIP.md', 'maryam': 'infra/agents/maryam/PAPERCLIP.md'}
+ROLES = {'developpement': 'infra/agents/developpement/PAPERCLIP.md', 'maryam': 'infra/agents/maryam/PAPERCLIP.md',
+         'recherche': 'infra/agents/recherche/PAPERCLIP.md'}
 
 
 def main():
