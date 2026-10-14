@@ -1,0 +1,41 @@
+name: atelier
+
+# Execution environment for Paperclip coding agents (Souleiman, Maryam).
+# Reachable only from Paperclip on the internal `workshop` network; holds no
+# secret besides the per-run LiteLLM key. Outbound internet for dependencies.
+services:
+  atelier:
+    build: .
+    image: asia-atelier:opencode-1.18.34
+    restart: unless-stopped
+    volumes:
+      - atelier-host-keys:/etc/ssh/host
+      - ${ATELIER_DIR:?Private atelier directory required}/authorized_keys:/etc/ssh/authorized/authorized_keys:ro
+      - atelier-work:/work
+    networks: [workshop, outbound]
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    cap_add: [CHOWN, SETUID, SETGID, SYS_CHROOT, KILL, DAC_OVERRIDE, FOWNER, AUDIT_WRITE]
+    tmpfs:
+      - /tmp:size=1g,mode=1777
+    mem_limit: 3g
+    cpus: 4.0
+    pids_limit: 1024
+    healthcheck:
+      test: [CMD, bash, -c, 'exec 3<>/dev/tcp/127.0.0.1/2222 && head -c 4 <&3 | grep -q SSH']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+
+networks:
+  workshop:
+    external: true
+    name: asia-platform-staging_workshop
+  outbound: {}
+
+volumes:
+  atelier-host-keys:
+  atelier-work:

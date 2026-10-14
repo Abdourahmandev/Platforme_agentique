@@ -37,7 +37,7 @@ services:
       TZ: America/New_York
     ports: ['127.0.0.1:3100:3100']
     volumes: [paperclip-data:/paperclip]
-    networks: [database, agents, outbound]
+    networks: [database, agents, outbound, workshop]
     depends_on:
       postgres: {condition: service_healthy}
     healthcheck:
@@ -57,6 +57,9 @@ networks:
     external: true
     name: asia-platform-staging_agents
   outbound: {}
+  workshop:
+    external: true
+    name: asia-platform-staging_workshop
 
 volumes:
   postgres-data:
