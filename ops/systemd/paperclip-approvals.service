@@ -1,0 +1,19 @@
+[Unit]
+Description=Owner approvals page for Paperclip (Tailscale only)
+After=network-online.target docker.service
+
+[Service]
+User=rass
+Environment=LOCALAPPDATA=/home/rass/.local/share
+Environment=ALLOWED_LOGIN=abdourahman03@gmail.com
+Environment=PUBLIC_ORIGIN=https://rass-server.taild656dc.ts.net:8443
+Environment=PAPERCLIP_URL=https://rass-server.taild656dc.ts.net/DEC
+Environment=PORT=3110
+ExecStart=/usr/bin/python3 /home/rass/Platforme_agentique/infra/approvals/server.py
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadOnlyPaths=/home/rass
+
+[Install]
+WantedBy=multi-user.target
