@@ -56,7 +56,9 @@ def main():
             agent_status[agent] = 'idle'
         elif agent_status.get(agent) == 'paused':
             continue  # a human paused it on purpose
-        key = f"idle-wake-{issue['id']}-{issue['updatedAt']}"
+        # The attempt number keeps a retry from being swallowed as a duplicate of a
+        # wake that Paperclip accepted without starting a run.
+        key = f"idle-wake-{issue['id']}-{issue['updatedAt']}-{today}-{entry['count']}"
         r = s.post(f'{API}/agents/{agent}/wakeup', timeout=30, json={
             'source': 'assignment', 'triggerDetail': 'system', 'idempotencyKey': key,
             'reason': f"Reveil automatique : {issue['identifier']} attend cet agent sans passage actif",
