@@ -46,7 +46,7 @@ services:
       timeout: 5s
       retries: 15
       start_period: 120s
-    mem_limit: 1024m
+    mem_limit: 1280m
     cpus: 1.0
     pids_limit: 250
     logging: *logging
