@@ -16,4 +16,4 @@ Les commentaires et les demandes restent visibles dans Paperclip. Un commentaire
 
 Pour l'operateur : la decision native de correction est un PATCH du ticket avec status `in_progress` et `comment` dans la meme requete, depuis le compte de l'approbateur. Paperclip restaure le responsable de retour et enregistre changes_requested. Un commentaire deja publie ne remplace pas ce commentaire de decision. La validation finale utilise status `done` avec son commentaire dans la meme requete. Ces actions humaines ne font pas partie de `asia_ticket`.
 
-Pas de sondage en boucle, pas de travail de fond invente. Une lecture de resultat n'est pas une nouvelle mission. La cloture finale appartient au proprietaire; les permissions Windows et les approbations OpenCode restent distinctes et obligatoires.
+Pas de sondage en boucle, pas de travail de fond invente. Une lecture de resultat n'est pas une nouvelle mission. La cloture finale appartient au proprietaire; un ticket ne donne aucun droit ou outil supplementaire.

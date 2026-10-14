@@ -58,7 +58,8 @@ def main():
         }), encoding='utf-8')
         workspace = RUNTIME / 'openclaw/workspaces' / agent_id
         workspace.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(ROOT / 'infra/agents' / agent_id / 'AGENTS.md', workspace / 'AGENTS.md')
+        for name in ('AGENTS.md', 'PROCEDURES.md'):
+            shutil.copy2(ROOT / 'infra/agents' / agent_id / name, workspace / name)
         (workspace / 'IDENTITY.md').write_text(f'# Identite\n\nNom : {AGENTS[agent_id]}\nIdentifiant : {agent_id}\n', encoding='utf-8')
     config = json.loads((ROOT / 'infra/openclaw.example.json').read_text())
     config['models']['providers']['litellm']['models'] = [{

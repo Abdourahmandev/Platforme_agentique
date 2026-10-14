@@ -8,7 +8,7 @@ if (fs.readdirSync(root).length !== 0) throw new Error('State volume is not empt
 const files = ['openclaw.json'];
 for (const agent of ['asia', 'developpement', 'recherche']) {
   files.push(`agents/${agent}/agent/auth-profiles.json`);
-  files.push(`workspaces/${agent}/AGENTS.md`, `workspaces/${agent}/IDENTITY.md`);
+  files.push(`workspaces/${agent}/AGENTS.md`, `workspaces/${agent}/PROCEDURES.md`, `workspaces/${agent}/IDENTITY.md`);
 }
 for (const file of files) {
   if (!fs.statSync(path.join('/seed', file)).isFile()) throw new Error(`Missing seed: ${file}`);
