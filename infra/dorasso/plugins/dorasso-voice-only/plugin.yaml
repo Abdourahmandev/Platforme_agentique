@@ -1,0 +1,3 @@
+name: dorasso-voice-only
+version: "1.0"
+description: Tag inbound Telegram voice notes so Dorasso replies with a voice bubble only.

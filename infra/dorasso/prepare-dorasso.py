@@ -6,6 +6,7 @@ Usage: prepare-dorasso.py <owner Telegram user id>
 """
 import json
 import os
+import shutil
 from pathlib import Path
 import sys
 
@@ -46,6 +47,9 @@ tts:
     voice: Kore
     base_url: http://tts-proxy:8080/v1
     api_key: "${{DORASSO_LITELLM_KEY}}"
+plugins:
+  enabled:
+    - dorasso-voice-only
 """
 
 
@@ -75,6 +79,8 @@ def main():
     }.items()))
     write_private(DATA / 'config.yaml', CONFIG)
     write_private(DATA / 'SOUL.md', (HERE / 'SOUL.md').read_text(encoding='utf-8'))
+    # Voice notes answered with a voice bubble only (see the plugin docstring).
+    shutil.copytree(HERE / 'plugins', DATA / 'plugins', dirs_exist_ok=True)
     print(f'Dorasso data prepared in {DATA} (owner {sys.argv[1]}, model {MODEL}).')
 
 
