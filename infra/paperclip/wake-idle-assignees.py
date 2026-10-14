@@ -29,6 +29,9 @@ def main():
     runs = s.get(f'{API}/companies/{company}/heartbeat-runs', params={'limit': 100}, timeout=30).json()
     runs = runs.get('items', runs) if isinstance(runs, dict) else runs
     busy = {r.get('agentId') for r in runs if r.get('status') in ACTIVE_RUNS}
+    # After a timed-out run Paperclip leaves the agent in `error`, and wakes are then
+    # accepted without starting a run. Clearing it counts against the daily cap below.
+    agent_status = {a['id']: a.get('status') for a in s.get(f'{API}/companies/{company}/agents', timeout=30).json()}
     now = datetime.now(timezone.utc)
     # Hard cap independent of Paperclip's idempotency: 3 wakes per ticket per day.
     state_path = PRIVATE / 'idle-wake-state.json'
@@ -47,6 +50,12 @@ def main():
             continue
         entry['count'] += 1
         entry['last'] = issue['updatedAt']
+        if agent_status.get(agent) == 'error':
+            cleared = s.post(f'{API}/agents/{agent}/clear-error', json={}, timeout=30)
+            print(f"{issue['identifier']} -> agent en erreur remis en service: {cleared.status_code}", flush=True)
+            agent_status[agent] = 'idle'
+        elif agent_status.get(agent) == 'paused':
+            continue  # a human paused it on purpose
         key = f"idle-wake-{issue['id']}-{issue['updatedAt']}"
         r = s.post(f'{API}/agents/{agent}/wakeup', timeout=30, json={
             'source': 'assignment', 'triggerDetail': 'system', 'idempotencyKey': key,
