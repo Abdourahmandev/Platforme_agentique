@@ -27,7 +27,8 @@ def install():
                  'companyId':c.read('company.json')['id'],'projectId':c.read('project.json')['id'],
                  'ownerId':c.read('owner.json')['userId'],'agents':keys}
     g.remote_write(g.BASE+'/paperclip-control/credentials.json',json.dumps(credentials))
-    config['plugins']['allow'].append('asia-paperclip')
+    if 'allow' in config['plugins']:
+        config['plugins']['allow'].append('asia-paperclip')
     config['plugins']['entries']['asia-paperclip']={'enabled':True}
     config['tools']['allow'].append('asia_ticket')
     instructions=(c.ROOT/'infra/paperclip/agent-instructions.md').read_text(encoding='utf-8')

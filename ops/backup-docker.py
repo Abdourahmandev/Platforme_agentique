@@ -46,7 +46,8 @@ def verify_paperclip(base, restore):
     target = base / 'paperclip'
     if not target.exists():
         return {'included': False}
-    for name in ('deployment.json', 'paperclip.env', 'postgres.env', 'owner-login.json',
+    # owner-login.json only exists on installs that stored the owner's password.
+    for name in ('deployment.json', 'paperclip.env', 'postgres.env',
                  'openclaw-before.json', 'postgres.dump', 'data.tar.gz'):
         if not (target / name).is_file():
             raise ValueError('Incomplete Paperclip recovery point: ' + name)
