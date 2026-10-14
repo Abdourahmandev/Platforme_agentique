@@ -6,12 +6,13 @@ const string={type:'string'};
 export default {id:'asia-paperclip',name:'Tickets des agents',register(api){
   api.registerTool(context=>!['asia','developpement','recherche'].includes(context.agentId)?null:{
     name:'asia_ticket',label:'Tickets Paperclip',
-    description:'Lire les tickets du projet partage et leurs discussions. Asia cree des tickets seulement sur demande explicite du proprietaire, ou des sous-taches depuis un ticket. Une conversation normale ne cree aucun ticket. Les agents publient commentaires et resultats; la cloture reste humaine. Aucun acces aux conversations privees des autres agents.',
+    description:'Lire les tickets des projets partages et leurs discussions. Asia cree des tickets seulement sur demande explicite du proprietaire, ou des sous-taches depuis un ticket. Une conversation normale ne cree aucun ticket. Les agents publient commentaires et resultats; la cloture reste humaine. Dans un projet avec relectrice (voir projectDirectory), un ticket de developpement passe d abord par sa revue puis par l approbation du proprietaire. Aucun acces aux conversations privees des autres agents.',
     parameters:{type:'object',additionalProperties:false,required:['action'],properties:{
       action:{type:'string',enum:['list','get','create','checkout','comment','update']},issueId:string,
       requestId:{type:'string',description:'Identifiant stable de mutation, 8 a 100 caracteres; conserver en cas de resultat incertain.'},
       runId:{type:'string',description:'PAPERCLIP_RUN_ID du reveil courant, requis pour les mutations depuis un ticket.'},
-      title:string,description:string,assignee:{type:'string',enum:['asia','developpement','recherche'],description:'Identifiant stable, jamais le nom affiche : Souleiman = developpement, Saredo = recherche, Asia = asia. Voir agentDirectory dans list/get.'},parentId:string,
+      title:string,description:string,assignee:{type:'string',enum:['asia','developpement','recherche','maryam'],description:'Identifiant stable, jamais le nom affiche : Souleiman = developpement, Saredo = recherche, Asia = asia, Maryam = maryam. Voir agentDirectory dans list/get.'},parentId:string,
+      project:{type:'string',description:'Projet (voir projectDirectory dans list/get). Absent : projet partage par defaut. Une sous-tache reste dans le projet de son parent.'},
       ownerRequest:{type:'string',description:'Citation exacte de la demande explicite de creation du proprietaire, pour un nouveau ticket depuis Telegram.'},
       body:string,status:{type:'string',enum:['blocked','in_review']}}},
     async execute(callId,params){try{const value=await tickets.call(context,params);return {content:[{type:'text',text:JSON.stringify(value)}],details:value};}

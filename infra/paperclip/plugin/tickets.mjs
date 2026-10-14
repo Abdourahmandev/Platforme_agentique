@@ -10,7 +10,26 @@ export function issueSession(context){
   if(match[1]!==context.agentId || !UUID.test(match[2]))throw Error('Session de ticket invalide');
   return match[2];
 }
-export function assertCreate(context,params){
+// Projects the tool may touch: the historical shared project plus optional named
+// projects ({slug:{id,name,reviewer,reviewFor}}). A project with a reviewer adds a
+// review stage by that agent before the owner's approval, for tickets assigned to reviewFor.
+export function projectsOf(cfg){
+  return {[cfg.defaultProject||'plateforme']:{id:cfg.projectId,name:cfg.projectName||'Plateforme agentique'},...(cfg.projects||{})};
+}
+export function resolveProject(cfg,slug){
+  const projects=projectsOf(cfg);
+  if(!slug)return {slug:cfg.defaultProject||'plateforme',...projects[cfg.defaultProject||'plateforme']};
+  if(!projects[slug])throw Error('Projet inconnu: '+slug+'. Projets: '+Object.keys(projects).join(', '));
+  return {slug,...projects[slug]};
+}
+export function executionPolicyFor(cfg,project,assignee){
+  const stages=[];
+  if(project.reviewer&&cfg.agents[project.reviewer]&&assignee===project.reviewFor&&assignee!==project.reviewer)
+    stages.push({type:'review',participants:[{type:'agent',agentId:cfg.agents[project.reviewer].id}]});
+  stages.push({type:'approval',participants:[{type:'user',userId:cfg.ownerId}]});
+  return {mode:'normal',stages};
+}
+export function assertCreate(context,params,assignees=AGENTS){
   if(context.agentId!=='asia')throw Error('La creation et la delegation de tickets sont reservees a Asia');
   const session=issueSession(context);
   if(session){
@@ -22,7 +41,7 @@ export function assertCreate(context,params){
       !/(?:cree|creer|creez|ouvre|ouvrir|ajoute|ajouter|create|open|add)\b[\s\S]{0,100}\b(?:tache|ticket|task|issue)\b/i.test(text))
       throw Error('Pas de ticket automatique. Demander une instruction explicite de creation de tache, puis citer cette demande dans ownerRequest.');
   }
-  if(!AGENTS.includes(params.assignee||'asia'))throw Error('Responsable inconnu');
+  if(!assignees.includes(params.assignee||'asia'))throw Error('Responsable inconnu');
 }
 const publicIssue=(item,url)=>Object.fromEntries(Object.entries({id:item.id,identifier:item.identifier,title:item.title,
   description:item.description,status:item.status,assigneeAgentId:item.assigneeAgentId,assigneeUserId:item.assigneeUserId,
@@ -37,6 +56,9 @@ export class Tickets {
     const cfg=this.credentials(),actor=cfg.agents[context.agentId];
     if(!cfg.enabled||!actor)throw Error('Integration Paperclip suspendue');
     const agentDirectory=Object.entries(cfg.agents).map(([agentId,v])=>({agentId,paperclipId:v.id,name:v.name||agentId}));
+    const projects=projectsOf(cfg),projectIds=Object.values(projects).map(p=>p.id);
+    const projectDirectory=Object.entries(projects).map(([project,v])=>({project,name:v.name||project,
+      reviewer:v.reviewer||null,reviewFor:v.reviewFor||null}));
     const base=new URL(cfg.apiUrl);
     if(base.origin!=='http://paperclip:3100')throw Error('Destination Paperclip invalide');
     const request=async(method,route,body,runId)=>{
@@ -49,25 +71,26 @@ export class Tickets {
     const get=async(id)=>{
       if(!UUID.test(id||''))throw Error('Utiliser l UUID du ticket');
       const item=await request('GET','/issues/'+id);
-      if(item.companyId!==cfg.companyId||item.projectId!==cfg.projectId)throw Error('Ticket hors du projet partage');
+      if(item.companyId!==cfg.companyId||!projectIds.includes(item.projectId))throw Error('Ticket hors du projet partage');
       return item;
     };
     if(params.action==='list'){
-      const rows=await request('GET',`/companies/${cfg.companyId}/issues?projectId=${cfg.projectId}&limit=50`);
-      return {tickets:rows.filter(i=>i.projectId===cfg.projectId).slice(0,50).map(i=>publicIssue(i,cfg.publicUrl)),agentDirectory};
+      const project=resolveProject(cfg,params.project);
+      const rows=await request('GET',`/companies/${cfg.companyId}/issues?projectId=${project.id}&limit=50`);
+      return {tickets:rows.filter(i=>i.projectId===project.id).slice(0,50).map(i=>publicIssue(i,cfg.publicUrl)),agentDirectory,projectDirectory};
     }
     if(params.action==='get'){
       const item=await get(params.issueId);
       const comments=await request('GET',`/issues/${item.id}/comments`);
       return {ticket:publicIssue(item,cfg.publicUrl),comments:[...comments].sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt))).slice(-30).map(c=>({id:c.id,authorAgentId:c.authorAgentId,
-        authorUserId:c.authorUserId,body:c.body,createdAt:c.createdAt})),agents:Object.fromEntries(Object.entries(cfg.agents).map(([k,v])=>[k,v.id])),agentDirectory};
+        authorUserId:c.authorUserId,body:c.body,createdAt:c.createdAt})),agents:Object.fromEntries(Object.entries(cfg.agents).map(([k,v])=>[k,v.id])),agentDirectory,projectDirectory};
     }
     if(!['create','checkout','comment','update'].includes(params.action))throw Error('Action inconnue');
     if(!/^[a-zA-Z0-9_-]{8,100}$/.test(params.requestId||''))throw Error('requestId stable de 8 a 100 caracteres requis');
     if(!context.sessionKey)throw Error('Session requise pour les mutations');
     const session=issueSession(context);
     let item,runId;
-    if(params.action==='create')assertCreate(context,params);
+    if(params.action==='create')assertCreate(context,params,Object.keys(cfg.agents));
     else item=await get(params.issueId);
     if(session){
       const own=await get(session);
@@ -86,7 +109,14 @@ export class Tickets {
     if(['comment','update'].includes(params.action)&&(!params.body?.trim()||params.body.length>16000))throw Error('Commentaire de 1 a 16000 caracteres requis');
     if(params.action==='create'){
       if(!params.title?.trim()||params.title.length>200||!params.description?.trim()||params.description.length>16000)throw Error('Titre et description requis, tailles maximales 200 et 16000');
-      if(params.parentId)await get(params.parentId);
+      if(params.parentId){
+        // A subtask lives in its parent's project; an explicit different project is refused.
+        const parent=await get(params.parentId);
+        const inherited=Object.entries(projects).find(([,p])=>p.id===parent.projectId)?.[0];
+        if(params.project&&params.project!==inherited)throw Error('Une sous-tache reste dans le projet de son parent');
+        params={...params,project:inherited};
+      }
+      resolveProject(cfg,params.project);
     }
     const key=createHash('sha256').update(`${context.agentId}|${context.sessionKey}|${params.requestId}`).digest('hex');
     const hash=createHash('sha256').update(JSON.stringify(params)).digest('hex');
@@ -102,10 +132,11 @@ export class Tickets {
     }
     let value;
     if(params.action==='create'){
+      const project=resolveProject(cfg,params.project),assignee=params.assignee||'asia';
       value=publicIssue(await request('POST',`/companies/${cfg.companyId}/issues`,{
-        title:params.title,description:params.description,status:'todo',priority:'medium',projectId:cfg.projectId,
-        assigneeAgentId:cfg.agents[params.assignee||'asia'].id,parentId:params.parentId||null,idempotencyKey:'asia-'+key,
-        executionPolicy:{mode:'normal',stages:[{type:'approval',participants:[{type:'user',userId:cfg.ownerId}]}]},
+        title:params.title,description:params.description,status:'todo',priority:'medium',projectId:project.id,
+        assigneeAgentId:cfg.agents[assignee].id,parentId:params.parentId||null,idempotencyKey:'asia-'+key,
+        executionPolicy:executionPolicyFor(cfg,project,assignee),
       },runId),cfg.publicUrl);
     }else if(params.action==='checkout'){
       value=publicIssue(await request('POST',`/issues/${item.id}/checkout`,{agentId:actor.id,

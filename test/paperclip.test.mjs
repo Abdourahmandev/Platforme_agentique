@@ -95,3 +95,46 @@ test('Paperclip: cross-project reads, wrong runs and autonomous closure are deni
   await assert.rejects(current.client.call(ticket,{action:'update',issueId:issue,runId:run,requestId:'close-test-1',status:'done',body:'Resultat'}),/cloture/);
   assert.equal(current.calls.filter(c=>c.options.method!=='GET').length,0);
 });
+const usine='66666666-6666-4666-8666-666666666666',maryam='77777777-7777-4777-8777-777777777777',dev='88888888-8888-4888-8888-888888888888';
+function factory(t,handler){
+  const f=fixture(t,handler);
+  f.cfg.agents.developpement={id:dev,name:'Souleiman',token:'private-dev'};
+  f.cfg.agents.maryam={id:maryam,name:'Maryam'};
+  f.cfg.projects={usine:{id:usine,name:'Usine test',reviewer:'maryam',reviewFor:'developpement'}};
+  return f;
+}
+test('Paperclip: factory development tickets get QA review before owner approval',async t=>{
+  const {client,calls}=factory(t,()=>({...item,projectId:usine}));
+  await client.call(normal,{action:'create',requestId:'usine-dev-1',ownerRequest:'Cree une tache pour la fonction somme',
+    title:'Fonction somme',description:'Implementer et tester',assignee:'developpement',project:'usine'});
+  const body=JSON.parse(calls.at(-1).options.body);
+  assert.equal(body.projectId,usine);assert.equal(body.assigneeAgentId,dev);
+  assert.deepEqual(body.executionPolicy.stages.map(s=>s.type),['review','approval']);
+  assert.equal(body.executionPolicy.stages[0].participants[0].agentId,maryam);
+  assert.equal(body.executionPolicy.stages[1].participants[0].userId,'owner');
+});
+test('Paperclip: non-development or default-project tickets keep owner approval only',async t=>{
+  const {client,calls}=factory(t,()=>item);
+  await client.call(normal,{action:'create',requestId:'usine-spec-1',ownerRequest:'Cree une tache de specification',
+    title:'Spec',description:'Rediger la spec',assignee:'asia',project:'usine'});
+  assert.deepEqual(JSON.parse(calls.at(-1).options.body).executionPolicy.stages.map(s=>s.type),['approval']);
+  await client.call(normal,{action:'create',requestId:'default-dev-1',ownerRequest:'Cree une tache',
+    title:'Etude',description:'Comparer',assignee:'developpement'});
+  const body=JSON.parse(calls.at(-1).options.body);
+  assert.equal(body.projectId,project);assert.deepEqual(body.executionPolicy.stages.map(s=>s.type),['approval']);
+});
+test('Paperclip: unknown projects are refused and subtasks stay in their parent project',async t=>{
+  const {client,calls}=factory(t,(url,options)=>url.pathname.includes('heartbeat-runs')?
+    {agentId:agent,status:'running',contextSnapshot:{issueId:issue}}:
+    options.method==='GET'&&url.pathname.includes('/companies/')?[{...item,projectId:usine}]:{...item,projectId:usine});
+  await assert.rejects(client.call(normal,{action:'create',requestId:'unknown-proj-1',ownerRequest:'Cree une tache',
+    title:'X',description:'Y',project:'inconnu'}),/Projet inconnu/);
+  await assert.rejects(client.call(ticket,{action:'create',requestId:'cross-proj-1',parentId:issue,runId:run,
+    title:'X',description:'Y',assignee:'developpement',project:'plateforme'}),/projet de son parent/);
+  await client.call(ticket,{action:'create',requestId:'sub-proj-1',parentId:issue,runId:run,
+    title:'Developper',description:'Implementer',assignee:'developpement'});
+  const body=JSON.parse(calls.filter(c=>c.options.method==='POST').at(-1).options.body);
+  assert.equal(body.projectId,usine);assert.equal(body.executionPolicy.stages[0].type,'review');
+  const listed=await client.call(normal,{action:'list',project:'usine'});
+  assert.ok(listed.projectDirectory.some(p=>p.project==='usine'&&p.reviewer==='maryam'));
+});
