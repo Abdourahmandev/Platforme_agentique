@@ -157,10 +157,10 @@ services:
     env_file:
       - path: ${LOCALAPPDATA}/Notion/bridge.env
         required: true
-      - path: ${LOCALAPPDATA}/Notion/notion.env
-        required: false
     volumes:
       - ./notion-bridge/server.py:/opt/notion-bridge/server.py:ro
+      # notion.env (Notion token) is read at each request: a new key needs no restart.
+      - ${LOCALAPPDATA}/Notion:/run/notion:ro
     read_only: true
     networks: [agents, outbound]
     healthcheck:

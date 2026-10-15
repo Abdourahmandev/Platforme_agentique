@@ -1,6 +1,7 @@
 """Notion bridge: Asia's only way into Notion, limited to the "Projets Decidata" database.
 
-Holds the Notion integration token; agents get a narrow HTTP API on the internal
+Reads the Notion integration token from NOTION_TOKEN_FILE (written by the owner's
+secret page or set-notion-token.sh); agents get a narrow HTTP API on the internal
 `agents` network, authenticated by BRIDGE_KEY. It can only:
 - create the database once, under the page titled "Decidata" shared with the integration;
 - list, create and update project pages of that database;
@@ -48,6 +49,21 @@ SCHEMA = {
     'Duree reelle (jours)': {'number': {'format': 'number'}},
     'Resume': {'rich_text': {}},
 }
+TOKEN_FILE = os.environ.get('NOTION_TOKEN_FILE', '/run/notion/notion.env')
+
+
+def token():
+    """Read at each call, so a key entered by the owner takes effect without a restart."""
+    try:
+        with open(TOKEN_FILE, encoding='utf-8') as f:
+            for line in f:
+                if line.startswith('NOTION_TOKEN='):
+                    return line.split('=', 1)[1].strip()
+    except OSError:
+        pass
+    return ''
+
+
 ID = re.compile(r'^[0-9a-f]{32}$|^[0-9a-f-]{36}$')
 LOCK = threading.Lock()
 STATE = {'db': None}
@@ -62,7 +78,7 @@ class BridgeError(Exception):
 def notion(method, path, body=None):
     request = urllib.request.Request(NOTION + path, method=method,
                                      data=None if body is None else json.dumps(body).encode(),
-                                     headers={'Authorization': 'Bearer ' + os.environ['NOTION_TOKEN'],
+                                     headers={'Authorization': 'Bearer ' + token(),
                                               'Notion-Version': VERSION, 'Content-Type': 'application/json'})
     try:
         with urllib.request.urlopen(request, timeout=30) as response:
@@ -238,10 +254,10 @@ class Handler(BaseHTTPRequestHandler):
 
     def route(self):
         if self.path == '/health':
-            return self.reply(200, {'ok': True, 'configured': bool(os.environ.get('NOTION_TOKEN'))})
+            return self.reply(200, {'ok': True, 'configured': bool(token())})
         if self.headers.get('Authorization') != 'Bearer ' + os.environ['BRIDGE_KEY']:
             return self.reply(401, {'error': 'Cle du relais invalide'})
-        if not os.environ.get('NOTION_TOKEN'):
+        if not token():
             return self.reply(503, {'error': 'Cle Notion absente : le proprietaire doit lancer set-notion-token.sh'})
         length = int(self.headers.get('Content-Length') or 0)
         if length > 200000:

@@ -14,6 +14,8 @@ Restart=on-failure
 NoNewPrivileges=true
 ProtectSystem=strict
 ReadOnlyPaths=/home/rass
+# /secrets writes whitelisted keys here (0600).
+ReadWritePaths=/home/rass/.local/share/Notion
 
 [Install]
 WantedBy=multi-user.target

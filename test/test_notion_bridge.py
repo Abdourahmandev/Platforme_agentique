@@ -14,11 +14,14 @@ DB = 'a' * 32
 class NotionBridgeTest(unittest.TestCase):
     def setUp(self):
         bridge.STATE['db'] = DB
-        self.env = mock.patch.dict(os.environ, {'NOTION_TOKEN': 'ntn_test', 'BRIDGE_KEY': 'k'})
+        self.env = mock.patch.dict(os.environ, {'BRIDGE_KEY': 'k'})
         self.env.start()
+        self.tok = mock.patch.object(bridge, 'token', return_value='ntn_test')
+        self.tok.start()
 
     def tearDown(self):
         self.env.stop()
+        self.tok.stop()
 
     def test_properties_validate_fields(self):
         props = bridge.properties({'name': 'Messagerie', 'status': 'Termine', 'realCost': 7.09,

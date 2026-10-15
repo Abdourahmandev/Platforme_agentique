@@ -5,6 +5,8 @@ PATCH, which its issue page does not send. This page lists the tickets waiting f
 the owner's approval and sends both together. Served on 127.0.0.1 behind
 `tailscale serve`, which adds the caller's Tailscale identity: only ALLOWED_LOGIN
 may use it. Every form carries a one-time token; POSTs must come from this origin.
+/secrets lets the owner enter a whitelisted key (Notion) from a phone: checked with
+the provider, written 0600, never shown again nor logged.
 Standard library only; the board token never leaves the server.
 """
 from html import escape
@@ -12,6 +14,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 import json
 import os
 from pathlib import Path
+import re
 import secrets
 import time
 from urllib.parse import parse_qs, quote, urlparse
@@ -100,6 +103,8 @@ class Handler(BaseHTTPRequestHandler):
         now = time.time()
         for key in [k for k, (_, exp) in FORM_TOKENS.items() if exp < now]:
             FORM_TOKENS.pop(key, None)
+        if urlparse(self.path).path == '/secrets':
+            return self.secrets_page(message, now)
         try:
             rows = pending()
         except (urllib.error.URLError, OSError) as exc:
@@ -133,9 +138,11 @@ class Handler(BaseHTTPRequestHandler):
         if origin and origin.rstrip('/') != PUBLIC_ORIGIN:
             return self.respond(403, '<p>Origine refusee.</p>')
         length = int(self.headers.get('Content-Length') or 0)
-        if self.path != '/decide' or not 0 < length <= 20000:
+        if self.path not in ('/decide', '/secrets') or not 0 < length <= 20000:
             return self.respond(400, '<p>Requete invalide.</p>')
         form = parse_qs(self.rfile.read(length).decode())
+        if self.path == '/secrets':
+            return self.save_secret(form)
         token = form.get('t', [''])[0]
         issue_id, expiry = FORM_TOKENS.pop(token, (None, 0))
         decision = form.get('decision', [''])[0]
@@ -149,6 +156,65 @@ class Handler(BaseHTTPRequestHandler):
         except urllib.error.HTTPError as exc:
             note = f'Paperclip a refuse la decision (HTTP {exc.code}).'
         self.respond(303, '', location='/?m=' + quote(note))
+
+    def secrets_page(self, message, now):
+        html = ['<h1>Secrets</h1><p class="sub">Entrer une cle sur le serveur depuis votre telephone. '
+                'Elle est verifiee, enregistree en mode 0600, puis jamais reaffichee.</p>']
+        if message:
+            html.append(f'<div class="msg">{escape(message)}</div>')
+        for name, target in SECRET_TARGETS.items():
+            token = secrets.token_urlsafe(24)
+            FORM_TOKENS[token] = ('secret:' + name, now + 900)
+            state = 'enregistree' if target['file'].exists() else 'absente'
+            html.append(f'<div class="card"><h2>{escape(target["label"])}</h2><div class="id">Etat : cle {state}</div>'
+                        f'<form method="post" action="/secrets"><input type="hidden" name="t" value="{token}">'
+                        f'<input type="hidden" name="target" value="{escape(name)}">'
+                        f'<textarea name="value" required autocomplete="off" autocapitalize="off" spellcheck="false" '
+                        f'placeholder="{escape(target["hint"])}"></textarea>'
+                        f'<div class="row"><button class="ok">Verifier et enregistrer</button></div></form></div>')
+        self.respond(200, ''.join(html))
+
+    def save_secret(self, form):
+        token = form.get('t', [''])[0]
+        purpose, expiry = FORM_TOKENS.pop(token, (None, 0))
+        name = form.get('target', [''])[0]
+        value = form.get('value', [''])[0].strip()
+        target = SECRET_TARGETS.get(name)
+        if not target or purpose != 'secret:' + name or expiry < time.time() or not value:
+            return self.respond(303, '', location='/secrets?m=' + quote('Formulaire expire ou incomplet : rechargez la page.'))
+        try:
+            who = target['check'](value)
+        except ValueError as exc:
+            return self.respond(303, '', location='/secrets?m=' + quote(str(exc)))
+        target['file'].parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        tmp = target['file'].with_suffix('.tmp')
+        fd = os.open(tmp, os.O_WRONLY | os.O_CREAT | os.O_TRUNC, 0o600)
+        with os.fdopen(fd, 'w') as f:
+            f.write(target['format'](value))
+        os.replace(tmp, target['file'])
+        self.respond(303, '', location='/secrets?m=' + quote(f'{target["label"]} : cle enregistree ({who}).'))
+
+
+def check_notion(value):
+    if not re.fullmatch(r'(ntn_|secret_)[A-Za-z0-9_]{20,200}', value):
+        raise ValueError('Cle refusee : une cle Notion (ntn_...) est attendue.')
+    request = urllib.request.Request('https://api.notion.com/v1/users/me', headers={
+        'Authorization': 'Bearer ' + value, 'Notion-Version': '2022-06-28'})
+    try:
+        with urllib.request.urlopen(request, timeout=20) as response:
+            return 'integration ' + (json.loads(response.read()).get('name') or '?')
+    except urllib.error.HTTPError as exc:
+        raise ValueError(f'Notion a refuse la cle (HTTP {exc.code}).') from None
+    except OSError:
+        raise ValueError('Notion injoignable : reessayez.') from None
+
+
+# Whitelisted secrets the owner may set from this page; nothing else is writable.
+SECRET_TARGETS = {
+    'notion': {'label': 'Notion (connexion « Asia (Decidata) »)', 'hint': 'Collez la cle ntn_...',
+               'file': PRIVATE.parent / 'Notion/notion.env', 'check': check_notion,
+               'format': lambda v: f'NOTION_TOKEN={v}\n'},
+}
 
 
 if __name__ == '__main__':
