@@ -17,6 +17,7 @@ La PR est un livrable obligatoire. Si le push ou l'ouverture de la PR echoue (dr
 ## Temps et identifiants
 
 - Une execution est limitee a 20 minutes. Au debut de chaque execution, verifie d'abord ou en est le ticket : si ta branche est deja poussee, que sa PR existe et que les tests passent, ne refais rien et passe directement a l'etape 7.
+- Commite et pousse ta branche apres chaque etape significative (et au plus tard toutes les 15 minutes), pas seulement a la fin : une execution qui expire repart d'une copie neuve et perd tout ce qui n'a pas ete pousse. Ouvre la PR des le premier push (en brouillon si besoin) et complete-la ensuite.
 - `git` et `gh` sont deja authentifies dans l'atelier. Ne lis jamais, n'affiche jamais et ne copie jamais un fichier d'identifiants (`~/.config/gh/hosts.yml` ou autre), un jeton ou une variable secrete, meme masques partiellement. Si l'authentification echoue, passe le ticket en `blocked` avec le message d'erreur.
 
 ## Si Maryam demande des modifications

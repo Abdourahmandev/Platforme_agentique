@@ -28,7 +28,9 @@ PROVIDERS = json.dumps({'litellm': {
     'models': {m: {'name': m} for m in ('asia-pro', 'asia-rapide', 'gemini-3.8-flash', 'gemini-3.1-pro-preview')}}})
 HEARTBEAT = {'enabled': False, 'intervalSec': 0, 'wakeOnDemand': True, 'maxConcurrentRuns': 1, 'maxDailyRuns': 12}
 AGENTS = {
-    'developpement': {'name': 'Souleiman', 'role': 'engineer', 'model': 'litellm/asia-pro', 'key': 'souleiman'},
+    'developpement': {'name': 'Souleiman', 'role': 'engineer', 'model': 'litellm/asia-pro', 'key': 'souleiman',
+                      # DeepSeek Pro is slow: a full lot (code + tests + PR) needs more than 20 minutes.
+                      'timeoutSec': 2700},
     'maryam': {'name': 'Maryam', 'role': 'qa', 'model': 'litellm/gemini-3.8-flash', 'key': 'maryam'},
     # Paperclip refuses to resume a failed OpenClaw (legacy) run on a ticket; atelier runs can be retried.
     'recherche': {'name': 'Saredo', 'role': 'researcher', 'model': 'litellm/gemini-3.8-flash', 'key': 'saredo'},
@@ -98,7 +100,7 @@ def main():
         save('deployment.json', state)
 
     for slug, spec in AGENTS.items():
-        adapter = {'model': spec['model'], 'timeoutSec': 1200, 'graceSec': 30,
+        adapter = {'model': spec['model'], 'timeoutSec': spec.get('timeoutSec', 1200), 'graceSec': 30,
                    'env': {'LITELLM_API_KEY': {'type': 'secret_ref',
                                                'secretId': secrets['LITELLM_KEY_' + spec['key'].upper()]},
                            'PAPERCLIP_OPENCODE_PROVIDERS': {'type': 'plain', 'value': PROVIDERS}}}
