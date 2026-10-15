@@ -1,0 +1,16 @@
+# Private metasearch for the Decidata team's research (atelier only).
+# Separate from Dorasso's instance: personal and team searches never mix.
+use_default_settings: true
+general:
+  instance_name: Decidata
+  enable_metrics: false
+server:
+  limiter: false        # trusted clients only, on the atelier's internal network
+  public_instance: false
+  image_proxy: false
+search:
+  safe_search: 0
+  default_lang: fr
+  formats: [html, json] # agents query /search?format=json
+ui:
+  query_in_title: false
