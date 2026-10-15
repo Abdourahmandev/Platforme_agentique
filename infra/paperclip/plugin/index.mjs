@@ -1,5 +1,6 @@
 import fs from 'node:fs';
 import {Tickets} from './tickets.mjs';
+import {notionCall} from './notion.mjs';
 const root='/home/node/.openclaw/paperclip-control';
 const tickets=new Tickets({directory:root+'/receipts',credentials:()=>JSON.parse(fs.readFileSync(root+'/credentials.json','utf8'))});
 const string={type:'string'};
@@ -18,4 +19,17 @@ export default {id:'asia-paperclip',name:'Tickets des agents',register(api){
     async execute(callId,params){try{const value=await tickets.call(context,params);return {content:[{type:'text',text:JSON.stringify(value)}],details:value};}
       catch(error){return {isError:true,content:[{type:'text',text:error.message}]};}}
   },{name:'asia_ticket',optional:true});
+  api.registerTool(context=>context.agentId!=='asia'?null:{
+    name:'asia_notion',label:'Projets Decidata (Notion)',
+    description:'Documenter les projets Decidata dans la base Notion "Projets Decidata" (seul acces Notion de la plateforme). list : fiches existantes. create : nouvelle fiche (fields.name obligatoire). update : modifier les champs d une fiche. add_section : ajouter une section (title + text ; paragraphes separes par une ligne vide, listes avec "- "). Champs : name, status (Estimation, En cours, Termine, En pause, Abandonne), repo (URL https), start, end (AAAA-MM-JJ), lots, estimateCost, realCost (dollars US), estimateDays, realDays (jours), summary. Aucune donnee personnelle ni secret.',
+    parameters:{type:'object',additionalProperties:false,required:['action'],properties:{
+      action:{type:'string',enum:['list','setup','create','update','add_section']},
+      projectId:{type:'string',description:'Identifiant de la fiche (champ id de list ou create), pour update et add_section.'},
+      fields:{type:'object',description:'Champs de la fiche pour create et update.'},
+      title:{type:'string',description:'Titre de la section, pour add_section.'},
+      text:{type:'string',description:'Contenu de la section, pour add_section.'}}},
+    async execute(callId,params){try{const config=JSON.parse(fs.readFileSync(root+'/credentials.json','utf8')).notion;
+      const value=await notionCall(config,params);return {content:[{type:'text',text:JSON.stringify(value)}],details:value};}
+      catch(error){return {isError:true,content:[{type:'text',text:error.message}]};}}
+  },{name:'asia_notion',optional:true});
 }};

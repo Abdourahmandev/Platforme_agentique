@@ -147,6 +147,34 @@ services:
     pids_limit: 32
     logging: *logging
 
+  notion-bridge:
+    # Asia's only access to Notion, limited to the "Projets Decidata" database.
+    # Holds the Notion token (set-notion-token.sh); agents authenticate with BRIDGE_KEY.
+    image: ghcr.io/speaches-ai/speaches@sha256:21e3df06d842fb7802ab470dd77c25f0e8c0d22950e8d8c6ae886e851af53ef8
+    restart: unless-stopped
+    user: '1000:1000'
+    entrypoint: [python3, /opt/notion-bridge/server.py]
+    env_file:
+      - path: ${LOCALAPPDATA}/Notion/bridge.env
+        required: true
+      - path: ${LOCALAPPDATA}/Notion/notion.env
+        required: false
+    volumes:
+      - ./notion-bridge/server.py:/opt/notion-bridge/server.py:ro
+    read_only: true
+    networks: [agents, outbound]
+    healthcheck:
+      test: [CMD, python3, -c, 'import urllib.request; urllib.request.urlopen("http://127.0.0.1:8080/health", timeout=4)']
+      interval: 30s
+      timeout: 5s
+      retries: 5
+    security_opt: [no-new-privileges:true]
+    cap_drop: [ALL]
+    mem_limit: 128m
+    cpus: 0.5
+    pids_limit: 32
+    logging: *logging
+
   openclaw-init:
     profiles: [bootstrap]
     image: ghcr.io/openclaw/openclaw@sha256:97a692e91a99b514318dd43e7925dffdacfc7499f401f842912bf15ccbf083ff

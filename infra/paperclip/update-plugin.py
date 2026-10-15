@@ -70,6 +70,10 @@ def main():
                    'companyId': company['id'], 'projectId': default['id'], 'projectName': default['name'],
                    'defaultProject': 'plateforme', 'projects': projects,
                    'ownerId': c.read('owner.json')['userId'], 'agents': agents}
+    bridge = c.PRIVATE.parent / 'Notion/bridge.env'
+    if bridge.exists():  # Asia's Notion tool (infra/notion-bridge)
+        key = bridge.read_text().strip().partition('=')[2]
+        credentials['notion'] = {'url': 'http://notion-bridge:8080', 'key': key}
     g.remote_write(g.BASE + '/paperclip-control/credentials.json', json.dumps(credentials))
     print(json.dumps({'projects': ['plateforme', *sorted(projects)],
                       'agents': {k: ('outil' if 'token' in v else 'assignable') for k, v in agents.items()}}))
