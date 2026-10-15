@@ -26,6 +26,7 @@ ENV = dict(os.environ, ASIA_RUNTIME_DIR=RUNTIME.as_posix())
 COMPOSE = [DOCKER, 'compose', '-f', str(ROOT / 'infra/compose.yaml')]
 PAPERCLIP = Path(os.environ['LOCALAPPDATA']) / 'AsiaPaperclip'
 DORASSO = 'dorasso-hermes-1'
+LOCAL = Path(os.environ['LOCALAPPDATA'])
 
 
 def snapshot_paperclip(stage):
@@ -144,6 +145,31 @@ def copy_approval_receipts(source, destination):
             shutil.copy2(receipt, destination / receipt.name)
 
 
+def snapshot_messagerie(stage):
+    """Optional owner's messagerie and Notion bridge: env files, SQLite history, voice notes."""
+    import sqlite3
+    source = LOCAL / 'Messagerie'
+    if (source / 'messagerie.env').exists():
+        target = stage / 'messagerie'
+        (target / 'data').mkdir(parents=True)
+        shutil.copy2(source / 'messagerie.env', target / 'messagerie.env')
+        for item in (source / 'data').iterdir():
+            if item.is_symlink():
+                continue
+            if item.suffix == '.db':  # consistent copy of a live SQLite database
+                with sqlite3.connect(f'file:{item}?mode=ro', uri=True) as db, sqlite3.connect(target / 'data' / item.name) as out:
+                    db.backup(out)
+            elif item.is_file() and not item.name.endswith(('-wal', '-shm')):
+                shutil.copy2(item, target / 'data' / item.name)
+            elif item.is_dir():
+                shutil.copytree(item, target / 'data' / item.name, symlinks=False)
+    notion = LOCAL / 'Notion'
+    if notion.is_dir():
+        (stage / 'notion').mkdir()
+        for item in notion.glob('*.env'):
+            shutil.copy2(item, stage / 'notion' / item.name)
+
+
 def create():
     backup.private(backup.STATE)
     backup.private(backup.DEST)
@@ -159,6 +185,7 @@ def create():
                 '-U','litellm','-d','litellm','-Fc'))
         snapshot_paperclip(stage)
         snapshot_dorasso(stage)
+        snapshot_messagerie(stage)
         # Include runtime env, original migration inputs and dedicated test device
         # credentials. Never include the recovery key in its own encrypted archive.
         private = stage / 'runtime'
