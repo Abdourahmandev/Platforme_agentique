@@ -147,3 +147,11 @@ test('Paperclip: costs sums real dollars per ticket of the project',async t=>{
   assert.equal(result.totalDollars,1.02);
   assert.deepEqual(result.tickets.map(x=>x.identifier),['TEST-1']);
 });
+test('Paperclip: a short approval creates only when answering an explicit creation proposal',()=>{
+  const proposal='Dis-moi je valide et je cree le ticket parent du projet Android.';
+  assert.doesNotThrow(()=>assertCreate(normal,{ownerRequest:'Je valide',proposal}));
+  assert.doesNotThrow(()=>assertCreate(normal,{ownerRequest:'oui go',proposal}));
+  assert.throws(()=>assertCreate(normal,{ownerRequest:'Je valide'}),/Pas de ticket/);
+  assert.throws(()=>assertCreate(normal,{ownerRequest:'Je valide',proposal:'Voici mon estimation.'}),/Pas de ticket/);
+  assert.throws(()=>assertCreate(normal,{ownerRequest:'non, ne cree pas',proposal}),/Pas de ticket/);
+});

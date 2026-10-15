@@ -14,8 +14,9 @@ export default {id:'asia-paperclip',name:'Tickets des agents',register(api){
       runId:{type:'string',description:'PAPERCLIP_RUN_ID du reveil courant, requis pour les mutations depuis un ticket.'},
       title:string,description:string,assignee:{type:'string',enum:['asia','developpement','recherche','maryam'],description:'Identifiant stable, jamais le nom affiche : Souleiman = developpement, Saredo = recherche, Asia = asia, Maryam = maryam. Voir agentDirectory dans list/get.'},parentId:string,
       project:{type:'string',description:'Projet (voir projectDirectory dans list/get). Absent : projet partage par defaut. Une sous-tache reste dans le projet de son parent.'},
-      ownerRequest:{type:'string',description:'Citation exacte de la demande explicite de creation du proprietaire, pour un nouveau ticket depuis Telegram.'},
-      body:string,status:{type:'string',enum:['blocked','in_review']}}},
+      ownerRequest:{type:'string',description:'Citation exacte de la demande explicite de creation du proprietaire (ou de sa reponse "je valide" a ta proposition), pour un nouveau ticket depuis une conversation.'},
+      proposal:{type:'string',description:'Si ownerRequest est une simple validation : citation exacte de ta proposition de creation a laquelle le proprietaire repond.'},
+      body:string,status:{type:'string',enum:['in_progress','blocked','in_review'],description:'in_progress : travail en cours (ex. ticket parent qui suit ses lots) ; blocked : vrai blocage seulement.'}}},
     async execute(callId,params){try{const value=await tickets.call(context,params);return {content:[{type:'text',text:JSON.stringify(value)}],details:value};}
       catch(error){return {isError:true,content:[{type:'text',text:error.message}]};}}
   },{name:'asia_ticket',optional:true});

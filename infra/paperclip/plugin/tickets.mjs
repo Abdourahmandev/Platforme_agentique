@@ -36,10 +36,15 @@ export function assertCreate(context,params,assignees=AGENTS){
     if(params.parentId!==session)throw Error('Une delegation doit etre une sous-tache du ticket courant');
   }else{
     if(params.parentId)throw Error('Creer les sous-taches depuis le ticket parent');
-    const text=String(params.ownerRequest||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
-    if(/\b(?:ne|pas|jamais|sans|don't|not|never)\b/i.test(text) ||
-      !/(?:cree|creer|creez|ouvre|ouvrir|ajoute|ajouter|create|open|add)\b[\s\S]{0,100}\b(?:tache|ticket|task|issue)\b/i.test(text))
-      throw Error('Pas de ticket automatique. Demander une instruction explicite de creation de tache, puis citer cette demande dans ownerRequest.');
+    const plain=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    const text=plain(params.ownerRequest);
+    const creation=/(?:cree|creer|creez|ouvre|ouvrir|ajoute|ajouter|lance|lancer|create|open|add)\b[\s\S]{0,100}\b(?:tache|ticket|task|issue|projet|project)\b/i;
+    // A short approval ("je valide", "oui", "go") counts only as the answer to Asia's own
+    // explicit creation proposal, quoted in `proposal`.
+    const approval=/^\s*(?:oui|je valide|valide|go|vas-?y|ok|d'?accord|c'?est bon|parfait)\b/i;
+    if(/\b(?:ne|pas|jamais|sans|non|don't|not|never)\b/i.test(text) ||
+      !(creation.test(text)||(approval.test(text)&&creation.test(plain(params.proposal)))))
+      throw Error('Pas de ticket automatique. Demander une instruction explicite de creation de tache (ou proposer la creation et attendre "je valide"), puis citer la reponse dans ownerRequest et la proposition dans proposal.');
   }
   if(!assignees.includes(params.assignee||'asia'))throw Error('Responsable inconnu');
 }
@@ -115,8 +120,8 @@ export class Tickets {
     }else if(params.action!=='create'&&params.action!=='comment')throw Error('Mettre a jour un ticket depuis son execution Paperclip');
     if(['checkout','update'].includes(params.action) && (item.id!==session||item.assigneeAgentId!==actor.id))
       throw Error('Modification reservee au responsable du ticket courant');
-    if(params.action==='update'&&!['blocked','in_review'].includes(params.status))
-      throw Error('Seuls blocked et in_review sont autorises; la cloture est reservee au proprietaire');
+    if(params.action==='update'&&!['blocked','in_review','in_progress'].includes(params.status))
+      throw Error('Seuls in_progress, blocked et in_review sont autorises; la cloture est reservee au proprietaire');
     if(['comment','update'].includes(params.action)&&(!params.body?.trim()||params.body.length>16000))throw Error('Commentaire de 1 a 16000 caracteres requis');
     if(params.action==='create'){
       if(!params.title?.trim()||params.title.length>200||!params.description?.trim()||params.description.length>16000)throw Error('Titre et description requis, tailles maximales 200 et 16000');
