@@ -66,6 +66,19 @@ class NotionBridgeTest(unittest.TestCase):
                 bridge.handle('POST', '/projects', {'fields': {'name': 'Messagerie'}})
         self.assertEqual(ctx.exception.status, 409)
 
+    def test_adds_missing_columns_to_existing_database(self):
+        bridge.STATE['db'] = None
+        existing = {'id': DB, 'title': [{'plain_text': bridge.DB_TITLE}],
+                    'properties': {k: {} for k in bridge.SCHEMA if k != 'PO'}}
+        calls = []
+
+        def fake(method, path, body=None):
+            calls.append((method, path, body))
+            return {'results': [existing]} if path == '/search' else {}
+        with mock.patch.object(bridge, 'notion', side_effect=fake):
+            self.assertEqual(bridge.database(), DB)
+        self.assertEqual(calls[-1], ('PATCH', f'/databases/{DB}', {'properties': {'PO': {'rich_text': {}}}}))
+
     def test_unknown_route(self):
         with self.assertRaises(bridge.BridgeError) as ctx:
             bridge.handle('DELETE', '/projects', {})

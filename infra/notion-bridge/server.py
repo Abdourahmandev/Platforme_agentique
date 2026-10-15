@@ -35,6 +35,7 @@ FIELDS = {
     'realCost': ('Cout reel ($)', 'number'),
     'realDays': ('Duree reelle (jours)', 'number'),
     'summary': ('Resume', 'rich_text'),
+    'po': ('PO', 'rich_text'),
 }
 SCHEMA = {
     'Nom': {'title': {}},
@@ -48,6 +49,7 @@ SCHEMA = {
     'Cout reel ($)': {'number': {'format': 'dollar'}},
     'Duree reelle (jours)': {'number': {'format': 'number'}},
     'Resume': {'rich_text': {}},
+    'PO': {'rich_text': {}},
 }
 TOKEN_FILE = os.environ.get('NOTION_TOKEN_FILE', '/run/notion/notion.env')
 
@@ -118,6 +120,9 @@ def database(create=False):
         if len(found) > 1:
             raise BridgeError(409, f'Plusieurs bases "{DB_TITLE}" : en garder une seule')
         if found:
+            missing = {k: v for k, v in SCHEMA.items() if k not in found[0].get('properties', {})}
+            if missing:  # columns added after the database was created
+                notion('PATCH', f"/databases/{found[0]['id']}", {'properties': missing})
             STATE['db'] = found[0]['id']
             return STATE['db']
         if not create:
