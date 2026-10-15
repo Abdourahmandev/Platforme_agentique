@@ -26,7 +26,7 @@ PROVIDERS = json.dumps({'litellm': {
     'npm': '@ai-sdk/openai-compatible', 'name': 'LiteLLM (DeepSeek / Gemini)',
     'options': {'baseURL': 'http://litellm:4000/v1', 'apiKey': '{env:LITELLM_API_KEY}'},
     'models': {m: {'name': m} for m in ('asia-pro', 'asia-rapide', 'gemini-3.8-flash', 'gemini-3.1-pro-preview')}}})
-HEARTBEAT = {'enabled': False, 'intervalSec': 0, 'wakeOnDemand': True, 'maxConcurrentRuns': 1, 'maxDailyRuns': 12}
+HEARTBEAT = {'enabled': False, 'intervalSec': 0, 'wakeOnDemand': True, 'maxConcurrentRuns': 1, 'maxDailyRuns': 24}
 AGENTS = {
     'developpement': {'name': 'Souleiman', 'role': 'engineer', 'model': 'litellm/asia-pro', 'key': 'souleiman',
                       # DeepSeek Pro is slow: a full lot (code + tests + PR) needs more than 20 minutes.
