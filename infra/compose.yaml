@@ -94,12 +94,15 @@ services:
     restart: unless-stopped
     user: '1000:1000'
     entrypoint: [python3, /opt/tts-proxy/server.py]
+    # Read by the messagerie on the host: loopback only.
+    ports: ['127.0.0.1:18080:8080']
     volumes:
       - ./tts-proxy/server.py:/opt/tts-proxy/server.py:ro
     read_only: true
     tmpfs:
       - /tmp:size=32m
-    networks: [agents, personal]
+    # outbound: Docker publishes ports only for containers on a non-internal network.
+    networks: [agents, personal, outbound]
     depends_on:
       litellm: {condition: service_healthy}
     healthcheck:
@@ -122,6 +125,8 @@ services:
     restart: unless-stopped
     user: '1000:1000'
     entrypoint: [python3, /opt/budget-info/server.py]
+    # Read by the messagerie on the host: loopback only.
+    ports: ['127.0.0.1:8091:8080']
     env_file:
       - ${ASIA_RUNTIME_DIR}/litellm.env
     volumes:
