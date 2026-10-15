@@ -14,6 +14,8 @@ services:
       TZ: America/Toronto
     volumes:
       - ${DORASSO_DATA_DIR:?Private Dorasso directory required}:/opt/data
+    # Hermes API server for the messagerie (key-protected), loopback only on the host.
+    ports: ['127.0.0.1:8642:8642']
     networks: [personal, search, outbound]
     security_opt: [no-new-privileges:true]
     mem_limit: 1536m

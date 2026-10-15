@@ -1,0 +1,17 @@
+[Unit]
+Description=Messagerie Decidata (Tailscale only)
+After=network-online.target docker.service
+
+[Service]
+User=rass
+WorkingDirectory=/home/rass/decidata-messagerie
+EnvironmentFile=/home/rass/.local/share/Messagerie/messagerie.env
+ExecStart=/usr/bin/node server.mjs
+Restart=on-failure
+NoNewPrivileges=true
+ProtectSystem=strict
+ReadOnlyPaths=/home/rass
+ReadWritePaths=/home/rass/.local/share/Messagerie/data
+
+[Install]
+WantedBy=multi-user.target
