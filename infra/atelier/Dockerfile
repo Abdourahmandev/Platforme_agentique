@@ -16,7 +16,7 @@ RUN apt-get update \
  && curl -fsSL "https://github.com/cli/cli/releases/download/v${GH_VERSION}/gh_${GH_VERSION}_checksums.txt" \
       | grep " gh_${GH_VERSION}_linux_amd64.tar.gz\$" | sha256sum -c - \
  && tar -xzf "gh_${GH_VERSION}_linux_amd64.tar.gz" \
- && install -m 755 "gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/bin/gh \
+ && install -D -m 755 "gh_${GH_VERSION}_linux_amd64/bin/gh" /usr/local/libexec/gh \
  && rm -rf /tmp/gh_* \
  && npm install -g --no-fund --no-audit "opencode-ai@${OPENCODE_VERSION}" \
  && npm cache clean --force \
@@ -26,6 +26,8 @@ RUN apt-get update \
  && rm -f /etc/ssh/ssh_host_*
 
 COPY sshd_config /etc/ssh/sshd_config
+# gh wrapper pinning the credential directory (see gh-wrapper.sh).
+COPY --chmod=755 gh-wrapper.sh /usr/local/bin/gh
 # git authenticates to GitHub through gh (credential read from ~/.config/gh/hosts.yml).
 RUN git config --system credential.https://github.com.helper '' \
  && git config --system --add credential.https://github.com.helper '!/usr/local/bin/gh auth git-credential'
