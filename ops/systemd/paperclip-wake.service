@@ -1,10 +1,12 @@
 [Unit]
-Description=Wake Paperclip agents left idle on an actionable ticket
+Description=Stop orphaned atelier runs and wake Paperclip agents left idle on an actionable ticket
 After=docker.service
 
 [Service]
 Type=oneshot
 User=rass
 Environment=LOCALAPPDATA=/home/rass/.local/share
+# Orphans first, so a ticket is never worked on by a stale run and a fresh one.
+ExecStart=/home/rass/.local/share/AsiaDockerOps/venv/bin/python /home/rass/Platforme_agentique/infra/paperclip/reap-atelier-orphans.py
 ExecStart=/home/rass/.local/share/AsiaDockerOps/venv/bin/python /home/rass/Platforme_agentique/infra/paperclip/wake-idle-assignees.py
 TimeoutStartSec=2min
