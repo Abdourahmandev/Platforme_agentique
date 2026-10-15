@@ -21,7 +21,7 @@ NOTION = 'https://api.notion.com/v1'
 VERSION = '2022-06-28'
 PARENT_TITLE = os.environ.get('NOTION_PARENT_TITLE', 'Decidata')
 DB_TITLE = os.environ.get('NOTION_DB_TITLE', 'Projets Decidata')
-STATUSES = ['Estimation', 'En cours', 'Termine', 'En pause', 'Abandonne']
+STATUSES = ['Besoin', 'Conception', 'Estimation', 'En cours', 'Termine', 'En pause', 'Abandonne']
 # API field -> (Notion property, type)
 FIELDS = {
     'name': ('Nom', 'title'),
@@ -120,7 +120,11 @@ def database(create=False):
         if len(found) > 1:
             raise BridgeError(409, f'Plusieurs bases "{DB_TITLE}" : en garder une seule')
         if found:
-            missing = {k: v for k, v in SCHEMA.items() if k not in found[0].get('properties', {})}
+            props = found[0].get('properties', {})
+            missing = {k: v for k, v in SCHEMA.items() if k not in props}
+            options = {o.get('name') for o in (props.get('Statut', {}).get('select') or {}).get('options', [])}
+            if 'Statut' in props and not set(STATUSES) <= options:  # statuses added later
+                missing['Statut'] = SCHEMA['Statut']
             if missing:  # columns added after the database was created
                 notion('PATCH', f"/databases/{found[0]['id']}", {'properties': missing})
             STATE['db'] = found[0]['id']

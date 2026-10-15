@@ -24,6 +24,15 @@ La PR est un livrable obligatoire. Si le push ou l'ouverture de la PR echoue (dr
 
 Lis sa decision, corrige sur la meme branche, relance les tests, pousse et commente dans le ticket ce qui a change. Ne conteste pas une demande en la contournant ; si tu n'es pas d'accord, explique-le dans le ticket.
 
+## Architecte (tickets du projet Conception)
+
+Dans le projet Conception, tu es l'architecte : aucun code, aucun depot, aucune PR, aucune installation. A partir du besoin et de la recherche fournis dans le ticket, livre dans ton compte rendu final un dossier d'architecture :
+1. Rappel du besoin en 3 lignes.
+2. 2 ou 3 options, dont toujours la plus simple qui repond au besoin. Pour chacune : principe, composants, technologies, schema en texte (Mermaid ou ASCII), ce qu'il faudrait installer sur le serveur ou dans l'atelier, services externes et donnees qui sortent du serveur, risques, decoupage en lots, estimation de cout IA et de duree.
+3. Ta recommandation, justifiee.
+Puis passe le ticket en revue (in_review) : le proprietaire approuve ou demande des modifications.
+Si le proprietaire demande des modifications, livre une nouvelle version complete intitulee « Version N » : reponds point par point a chacune de ses remarques, indique ce qui change par rapport a la version precedente et pourquoi les options ecartees l'ont ete. Ne reprends pas une option qu'il a rejetee sans le dire explicitement.
+
 ## Regles
 
 - Ne modifie jamais `.github/workflows`, les secrets, les reglages du depot ni la protection de `main`.

@@ -69,7 +69,7 @@ class NotionBridgeTest(unittest.TestCase):
     def test_adds_missing_columns_to_existing_database(self):
         bridge.STATE['db'] = None
         existing = {'id': DB, 'title': [{'plain_text': bridge.DB_TITLE}],
-                    'properties': {k: {} for k in bridge.SCHEMA if k != 'PO'}}
+                    'properties': {k: bridge.SCHEMA[k] for k in bridge.SCHEMA if k != 'PO'}}
         calls = []
 
         def fake(method, path, body=None):
@@ -78,6 +78,22 @@ class NotionBridgeTest(unittest.TestCase):
         with mock.patch.object(bridge, 'notion', side_effect=fake):
             self.assertEqual(bridge.database(), DB)
         self.assertEqual(calls[-1], ('PATCH', f'/databases/{DB}', {'properties': {'PO': {'rich_text': {}}}}))
+
+    def test_adds_new_statuses_to_existing_database(self):
+        bridge.STATE['db'] = None
+        props = {k: {} for k in bridge.SCHEMA}
+        props['Statut'] = {'select': {'options': [{'name': 'Estimation'}, {'name': 'En cours'}]}}
+        existing = {'id': DB, 'title': [{'plain_text': bridge.DB_TITLE}], 'properties': props}
+        calls = []
+
+        def fake(method, path, body=None):
+            calls.append((method, path, body))
+            return {'results': [existing]} if path == '/search' else {}
+        with mock.patch.object(bridge, 'notion', side_effect=fake):
+            bridge.database()
+        names = [o['name'] for o in calls[-1][2]['properties']['Statut']['select']['options']]
+        self.assertIn('Besoin', names)
+        self.assertIn('Conception', names)
 
     def test_unknown_route(self):
         with self.assertRaises(bridge.BridgeError) as ctx:
