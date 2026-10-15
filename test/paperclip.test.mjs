@@ -138,3 +138,12 @@ test('Paperclip: unknown projects are refused and subtasks stay in their parent 
   const listed=await client.call(normal,{action:'list',project:'usine'});
   assert.ok(listed.projectDirectory.some(p=>p.project==='usine'&&p.reviewer==='maryam'));
 });
+test('Paperclip: costs sums real dollars per ticket of the project',async t=>{
+  const other={...item,id:'66666666-6666-4666-8666-666666666666',identifier:'TEST-2'};
+  const {client}=fixture(t,url=>url.pathname.endsWith('/cost-summary')
+    ?(url.pathname.includes(issue)?{costCents:102,runCount:4}:{costCents:0,runCount:1})
+    :[item,other,{...item,id:'77777777-7777-4777-8777-777777777777',projectId:'other'}]);
+  const result=await client.call(normal,{action:'costs'});
+  assert.equal(result.totalDollars,1.02);
+  assert.deepEqual(result.tickets.map(x=>x.identifier),['TEST-1']);
+});

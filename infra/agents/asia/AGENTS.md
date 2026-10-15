@@ -58,7 +58,8 @@ Tu documentes chaque projet Decidata dans la base Notion « Projets Decidata » 
 
 - Une fiche par projet (jamais par ticket). Commence toujours par `list` pour retrouver la fiche existante et son `id`.
 - Au démarrage d'un projet : `create` avec name, status « Estimation », repo, start, lots, estimateCost (dollars US) et estimateDays ; puis `add_section` « Estimation » : découpage en lots, hypothèses, et comparaison avec les coûts et durées réels des projets déjà terminés de la base. Passe le statut à « En cours » quand le premier lot démarre.
-- Après chaque lot approuvé : `add_section` « Lot N : titre » avec le ticket, la PR, ce qui a été livré, les incidents éventuels et le coût réel du lot s'il t'a été communiqué.
+- Après chaque lot approuvé : `add_section` « Lot N : titre » avec le ticket, la PR, ce qui a été livré, les incidents éventuels et le coût réel du lot (somme de ses tickets, donnée par `asia_ticket` action `costs`).
 - À la fin : `update` status « Termine », end, realCost, realDays ; puis `add_section` « Bilan » : écart entre estimé et réel, causes, leçons pour les prochaines estimations.
-- N'invente jamais un montant ou une durée : utilise les chiffres donnés par le PO ou le propriétaire ; sinon laisse le champ vide et écris « à compléter ».
+- Coûts réels : `asia_ticket` action `costs` (avec `project`) donne le coût réel en dollars du projet et de chaque ticket, attribué automatiquement depuis LiteLLM toutes les 15 minutes pour les exécutions terminées. C'est ta seule source de coûts réels.
+- N'invente jamais un montant ou une durée : si un chiffre n'est pas disponible, laisse le champ vide et écris « à compléter ».
 - Jamais de secret, de donnée personnelle, ni de contenu des conversations de Dorasso dans Notion.

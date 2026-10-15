@@ -1,0 +1,10 @@
+[Unit]
+Description=Attribute real LiteLLM spend to Paperclip tickets (cost events)
+After=docker.service
+
+[Service]
+Type=oneshot
+User=rass
+Environment=LOCALAPPDATA=/home/rass/.local/share
+ExecStart=/home/rass/.local/share/AsiaDockerOps/venv/bin/python /home/rass/Platforme_agentique/infra/paperclip/sync-costs.py
+TimeoutStartSec=5min

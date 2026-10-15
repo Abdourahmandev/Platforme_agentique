@@ -85,6 +85,17 @@ export class Tickets {
       return {ticket:publicIssue(item,cfg.publicUrl),comments:[...comments].sort((a,b)=>String(a.createdAt).localeCompare(String(b.createdAt))).slice(-30).map(c=>({id:c.id,authorAgentId:c.authorAgentId,
         authorUserId:c.authorUserId,body:c.body,createdAt:c.createdAt})),agents:Object.fromEntries(Object.entries(cfg.agents).map(([k,v])=>[k,v.id])),agentDirectory,projectDirectory};
     }
+    if(params.action==='costs'){
+      // Real dollars per ticket, attributed from LiteLLM by infra/paperclip/sync-costs.py (finished runs only).
+      const project=resolveProject(cfg,params.project);
+      const rows=(await request('GET',`/companies/${cfg.companyId}/issues?projectId=${project.id}&limit=100`)).filter(i=>i.projectId===project.id);
+      const tickets=[];
+      for(const i of rows){const c=await request('GET',`/issues/${i.id}/cost-summary`);
+        if(c.costCents>0)tickets.push({identifier:i.identifier,title:i.title,status:i.status,dollars:c.costCents/100,runs:c.runCount});}
+      const total=tickets.reduce((sum,t)=>sum+t.dollars,0);
+      return {project:project.name||params.project,totalDollars:Math.round(total*100)/100,tickets,
+        note:'Couts reels LiteLLM des executions terminees (mis a jour toutes les 15 minutes) ; hors conversations Telegram.'};
+    }
     if(!['create','checkout','comment','update'].includes(params.action))throw Error('Action inconnue');
     if(!/^[a-zA-Z0-9_-]{8,100}$/.test(params.requestId||''))throw Error('requestId stable de 8 a 100 caracteres requis');
     if(!context.sessionKey)throw Error('Session requise pour les mutations');
