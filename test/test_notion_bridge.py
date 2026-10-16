@@ -40,6 +40,21 @@ class NotionBridgeTest(unittest.TestCase):
         self.assertEqual([b['type'] for b in out], ['heading_2', 'paragraph', 'bulleted_list_item', 'bulleted_list_item'])
         self.assertEqual(out[1]['paragraph']['rich_text'][0]['text']['content'], 'Premier paragraphe suite.')
 
+    def test_blocks_markdown_rendering(self):
+        md = ("### Titre\n1. premier\n2. **second** avec `code`\n\n| A | B |\n|---|---|\n| <b>x</b> | 2 |\n\n"
+              "<details>\n<summary>Plus</summary>\n\n- cache\n</details>\nVoir https://example.com/x et <script>alert(1)</script>")
+        out = bridge.blocks('S', md)
+        self.assertEqual([b['type'] for b in out],
+                         ['heading_2', 'heading_3', 'numbered_list_item', 'numbered_list_item', 'table', 'toggle', 'paragraph'])
+        second = out[3]['numbered_list_item']['rich_text']
+        self.assertEqual([t.get('annotations', {}) for t in second][:3], [{'bold': True}, {}, {'code': True}])
+        cell = out[4]['table']['children'][1]['table_row']['cells'][0][0]['text']['content']
+        self.assertEqual(cell, '<b>x</b>')  # HTML stays text
+        self.assertEqual(out[5]['toggle']['children'][0]['type'], 'bulleted_list_item')
+        last = out[6]['paragraph']['rich_text']
+        self.assertTrue(any(t['text'].get('link') for t in last))
+        self.assertIn('<script>', ''.join(t['text']['content'] for t in last))
+
     def test_rejects_pages_outside_the_database(self):
         other = {'parent': {'type': 'database_id', 'database_id': 'b' * 32}}
         with mock.patch.object(bridge, 'notion', return_value=other):

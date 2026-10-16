@@ -203,15 +203,86 @@ def owned_page(page_id):
     return page
 
 
+INLINE = re.compile(r'\*\*(.+?)\*\*|`([^`]+)`|\[([^\]]+)\]\((https://[^)\s]+)\)|(https://\S+)')
+NUMBERED = re.compile(r'\d+[.)] ')
+BULLET = ('- ', '* ', '• ')
+
+
+def rich(value):
+    """Inline Markdown (bold, code, https links) -> Notion rich text; anything else stays plain text."""
+    value, out, pos = str(value)[:19000], [], 0
+    for m in INLINE.finditer(value):
+        if m.start() > pos:
+            out += text(value[pos:m.start()])
+        if m.group(1):
+            out += [dict(t, annotations={'bold': True}) for t in text(m.group(1))]
+        elif m.group(2):
+            out += [dict(t, annotations={'code': True}) for t in text(m.group(2))]
+        else:
+            label, url = (m.group(3), m.group(4)) if m.group(3) else (m.group(5), m.group(5))
+            out.append({'type': 'text', 'text': {'content': label[:1900], 'link': {'url': url}}})
+        pos = m.end()
+    if pos < len(value):
+        out += text(value[pos:])
+    return out or text('')
+
+
+def node(kind, value):
+    return {'object': 'block', 'type': kind, kind: {'rich_text': rich(value)}}
+
+
+def convert(body):
+    """Markdown subset -> Notion blocks: headings, bullets, numbered lists, tables, <details> toggles, paragraphs.
+    Raw HTML is never interpreted: other tags stay visible as text."""
+    lines, out, i = str(body or '').split('\n'), [], 0
+    while i < len(lines):
+        line = lines[i].strip()
+        if not line:
+            i += 1
+        elif line.startswith('<details>'):
+            j = i + 1
+            summary = re.sub(r'</?summary>', '', lines[j].strip()) if j < len(lines) and '<summary>' in lines[j] else 'Details'
+            k = j + 1
+            while k < len(lines) and '</details>' not in lines[k]:
+                k += 1
+            toggle = node('toggle', summary)
+            toggle['toggle']['children'] = convert('\n'.join(lines[j + 1:k]))
+            out.append(toggle)
+            i = k + 1
+        elif line.startswith('#'):
+            out.append(node('heading_3', line.lstrip('#').strip()))
+            i += 1
+        elif line.startswith('|'):
+            rows = []
+            while i < len(lines) and lines[i].strip().startswith('|'):
+                cells = [c.strip() for c in lines[i].strip().strip('|').split('|')]
+                if not all(re.fullmatch(r':?-{2,}:?', c) for c in cells):
+                    rows.append(cells)
+                i += 1
+            width = max(len(r) for r in rows)
+            out.append({'object': 'block', 'type': 'table', 'table': {
+                'table_width': width, 'has_column_header': True, 'has_row_header': False,
+                'children': [{'object': 'block', 'type': 'table_row', 'table_row': {
+                    'cells': [rich(r[c]) if c < len(r) else [] for c in range(width)]}} for r in rows]}})
+        elif line.startswith(BULLET):
+            out.append(node('bulleted_list_item', line[2:]))
+            i += 1
+        elif NUMBERED.match(line):
+            out.append(node('numbered_list_item', NUMBERED.sub('', line, count=1)))
+            i += 1
+        else:
+            para = [line]
+            i += 1
+            while i < len(lines) and lines[i].strip() and not lines[i].strip().startswith(('#', '|', '<details>') + BULLET) \
+                    and not NUMBERED.match(lines[i].strip()):
+                para.append(lines[i].strip())
+                i += 1
+            out.append(node('paragraph', ' '.join(para)))
+    return out
+
+
 def blocks(title, body):
-    out = [{'object': 'block', 'type': 'heading_2', 'heading_2': {'rich_text': text(title)}}]
-    for chunk in re.split(r'\n\s*\n', str(body or '').strip()):
-        lines = [l.strip() for l in chunk.splitlines() if l.strip()]
-        if lines and all(l.startswith(('- ', '* ')) for l in lines):
-            out += [{'object': 'block', 'type': 'bulleted_list_item',
-                     'bulleted_list_item': {'rich_text': text(l[2:])}} for l in lines]
-        elif lines:
-            out.append({'object': 'block', 'type': 'paragraph', 'paragraph': {'rich_text': text(' '.join(lines))}})
+    out = [{'object': 'block', 'type': 'heading_2', 'heading_2': {'rich_text': text(title)}}] + convert(body)
     if len(out) > 90:
         raise BridgeError(400, 'Section trop longue (90 blocs maximum)')
     return out
