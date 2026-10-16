@@ -209,11 +209,21 @@ def check_notion(value):
         raise ValueError('Notion injoignable : reessayez.') from None
 
 
+def check_jev(value):
+    # Format check only: the provider check is added once the official Jev API is documented (pilot design).
+    if not re.fullmatch(r'[A-Za-z0-9_\-.]{20,300}', value):
+        raise ValueError('Cle refusee : une cle d API sans espace, de 20 a 300 caracteres, est attendue.')
+    return 'format verifie ; verification aupres de TypeSafe a la conception du pilote'
+
+
 # Whitelisted secrets the owner may set from this page; nothing else is writable.
 SECRET_TARGETS = {
     'notion': {'label': 'Notion (connexion « Asia (Decidata) »)', 'hint': 'Collez la cle ntn_...',
                'file': PRIVATE.parent / 'Notion/notion.env', 'check': check_notion,
                'format': lambda v: f'NOTION_TOKEN={v}\n'},
+    'jev': {'label': 'Jev (TypeSafe AI, pilote Vitrine)', 'hint': 'Collez la cle d API Jev',
+            'file': PRIVATE.parent / 'Jev/jev.env', 'check': check_jev,
+            'format': lambda v: f'JEV_API_KEY={v}\n'},
 }
 
 

@@ -15,7 +15,7 @@ NoNewPrivileges=true
 ProtectSystem=strict
 ReadOnlyPaths=/home/rass
 # /secrets writes whitelisted keys here (0600).
-ReadWritePaths=/home/rass/.local/share/Notion
+ReadWritePaths=/home/rass/.local/share/Notion /home/rass/.local/share/Jev
 
 [Install]
 WantedBy=multi-user.target

@@ -163,11 +163,12 @@ def snapshot_messagerie(stage):
                 shutil.copy2(item, target / 'data' / item.name)
             elif item.is_dir():
                 shutil.copytree(item, target / 'data' / item.name, symlinks=False)
-    notion = LOCAL / 'Notion'
-    if notion.is_dir():
-        (stage / 'notion').mkdir()
-        for item in notion.glob('*.env'):
-            shutil.copy2(item, stage / 'notion' / item.name)
+    for name in ('Notion', 'Jev'):  # bridge and pilot keys entered through the owner's secrets page
+        folder = LOCAL / name
+        if folder.is_dir():
+            (stage / name.lower()).mkdir()
+            for item in folder.glob('*.env'):
+                shutil.copy2(item, stage / name.lower() / item.name)
 
 
 def create():
