@@ -141,14 +141,18 @@ def restore_ledger_isolated(target):
     template1 databases), which neither export carries, are reapplied as in a real
     recovery. Then the five backed-up passwords are checked by authentication and the
     complete isolation matrix (check-isolation.sh) is replayed on the restored copy.
-    The throw-away cluster and its volume are always removed; a failed removal is an error.
+    The throw-away cluster, its named data volume and the temporary copy of the secrets
+    are always removed, and their absence is checked: anything left is an error.
     """
     name = 'dorasso-ledger-restore-' + secrets.token_hex(6)
+    volume = name + '-data'  # Named, so that its removal can be verified (no anonymous volume).
     env = dict(ENV, POSTGRES_PASSWORD=secrets.token_urlsafe(24))
     work = Path(tempfile.mkdtemp(prefix='ledger-restore-'))
     try:
+        run([DOCKER, 'volume', 'create', volume])
         run([DOCKER, 'run', '-d', '--name', name, '--network', 'none', '-e', 'POSTGRES_PASSWORD',
-             '-e', 'POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256', LEDGER_IMAGE], env=env)
+             '-e', 'POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256',
+             '-v', volume + ':/var/lib/postgresql/data', LEDGER_IMAGE], env=env)
         for _ in range(60):
             logs = subprocess.run([DOCKER, 'logs', name], capture_output=True, env=ENV)
             ready = subprocess.run([DOCKER, 'exec', name, 'pg_isready', '-q', '-U', 'postgres'], capture_output=True, env=ENV)
@@ -192,10 +196,15 @@ def restore_ledger_isolated(target):
     finally:
         shutil.rmtree(work, ignore_errors=True)
         subprocess.run([DOCKER, 'rm', '-f', '-v', name], capture_output=True, env=ENV)
-        left = subprocess.run([DOCKER, 'ps', '-a', '-q', '--filter', 'name=^' + name + '$'],
-                              capture_output=True, env=ENV)
-        if left.returncode or left.stdout.strip():
-            raise RuntimeError('Throw-away accounting cluster could not be removed: ' + name)
+        subprocess.run([DOCKER, 'volume', 'rm', '-f', volume], capture_output=True, env=ENV)
+        container_left = subprocess.run([DOCKER, 'ps', '-a', '-q', '--filter', 'name=^' + name + '$'],
+                                        capture_output=True, env=ENV)
+        volume_left = subprocess.run([DOCKER, 'volume', 'ls', '-q', '--filter', 'name=^' + volume + '$'],
+                                     capture_output=True, env=ENV)
+        # An undeterminable state (failed listing) counts as left behind.
+        if container_left.returncode or container_left.stdout.strip() \
+                or volume_left.returncode or volume_left.stdout.strip() or os.path.lexists(work):
+            raise RuntimeError('Throw-away accounting restore could not be fully removed: ' + name)
 
 
 def verify_ledger(base, restore):

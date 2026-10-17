@@ -76,8 +76,9 @@ else
   got=$(sqlstate "$out")
 fi
 if [ "$got" = 28P01 ]; then echo "ok    mauvais mot de passe refuse"; else echo "ECHEC mauvais mot de passe (obtenu $got)"; fail=1; fi
-# Rules PostgreSQL actually parsed: no TCP access without a password.
+# Current pg_hba file as parsed by PostgreSQL (not necessarily the rules loaded;
+# effective authentication is the wrong-password test above, on loopback).
 hba=$(admin "SELECT count(*) FROM pg_hba_file_rules WHERE (type <> 'local' AND auth_method <> 'scram-sha-256') OR error IS NOT NULL")
-if [ "$hba" = 0 ]; then echo "ok    toute connexion TCP exige un mot de passe"; else echo "ECHEC pg_hba ($hba regle(s) sans mot de passe)"; fail=1; fi
+if [ "$hba" = 0 ]; then echo "ok    fichier pg_hba courant : aucune regle TCP sans mot de passe"; else echo "ECHEC pg_hba ($hba regle(s) sans mot de passe)"; fail=1; fi
 
 exit $fail
