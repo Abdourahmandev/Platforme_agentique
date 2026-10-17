@@ -1,0 +1,8 @@
+[Unit]
+Description=Telegram alert to the owner: nightly backup failed
+
+[Service]
+Type=oneshot
+User=rass
+Environment=LOCALAPPDATA=/home/rass/.local/share
+ExecStart=/usr/bin/python3 /home/rass/Platforme_agentique/ops/backup-alert.py failure

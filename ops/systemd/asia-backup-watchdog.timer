@@ -1,0 +1,9 @@
+[Unit]
+Description=Daily check that a verified backup exists (after the 07:00 UTC backup)
+
+[Timer]
+OnCalendar=*-*-* 08:00:00 UTC
+Persistent=true
+
+[Install]
+WantedBy=timers.target

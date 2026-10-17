@@ -2,6 +2,7 @@
 Description=Asia platform encrypted backup with restore check
 Wants=docker.service
 After=docker.service
+OnFailure=asia-backup-alert.service
 
 [Service]
 Type=oneshot
