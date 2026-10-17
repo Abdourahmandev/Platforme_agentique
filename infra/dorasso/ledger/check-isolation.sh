@@ -15,7 +15,8 @@ fail=0
 # run ROLE DATABASE SQL -> prints "ok" or the SQLSTATE of the error.
 run() {
   local out
-  out=$(docker exec -i -e PGPASSWORD="$(cat "$DIR/$1.password")" "$C" \
+  # The password goes through the environment, never on the docker command line.
+  out=$(PGPASSWORD="$(cat "$DIR/$1.password")" docker exec -i -e PGPASSWORD "$C" \
     psql -X -q -v ON_ERROR_STOP=1 -v VERBOSITY=verbose -h 127.0.0.1 -U "$1" -d "$2" -c "$3" 2>&1 >/dev/null)
   if [ $? -eq 0 ]; then echo ok; else sqlstate "$out"; fi
 }
@@ -33,10 +34,14 @@ expect() { # description, expected (ok|42501|28P01), role, database, sql
   got=$(run "$3" "$4" "$5")
   if [ "$got" = "$2" ]; then echo "ok    $1"; else echo "ECHEC $1 (attendu $2, obtenu $got)"; fail=1; fi
 }
+# Superuser through the container socket, so that a probe object wrongly created by
+# any role (for instance in public) is removed too; then nothing may remain.
+admin() { docker exec -i "$C" psql -X -q -At -v ON_ERROR_STOP=1 -U postgres -d comptabilite -c "$1" </dev/null; }
 cleanup() {
-  local r
-  r=$(run ledger_migrator comptabilite "DROP TABLE IF EXISTS ledger.$T, essai.$T, ledger.ddl_$SUFFIX")
-  [ "$r" = ok ] || { echo "ECHEC nettoyage des tables de test ($r)"; exit 1; }
+  admin "SET client_min_messages = warning; DROP TABLE IF EXISTS ledger.$T, essai.$T, ledger.ddl_$SUFFIX, essai.ddl_$SUFFIX, public.ddl_$SUFFIX" >/dev/null \
+    || { echo "ECHEC nettoyage des objets de test"; exit 1; }
+  [ "$(admin "SELECT count(*) FROM pg_class WHERE relname LIKE '%$SUFFIX%'")" = 0 ] \
+    || { echo "ECHEC objets de test restants"; exit 1; }
 }
 trap cleanup EXIT
 
@@ -64,12 +69,15 @@ expect "aucun role applicatif sur la base postgres" 42501 ledger_engine postgres
 expect "aucun role applicatif sur template1"   42501 ledger_dorasso  template1 "SELECT 1"
 # A wrong password must be rejected (SQLSTATE 28P01), including on loopback
 # (the image trusts 127.0.0.1 unless initialised with --auth-host=scram-sha-256).
-if out=$(docker exec -i -e PGPASSWORD="mauvais-$SUFFIX" "$C" \
+if out=$(PGPASSWORD="mauvais-$SUFFIX" docker exec -i -e PGPASSWORD "$C" \
       psql -X -q -h 127.0.0.1 -U ledger_dorasso -d $DB -c "SELECT 1" 2>&1 >/dev/null); then
   got="connexion acceptee"
 else
   got=$(sqlstate "$out")
 fi
 if [ "$got" = 28P01 ]; then echo "ok    mauvais mot de passe refuse"; else echo "ECHEC mauvais mot de passe (obtenu $got)"; fail=1; fi
+# Rules PostgreSQL actually parsed: no TCP access without a password.
+hba=$(admin "SELECT count(*) FROM pg_hba_file_rules WHERE (type <> 'local' AND auth_method <> 'scram-sha-256') OR error IS NOT NULL")
+if [ "$hba" = 0 ]; then echo "ok    toute connexion TCP exige un mot de passe"; else echo "ECHEC pg_hba ($hba regle(s) sans mot de passe)"; fail=1; fi
 
 exit $fail

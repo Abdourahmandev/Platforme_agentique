@@ -63,8 +63,9 @@ ALTER DEFAULT PRIVILEGES FOR ROLE ledger_migrator IN SCHEMA essai
   GRANT USAGE, SELECT ON SEQUENCES TO ledger_engine, ledger_essai;
 SQL
 
-# Passwords on every TCP connection, loopback included: the image trusts
-# 127.0.0.1 and ::1 by default. The Unix socket stays trusted for `docker exec`
-# maintenance (backups), which already requires Docker administrator rights.
-sed -i -E 's/^(host[[:space:]].*[[:space:]])trust[[:space:]]*$/\1scram-sha-256/' "$PGDATA/pg_hba.conf"
-if grep -Eq '^host.*trust' "$PGDATA/pg_hba.conf"; then echo "pg_hba : trust restant" >&2; exit 1; fi
+# Passwords on every TCP connection, loopback included (POSTGRES_INITDB_ARGS sets
+# --auth-host=scram-sha-256). Checked on the rules PostgreSQL actually parsed; the Unix
+# socket stays trusted for `docker exec` maintenance, which requires Docker admin rights.
+bad=$(psql -X -At --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c \
+  "SELECT count(*) FROM pg_hba_file_rules WHERE (type <> 'local' AND auth_method <> 'scram-sha-256') OR error IS NOT NULL")
+if [ "$bad" != 0 ]; then echo "pg_hba : $bad regle(s) TCP sans mot de passe ou invalide(s)" >&2; exit 1; fi

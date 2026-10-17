@@ -20,7 +20,16 @@ IMAGE = 'postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6
 ROLES = ('postgres', 'ledger_migrator', 'ledger_engine', 'ledger_essai', 'ledger_dorasso')
 
 
+def refuse_link(path: Path) -> Path:
+    if path.is_symlink():
+        raise SystemExit(f'Refus : lien symbolique {path}')
+    return path
+
+
 def private_dir(path: Path) -> Path:
+    current = refuse_link(ROOT)
+    for part in path.relative_to(ROOT).parts:
+        current = refuse_link(current / part)
     path.mkdir(parents=True, exist_ok=True)
     os.chmod(path, 0o700)
     return path
@@ -39,7 +48,7 @@ def postgres_ids():
 def main():
     secrets_dir = private_dir(ROOT / 'ledger')
     for role in ROLES:
-        target = secrets_dir / f'{role}.password'
+        target = refuse_link(secrets_dir / f'{role}.password')
         if not target.exists():
             fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
             with os.fdopen(fd, 'w') as f:
@@ -48,11 +57,11 @@ def main():
         if not target.read_text().strip():
             raise SystemExit(f'Refus : secret vide {target.name}')
     uid, gid = postgres_ids()
-    container = secrets_dir / 'container'
+    container = refuse_link(secrets_dir / 'container')
     subprocess.run(['sudo', 'install', '-d', '-m', '0755', str(container)], check=True)
     for role in ROLES:
         # Numeric ids: the image's postgres user does not exist on the host.
-        copy = str(container / f'{role}.password')
+        copy = str(refuse_link(container / f'{role}.password'))
         subprocess.run(['sudo', 'install', '-m', '0400', str(secrets_dir / f'{role}.password'), copy], check=True)
         subprocess.run(['sudo', 'chown', f'{uid}:{gid}', copy], check=True)
     for sub in ('pieces', 'essai'):

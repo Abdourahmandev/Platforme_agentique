@@ -31,11 +31,14 @@ services:
     # internal network, no host port. Four least-privilege roles (ledger/init-roles.sh).
     # No other container can reach it over the network (host administrators and Docker
     # socket holders still can). Hermes is connected only in issue #9.
+    # init-roles.sh applies to a new volume only; check-isolation.sh detects any drift.
     image: postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
     restart: unless-stopped
     environment:
       POSTGRES_DB: comptabilite
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      # Passwords on every TCP connection, loopback included (the image trusts loopback by default).
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
       TZ: America/Toronto
     secrets: [postgres_password, ledger_migrator_password, ledger_engine_password, ledger_essai_password, ledger_dorasso_password]
     volumes:
@@ -43,7 +46,8 @@ services:
       - ./ledger/init-roles.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
     networks: [ledger]
     healthcheck:
-      test: [CMD-SHELL, 'pg_isready -U postgres -d comptabilite']
+      # Unhealthy if any TCP rule does not require a password (init scripts run only once).
+      test: [CMD-SHELL, 'pg_isready -U postgres -d comptabilite && [ "$$(psql -X -U postgres -d comptabilite -Atc "SELECT count(*) FROM pg_hba_file_rules WHERE (type <> ''local'' AND auth_method <> ''scram-sha-256'') OR error IS NOT NULL")" = 0 ]']
       interval: 10s
       timeout: 5s
       retries: 10
