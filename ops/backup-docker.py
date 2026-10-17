@@ -124,8 +124,11 @@ def snapshot_ledger(stage):
         elif path.is_file():
             (target / 'fichiers' / relative).parent.mkdir(parents=True, exist_ok=True)
             shutil.copy2(path, target / 'fichiers' / relative)
-    for sub in ('pieces', 'essai'):
-        (target / 'fichiers' / sub).mkdir(parents=True, exist_ok=True)
+    # The archive keeps files only (empty folders vanish): an inventory with the SHA-256
+    # of every document proves the document store was captured, even while still empty.
+    inventory = {str(p.relative_to(target / 'fichiers')): hashlib.sha256(p.read_bytes()).hexdigest()
+                 for p in sorted((target / 'fichiers').rglob('*')) if p.is_file()}
+    (target / 'inventaire.json').write_text(json.dumps({'stores': ['pieces', 'essai'], 'files': inventory}, indent=2))
 
 
 def ledger_sql(name, sql, database='comptabilite'):
@@ -221,12 +224,18 @@ def verify_ledger(base, restore):
         item = target / 'secrets' / f'{role}.password'
         if not item.is_file() or not item.read_text().strip():
             raise ValueError('Dorasso accounting secret missing from the recovery point: ' + role)
-    for sub in ('pieces', 'essai'):
-        if not (target / 'fichiers' / sub).is_dir():
-            raise ValueError('Dorasso accounting documents missing from the recovery point')
+    if not (target / 'inventaire.json').is_file():
+        raise ValueError('Dorasso accounting document inventory missing from the recovery point')
+    inventory = json.loads((target / 'inventaire.json').read_text())
+    if inventory.get('stores') != ['pieces', 'essai']:
+        raise ValueError('Dorasso accounting document inventory is invalid')
+    for name, digest in inventory['files'].items():
+        path = target / 'fichiers' / name
+        if not path.is_file() or hashlib.sha256(path.read_bytes()).hexdigest() != digest:
+            raise ValueError('Dorasso accounting document missing or altered: ' + name)
     run([DOCKER, 'run', '--rm', '-i', '--network', 'none', '--entrypoint', 'pg_restore', LEDGER_IMAGE, '--list'],
         data=(target / 'comptabilite.dump').read_bytes())
-    documents = sum(1 for p in (target / 'fichiers' / 'pieces').rglob('*') if p.is_file())
+    documents = sum(1 for name in inventory['files'] if name.startswith('pieces/'))
     result = {'included': True, 'documents': documents, 'restored': False}
     if restore:
         result.update(restored=True, schemas=restore_ledger_isolated(target))
