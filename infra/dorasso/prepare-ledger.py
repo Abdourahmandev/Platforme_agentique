@@ -27,11 +27,13 @@ def refuse_link(path: Path) -> Path:
 
 
 def private_dir(path: Path) -> Path:
+    """Every level below ROOT is created or re-asserted 0700 (not only the leaf)."""
     current = refuse_link(ROOT)
+    current.mkdir(parents=True, exist_ok=True)
     for part in path.relative_to(ROOT).parts:
         current = refuse_link(current / part)
-    path.mkdir(parents=True, exist_ok=True)
-    os.chmod(path, 0o700)
+        current.mkdir(exist_ok=True)
+        os.chmod(current, 0o700)
     return path
 
 
