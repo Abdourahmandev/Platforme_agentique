@@ -25,7 +25,8 @@ ENGINE=$(pw ledger_engine_password)
 ESSAI=$(pw ledger_essai_password)
 DORASSO=$(pw ledger_dorasso_password)
 
-psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<SQL
+# One transaction: roles and rights are created completely or not at all.
+psql -v ON_ERROR_STOP=1 --single-transaction --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<SQL
 -- No implicit rights for anyone, in any database of this instance.
 REVOKE ALL ON DATABASE comptabilite FROM PUBLIC;
 REVOKE CONNECT, TEMPORARY ON DATABASE postgres FROM PUBLIC;
@@ -69,3 +70,7 @@ SQL
 bad=$(psql -X -At --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" -c \
   "SELECT count(*) FROM pg_hba_file_rules WHERE (type <> 'local' AND auth_method <> 'scram-sha-256') OR error IS NOT NULL")
 if [ "$bad" != 0 ]; then echo "pg_hba : $bad regle(s) TCP sans mot de passe ou invalide(s)" >&2; exit 1; fi
+
+# Last step, only after every rule above succeeded: the marker that entrypoint.sh
+# requires before PostgreSQL may ever serve this volume.
+date -u +%Y-%m-%dT%H:%M:%SZ > "$PGDATA/dorasso-securite-ok"

@@ -64,7 +64,16 @@ def snapshot_dorasso(stage):
 
 
 def ledger_installed():
-    return (LOCAL / 'Dorasso' / 'ledger').is_dir()
+    """Independent signs of an installation: secrets folder, container (any state) or volume.
+
+    Any one of them means installed, so a damaged installation (folder removed, container
+    stopped) makes the backup fail instead of silently omitting the accounting.
+    """
+    if os.path.lexists(LOCAL / 'Dorasso' / 'ledger'):
+        return True
+    containers = run([DOCKER, 'ps', '-a', '--filter', 'name=^' + LEDGER + '$', '--format', '{{.Names}}']).decode().split()
+    volumes = run([DOCKER, 'volume', 'ls', '-q', '--filter', 'label=com.docker.compose.volume=dorasso-ledger']).decode().split()
+    return bool(containers or volumes)
 
 
 def real_dir(path):
@@ -128,15 +137,18 @@ def restore_ledger_isolated(target):
     """Restore the recovery point into a throw-away cluster with no network.
 
     The live instance is never touched. Roles are recreated from roles.sql, the database
-    with its own ACL (pg_restore --create), then the isolation rules and the backed-up
-    passwords are checked. The throw-away superuser password is random and unused outside
-    this container.
+    with its own ACL (pg_restore --create); the instance-level revocations (postgres and
+    template1 databases), which neither export carries, are reapplied as in a real
+    recovery. Then the five backed-up passwords are checked by authentication and the
+    complete isolation matrix (check-isolation.sh) is replayed on the restored copy.
+    The throw-away cluster and its volume are always removed; a failed removal is an error.
     """
     name = 'dorasso-ledger-restore-' + secrets.token_hex(6)
     env = dict(ENV, POSTGRES_PASSWORD=secrets.token_urlsafe(24))
-    run([DOCKER, 'run', '-d', '--name', name, '--network', 'none', '-e', 'POSTGRES_PASSWORD',
-         '-e', 'POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256', LEDGER_IMAGE], env=env)
+    work = Path(tempfile.mkdtemp(prefix='ledger-restore-'))
     try:
+        run([DOCKER, 'run', '-d', '--name', name, '--network', 'none', '-e', 'POSTGRES_PASSWORD',
+             '-e', 'POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256', LEDGER_IMAGE], env=env)
         for _ in range(60):
             logs = subprocess.run([DOCKER, 'logs', name], capture_output=True, env=ENV)
             ready = subprocess.run([DOCKER, 'exec', name, 'pg_isready', '-q', '-U', 'postgres'], capture_output=True, env=ENV)
@@ -147,30 +159,43 @@ def restore_ledger_isolated(target):
             raise RuntimeError('Throw-away accounting cluster did not start')
         # The bootstrap superuser already exists in the new cluster.
         roles = b'\n'.join(line for line in (target / 'roles.sql').read_bytes().splitlines()
-                           if line.strip() != b'CREATE ROLE postgres;')
+                               if line.strip() != b'CREATE ROLE postgres;')
         run([DOCKER, 'exec', '-i', name, 'psql', '-X', '-q', '-U', 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1'],
             data=roles)
         run([DOCKER, 'exec', '-i', name, 'pg_restore', '-U', 'postgres', '-d', 'postgres', '--create', '--exit-on-error'],
             data=(target / 'comptabilite.dump').read_bytes())
+        ledger_sql(name, 'REVOKE CONNECT, TEMPORARY ON DATABASE postgres FROM PUBLIC; '
+                         'REVOKE CONNECT, TEMPORARY ON DATABASE template1 FROM PUBLIC', database='postgres')
         owners = ledger_sql(name, "SELECT string_agg(nspname || ':' || pg_get_userbyid(nspowner), ',' ORDER BY nspname) "
                                   "FROM pg_namespace WHERE nspname IN ('ledger', 'essai')")
         if owners != 'essai:ledger_migrator,ledger:ledger_migrator':
             raise ValueError('Restored accounting schemas or owners are wrong')
         privileged = ledger_sql(name, "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'ledger\\_%' "
                                       "AND (rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls)")
+        members = ledger_sql(name, "SELECT count(*) FROM pg_auth_members m JOIN pg_roles r ON r.oid = m.member "
+                                   "WHERE r.rolname LIKE 'ledger\\_%'")
         app_roles = ledger_sql(name, "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'ledger\\_%'")
         acl = ledger_sql(name, "SELECT coalesce(datacl::text, '') FROM pg_database WHERE datname = 'comptabilite'")
         public = [item for item in acl.strip('{}').split(',') if item.startswith('=')]
-        essai_on_ledger = ledger_sql(name, "SELECT has_schema_privilege('ledger_essai', 'ledger', 'USAGE')")
-        if privileged != '0' or app_roles != '4' or public or acl == '' or essai_on_ledger != 'f':
-            raise ValueError('Restored accounting roles or isolation rules are wrong')
-        for role in LEDGER_ROLES[1:]:
+        if privileged != '0' or members != '0' or app_roles != '4' or public or acl == '':
+            raise ValueError('Restored accounting roles or database ACL are wrong')
+        for role in LEDGER_ROLES:
             password = (target / 'secrets' / f'{role}.password').read_text().strip()
             run([DOCKER, 'exec', '-e', 'PGPASSWORD', name, 'psql', '-X', '-h', '127.0.0.1', '-U', role,
                  '-d', 'comptabilite', '-Atc', 'SELECT 1'], env=dict(ENV, PGPASSWORD=password))
+        # Full positive and negative isolation matrix, with the backed-up passwords.
+        (work / 'Dorasso').mkdir(mode=0o700)
+        shutil.copytree(target / 'secrets', work / 'Dorasso' / 'ledger')
+        check = Path(__file__).resolve().parent.parent / 'infra' / 'dorasso' / 'ledger' / 'check-isolation.sh'
+        run(['bash', str(check)], env=dict(ENV, LOCALAPPDATA=str(work), LEDGER_CONTAINER=name))
         return owners
     finally:
+        shutil.rmtree(work, ignore_errors=True)
         subprocess.run([DOCKER, 'rm', '-f', '-v', name], capture_output=True, env=ENV)
+        left = subprocess.run([DOCKER, 'ps', '-a', '-q', '--filter', 'name=^' + name + '$'],
+                              capture_output=True, env=ENV)
+        if left.returncode or left.stdout.strip():
+            raise RuntimeError('Throw-away accounting cluster could not be removed: ' + name)
 
 
 def verify_ledger(base, restore):

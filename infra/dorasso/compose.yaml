@@ -31,9 +31,12 @@ services:
     # internal network, no host port. Four least-privilege roles (ledger/init-roles.sh).
     # No other container can reach it over the network (host administrators and Docker
     # socket holders still can). Hermes is connected only in issue #9.
-    # init-roles.sh applies to a new volume only; check-isolation.sh detects any drift.
+    # init-roles.sh applies to a new volume only; check-isolation.sh re-checks the rules it tests.
     image: postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
     restart: unless-stopped
+    # Refuses to serve a volume whose security initialisation did not complete.
+    entrypoint: [/usr/local/bin/dorasso-entrypoint.sh]
+    command: [postgres]
     environment:
       POSTGRES_DB: comptabilite
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
@@ -44,9 +47,11 @@ services:
     volumes:
       - dorasso-ledger:/var/lib/postgresql/data
       - ./ledger/init-roles.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+      - ./ledger/entrypoint.sh:/usr/local/bin/dorasso-entrypoint.sh:ro
     networks: [ledger]
     healthcheck:
-      # Unhealthy if any TCP rule does not require a password (init scripts run only once).
+      # Unhealthy if the HBA file on disk has a TCP rule without password. Effective
+      # authentication is proven by check-isolation.sh (wrong password refused).
       test: [CMD-SHELL, 'pg_isready -U postgres -d comptabilite && [ "$$(psql -X -U postgres -d comptabilite -Atc "SELECT count(*) FROM pg_hba_file_rules WHERE (type <> ''local'' AND auth_method <> ''scram-sha-256'') OR error IS NOT NULL")" = 0 ]']
       interval: 10s
       timeout: 5s
