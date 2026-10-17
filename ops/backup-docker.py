@@ -44,8 +44,11 @@ def snapshot_paperclip(stage):
             shutil.copy2(source, target / source.name)
     (target / 'postgres.dump').write_bytes(run([DOCKER, 'exec', 'asia-paperclip-postgres-1',
         'pg_dump', '-U', 'paperclip', '-d', 'paperclip', '-Fc']))
+    # Dependency folders that agents install in worktrees (node_modules, .venv) are
+    # rebuilt from lockfiles, hold no original data and contain absolute symbolic links
+    # that the safe restore check rightly refuses: they are left out of the snapshot.
     (target / 'data.tar.gz').write_bytes(run([DOCKER, 'exec', 'asia-paperclip-paperclip-1',
-        'tar', '-czf', '-', '-C', '/paperclip', '.']))
+        'tar', '-czf', '-', '--exclude=node_modules', '--exclude=.venv', '-C', '/paperclip', '.']))
 
 
 def snapshot_dorasso(stage):
