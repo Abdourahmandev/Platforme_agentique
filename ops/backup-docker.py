@@ -16,6 +16,7 @@ import shutil
 import subprocess
 import tempfile
 import tarfile
+import time
 import zipfile
 import backup
 
@@ -26,6 +27,9 @@ ENV = dict(os.environ, ASIA_RUNTIME_DIR=RUNTIME.as_posix())
 COMPOSE = [DOCKER, 'compose', '-f', str(ROOT / 'infra/compose.yaml')]
 PAPERCLIP = Path(os.environ['LOCALAPPDATA']) / 'AsiaPaperclip'
 DORASSO = 'dorasso-hermes-1'
+LEDGER = 'dorasso-ledger-1'
+LEDGER_IMAGE = 'postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826'
+LEDGER_ROLES = ('postgres', 'ledger_migrator', 'ledger_engine', 'ledger_essai', 'ledger_dorasso')
 LOCAL = Path(os.environ['LOCALAPPDATA'])
 
 
@@ -57,6 +61,176 @@ def snapshot_dorasso(stage):
         (stage / 'dorasso' / 'hermes-backup.zip').write_bytes(run(hermes + ['cat', remote]))
     finally:
         run(hermes + ['rm', '-f', remote])
+
+
+def ledger_installed():
+    """Independent signs of an installation: secrets folder, container (any state) or volume.
+
+    Any one of them means installed, so a damaged installation (folder removed, container
+    stopped) makes the backup fail instead of silently omitting the accounting.
+    """
+    if os.path.lexists(LOCAL / 'Dorasso' / 'ledger'):
+        return True
+    containers = run([DOCKER, 'ps', '-a', '--filter', 'name=^' + LEDGER + '$', '--format', '{{.Names}}']).decode().split()
+    volumes = run([DOCKER, 'volume', 'ls', '-q', '--filter', 'label=com.docker.compose.volume=dorasso-ledger']).decode().split()
+    return bool(containers or volumes)
+
+
+def real_dir(path):
+    """A directory that must exist and must not be (or sit behind) a symbolic link."""
+    if path.is_symlink() or not path.is_dir():
+        raise RuntimeError('Accounting directory missing or symbolic link: ' + path.name)
+    return path
+
+
+def snapshot_ledger(stage):
+    """Dorasso's accounting database: consistent dump, roles, secrets and original documents.
+
+    Absent installation: nothing to do. Installed but unavailable, a secret or a document
+    directory missing, or any symbolic link: the backup fails rather than silently omitting
+    the accounting. Ingestion contract: a document is written completely (temporary file,
+    then atomic rename) before its reference is inserted in the database, and is never
+    modified or deleted afterwards. The dump is taken first, so every document it references
+    is present in the copy.
+    """
+    if not ledger_installed():
+        return
+    root = real_dir(LOCAL / 'Dorasso')
+    secrets_dir = real_dir(root / 'ledger')
+    store = real_dir(root / 'comptabilite')
+    for sub in ('pieces', 'essai'):
+        real_dir(store / sub)
+    names = run([DOCKER, 'ps', '--filter', 'name=^' + LEDGER + '$', '--format', '{{.Names}}']).decode().split()
+    if LEDGER not in names:
+        raise RuntimeError('Dorasso accounting database is installed but not running')
+    target = stage / 'dorasso-comptabilite'
+    target.mkdir()
+    (target / 'comptabilite.dump').write_bytes(run([DOCKER, 'exec', LEDGER, 'pg_dump', '-U', 'postgres',
+                                                    '-d', 'comptabilite', '-Fc']))
+    # Global objects (roles and their password hashes) are not part of pg_dump.
+    (target / 'roles.sql').write_bytes(run([DOCKER, 'exec', LEDGER, 'pg_dumpall', '-U', 'postgres', '--roles-only']))
+    (target / 'secrets').mkdir()
+    for role in LEDGER_ROLES:
+        item = secrets_dir / f'{role}.password'
+        if item.is_symlink() or not item.is_file() or not item.read_text().strip():
+            raise RuntimeError('Accounting secret missing, empty or symbolic link: ' + role)
+        shutil.copy2(item, target / 'secrets' / item.name)
+    for path in sorted(store.rglob('*')):
+        if path.is_symlink():
+            raise RuntimeError('Refused symbolic link in the accounting document store')
+        relative = path.relative_to(store)
+        if path.is_dir():
+            (target / 'fichiers' / relative).mkdir(parents=True, exist_ok=True)
+        elif path.is_file():
+            (target / 'fichiers' / relative).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target / 'fichiers' / relative)
+    for sub in ('pieces', 'essai'):
+        (target / 'fichiers' / sub).mkdir(parents=True, exist_ok=True)
+
+
+def ledger_sql(name, sql, database='comptabilite'):
+    return run([DOCKER, 'exec', name, 'psql', '-X', '-U', 'postgres', '-d', database, '-v', 'ON_ERROR_STOP=1',
+                '-Atc', sql]).decode().strip()
+
+
+def restore_ledger_isolated(target):
+    """Restore the recovery point into a throw-away cluster with no network.
+
+    The live instance is never touched. Roles are recreated from roles.sql, the database
+    with its own ACL (pg_restore --create); the instance-level revocations (postgres and
+    template1 databases), which neither export carries, are reapplied as in a real
+    recovery. Then the five backed-up passwords are checked by authentication and the
+    complete isolation matrix (check-isolation.sh) is replayed on the restored copy.
+    The throw-away cluster, its named data volume and the temporary copy of the secrets
+    are always removed, and their absence is checked: anything left is an error.
+    """
+    name = 'dorasso-ledger-restore-' + secrets.token_hex(6)
+    volume = name + '-data'  # Named, so that its removal can be verified (no anonymous volume).
+    env = dict(ENV, POSTGRES_PASSWORD=secrets.token_urlsafe(24))
+    work = Path(tempfile.mkdtemp(prefix='ledger-restore-'))
+    try:
+        run([DOCKER, 'volume', 'create', volume])
+        run([DOCKER, 'run', '-d', '--name', name, '--network', 'none', '-e', 'POSTGRES_PASSWORD',
+             '-e', 'POSTGRES_INITDB_ARGS=--auth-host=scram-sha-256',
+             '-v', volume + ':/var/lib/postgresql/data', LEDGER_IMAGE], env=env)
+        for _ in range(60):
+            logs = subprocess.run([DOCKER, 'logs', name], capture_output=True, env=ENV)
+            ready = subprocess.run([DOCKER, 'exec', name, 'pg_isready', '-q', '-U', 'postgres'], capture_output=True, env=ENV)
+            if b'init process complete' in logs.stdout + logs.stderr and ready.returncode == 0:
+                break
+            time.sleep(2)
+        else:
+            raise RuntimeError('Throw-away accounting cluster did not start')
+        # The bootstrap superuser already exists in the new cluster.
+        roles = b'\n'.join(line for line in (target / 'roles.sql').read_bytes().splitlines()
+                               if line.strip() != b'CREATE ROLE postgres;')
+        run([DOCKER, 'exec', '-i', name, 'psql', '-X', '-q', '-U', 'postgres', '-d', 'postgres', '-v', 'ON_ERROR_STOP=1'],
+            data=roles)
+        run([DOCKER, 'exec', '-i', name, 'pg_restore', '-U', 'postgres', '-d', 'postgres', '--create', '--exit-on-error'],
+            data=(target / 'comptabilite.dump').read_bytes())
+        ledger_sql(name, 'REVOKE CONNECT, TEMPORARY ON DATABASE postgres FROM PUBLIC; '
+                         'REVOKE CONNECT, TEMPORARY ON DATABASE template1 FROM PUBLIC', database='postgres')
+        owners = ledger_sql(name, "SELECT string_agg(nspname || ':' || pg_get_userbyid(nspowner), ',' ORDER BY nspname) "
+                                  "FROM pg_namespace WHERE nspname IN ('ledger', 'essai')")
+        if owners != 'essai:ledger_migrator,ledger:ledger_migrator':
+            raise ValueError('Restored accounting schemas or owners are wrong')
+        privileged = ledger_sql(name, "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'ledger\\_%' "
+                                      "AND (rolsuper OR rolcreaterole OR rolcreatedb OR rolbypassrls)")
+        members = ledger_sql(name, "SELECT count(*) FROM pg_auth_members m JOIN pg_roles r ON r.oid = m.member "
+                                   "WHERE r.rolname LIKE 'ledger\\_%'")
+        app_roles = ledger_sql(name, "SELECT count(*) FROM pg_roles WHERE rolname LIKE 'ledger\\_%'")
+        acl = ledger_sql(name, "SELECT coalesce(datacl::text, '') FROM pg_database WHERE datname = 'comptabilite'")
+        public = [item for item in acl.strip('{}').split(',') if item.startswith('=')]
+        if privileged != '0' or members != '0' or app_roles != '4' or public or acl == '':
+            raise ValueError('Restored accounting roles or database ACL are wrong')
+        for role in LEDGER_ROLES:
+            password = (target / 'secrets' / f'{role}.password').read_text().strip()
+            run([DOCKER, 'exec', '-e', 'PGPASSWORD', name, 'psql', '-X', '-h', '127.0.0.1', '-U', role,
+                 '-d', 'comptabilite', '-Atc', 'SELECT 1'], env=dict(ENV, PGPASSWORD=password))
+        # Full positive and negative isolation matrix, with the backed-up passwords.
+        (work / 'Dorasso').mkdir(mode=0o700)
+        shutil.copytree(target / 'secrets', work / 'Dorasso' / 'ledger')
+        check = Path(__file__).resolve().parent.parent / 'infra' / 'dorasso' / 'ledger' / 'check-isolation.sh'
+        run(['bash', str(check)], env=dict(ENV, LOCALAPPDATA=str(work), LEDGER_CONTAINER=name))
+        return owners
+    finally:
+        shutil.rmtree(work, ignore_errors=True)
+        subprocess.run([DOCKER, 'rm', '-f', '-v', name], capture_output=True, env=ENV)
+        subprocess.run([DOCKER, 'volume', 'rm', '-f', volume], capture_output=True, env=ENV)
+        container_left = subprocess.run([DOCKER, 'ps', '-a', '-q', '--filter', 'name=^' + name + '$'],
+                                        capture_output=True, env=ENV)
+        volume_left = subprocess.run([DOCKER, 'volume', 'ls', '-q', '--filter', 'name=^' + volume + '$'],
+                                     capture_output=True, env=ENV)
+        # An undeterminable state (failed listing) counts as left behind.
+        if container_left.returncode or container_left.stdout.strip() \
+                or volume_left.returncode or volume_left.stdout.strip() or os.path.lexists(work):
+            raise RuntimeError('Throw-away accounting restore could not be fully removed: ' + name)
+
+
+def verify_ledger(base, restore):
+    """Check the accounting recovery point; with restore, restore it into a throw-away cluster."""
+    target = base / 'dorasso-comptabilite'
+    if not target.exists():
+        if ledger_installed():
+            raise ValueError('Dorasso accounting database is installed but missing from the backup')
+        return {'included': False}
+    for name in ('comptabilite.dump', 'roles.sql'):
+        if not (target / name).is_file():
+            raise ValueError('Incomplete Dorasso accounting recovery point: ' + name)
+    for role in LEDGER_ROLES:
+        item = target / 'secrets' / f'{role}.password'
+        if not item.is_file() or not item.read_text().strip():
+            raise ValueError('Dorasso accounting secret missing from the recovery point: ' + role)
+    for sub in ('pieces', 'essai'):
+        if not (target / 'fichiers' / sub).is_dir():
+            raise ValueError('Dorasso accounting documents missing from the recovery point')
+    run([DOCKER, 'run', '--rm', '-i', '--network', 'none', '--entrypoint', 'pg_restore', LEDGER_IMAGE, '--list'],
+        data=(target / 'comptabilite.dump').read_bytes())
+    documents = sum(1 for p in (target / 'fichiers' / 'pieces').rglob('*') if p.is_file())
+    result = {'included': True, 'documents': documents, 'restored': False}
+    if restore:
+        result.update(restored=True, schemas=restore_ledger_isolated(target))
+    return result
 
 
 def verify_dorasso(base):
@@ -108,8 +282,8 @@ def verify_paperclip(base, restore):
     return result
 
 
-def run(args, data=None):
-    r = subprocess.run(args, input=data, capture_output=True, env=ENV)
+def run(args, data=None, env=None):
+    r = subprocess.run(args, input=data, capture_output=True, env=env or ENV)
     if r.returncode:
         (RUNTIME / 'docker-backup-error.log').write_bytes(r.stdout + r.stderr)
         raise RuntimeError('Docker backup/restore command failed; diagnostic output withheld.')
@@ -186,6 +360,7 @@ def create():
                 '-U','litellm','-d','litellm','-Fc'))
         snapshot_paperclip(stage)
         snapshot_dorasso(stage)
+        snapshot_ledger(stage)
         snapshot_messagerie(stage)
         # Include runtime env, original migration inputs and dedicated test device
         # credentials. Never include the recovery key in its own encrypted archive.
@@ -303,6 +478,7 @@ def verify(archive, restore=False):
                 compose('exec','-T','postgres','dropdb','-U','postgres',database)
         result['paperclip'] = verify_paperclip(base, restore)
         result['dorasso'] = verify_dorasso(base)
+        result['dorasso_comptabilite'] = verify_ledger(base, restore)
         return result
     finally:
         try:

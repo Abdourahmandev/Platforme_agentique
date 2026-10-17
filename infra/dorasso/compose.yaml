@@ -25,6 +25,45 @@ services:
       driver: json-file
       options: {max-size: 10m, max-file: '3'}
 
+  ledger:
+    # Dorasso's accounting database (registres comptables) : PostgreSQL 17.11, same
+    # pinned image as the platform's database, but a separate instance, volume and
+    # internal network, no host port. Four least-privilege roles (ledger/init-roles.sh).
+    # No other container can reach it over the network (host administrators and Docker
+    # socket holders still can). Hermes is connected only in issue #9.
+    # init-roles.sh applies to a new volume only; check-isolation.sh re-checks the rules it tests.
+    image: postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    restart: unless-stopped
+    # Refuses to serve a volume whose security initialisation did not complete.
+    entrypoint: [/usr/local/bin/dorasso-entrypoint.sh]
+    command: [postgres]
+    environment:
+      POSTGRES_DB: comptabilite
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      # Passwords on every TCP connection, loopback included (the image trusts loopback by default).
+      POSTGRES_INITDB_ARGS: --auth-host=scram-sha-256
+      TZ: America/Toronto
+    secrets: [postgres_password, ledger_migrator_password, ledger_engine_password, ledger_essai_password, ledger_dorasso_password]
+    volumes:
+      - dorasso-ledger:/var/lib/postgresql/data
+      - ./ledger/init-roles.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+      - ./ledger/entrypoint.sh:/usr/local/bin/dorasso-entrypoint.sh:ro
+    networks: [ledger]
+    healthcheck:
+      # Unhealthy if the HBA file on disk has a TCP rule without password. Effective
+      # authentication is proven by check-isolation.sh (wrong password refused).
+      test: [CMD-SHELL, 'pg_isready -U postgres -d comptabilite && [ "$$(psql -X -U postgres -d comptabilite -Atc "SELECT count(*) FROM pg_hba_file_rules WHERE (type <> ''local'' AND auth_method <> ''scram-sha-256'') OR error IS NOT NULL")" = 0 ]']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 1.0
+    pids_limit: 100
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+
   searxng:
     # Private metasearch for Dorasso's web_search; reachable only from hermes.
     image: searxng/searxng@sha256:9b61996edcc679fb6665290f95fda15389a14eda6060e41a25c63ab2758f2436
@@ -51,7 +90,24 @@ services:
 
 networks:
   search: {internal: true}
+  # Accounting database only; Hermes and the engine join it in later issues.
+  ledger: {internal: true}
   personal:
     external: true
     name: asia-platform-staging_personal
   outbound: {}
+
+volumes:
+  dorasso-ledger:
+
+secrets:
+  postgres_password:
+    file: ${DORASSO_DIR}/ledger/container/postgres.password
+  ledger_migrator_password:
+    file: ${DORASSO_DIR}/ledger/container/ledger_migrator.password
+  ledger_engine_password:
+    file: ${DORASSO_DIR}/ledger/container/ledger_engine.password
+  ledger_essai_password:
+    file: ${DORASSO_DIR}/ledger/container/ledger_essai.password
+  ledger_dorasso_password:
+    file: ${DORASSO_DIR}/ledger/container/ledger_dorasso.password
