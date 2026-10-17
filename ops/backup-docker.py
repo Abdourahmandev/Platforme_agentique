@@ -26,6 +26,7 @@ ENV = dict(os.environ, ASIA_RUNTIME_DIR=RUNTIME.as_posix())
 COMPOSE = [DOCKER, 'compose', '-f', str(ROOT / 'infra/compose.yaml')]
 PAPERCLIP = Path(os.environ['LOCALAPPDATA']) / 'AsiaPaperclip'
 DORASSO = 'dorasso-hermes-1'
+LEDGER = 'dorasso-ledger-1'
 LOCAL = Path(os.environ['LOCALAPPDATA'])
 
 
@@ -57,6 +58,21 @@ def snapshot_dorasso(stage):
         (stage / 'dorasso' / 'hermes-backup.zip').write_bytes(run(hermes + ['cat', remote]))
     finally:
         run(hermes + ['rm', '-f', remote])
+    snapshot_ledger(stage)
+
+
+def snapshot_ledger(stage):
+    """Optional accounting database of Dorasso: consistent dump plus the original documents."""
+    names = run([DOCKER, 'ps', '--filter', 'name=^' + LEDGER + '$', '--format', '{{.Names}}']).decode().split()
+    if LEDGER not in names:
+        return
+    target = stage / 'dorasso-comptabilite'
+    target.mkdir()
+    (target / 'comptabilite.dump').write_bytes(run([DOCKER, 'exec', LEDGER, 'pg_dump', '-U', 'postgres',
+                                                    '-d', 'comptabilite', '-Fc']))
+    store = LOCAL / 'Dorasso' / 'comptabilite'
+    if store.is_dir():
+        shutil.copytree(store, target / 'fichiers', symlinks=False)
 
 
 def verify_dorasso(base):

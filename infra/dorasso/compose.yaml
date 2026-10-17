@@ -25,6 +25,35 @@ services:
       driver: json-file
       options: {max-size: 10m, max-file: '3'}
 
+  ledger:
+    # Dorasso's accounting database (registres comptables) : PostgreSQL 17.11, same
+    # pinned image as the platform's database, but a separate instance, volume and
+    # internal network. Four least-privilege roles (infra/dorasso/ledger/init-roles.sh).
+    # Nothing else on the server can reach it; Hermes is connected only in issue #9.
+    image: postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: comptabilite
+      POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+      TZ: America/Toronto
+    secrets: [postgres_password, ledger_migrator_password, ledger_engine_password, ledger_essai_password, ledger_dorasso_password]
+    volumes:
+      - dorasso-ledger:/var/lib/postgresql/data
+      - ./ledger/init-roles.sh:/docker-entrypoint-initdb.d/10-roles.sh:ro
+    networks: [ledger]
+    healthcheck:
+      test: [CMD-SHELL, 'pg_isready -U postgres -d comptabilite']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt: [no-new-privileges:true]
+    mem_limit: 256m
+    cpus: 1.0
+    pids_limit: 100
+    logging:
+      driver: json-file
+      options: {max-size: 10m, max-file: '3'}
+
   searxng:
     # Private metasearch for Dorasso's web_search; reachable only from hermes.
     image: searxng/searxng@sha256:9b61996edcc679fb6665290f95fda15389a14eda6060e41a25c63ab2758f2436
@@ -51,7 +80,24 @@ services:
 
 networks:
   search: {internal: true}
+  # Accounting database only; Hermes and the engine join it in later issues.
+  ledger: {internal: true}
   personal:
     external: true
     name: asia-platform-staging_personal
   outbound: {}
+
+volumes:
+  dorasso-ledger:
+
+secrets:
+  postgres_password:
+    file: ${DORASSO_DIR}/ledger/postgres.password
+  ledger_migrator_password:
+    file: ${DORASSO_DIR}/ledger/ledger_migrator.password
+  ledger_engine_password:
+    file: ${DORASSO_DIR}/ledger/ledger_engine.password
+  ledger_essai_password:
+    file: ${DORASSO_DIR}/ledger/ledger_essai.password
+  ledger_dorasso_password:
+    file: ${DORASSO_DIR}/ledger/ledger_dorasso.password
