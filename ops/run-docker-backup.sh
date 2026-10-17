@@ -32,6 +32,9 @@ if [[ -n "$remote" ]]; then
         offsite=true
     else
         offsite=false
+        # The local recovery point stays valid: alert, but do not fail the run.
+        /usr/bin/python3 backup-alert.py offsite || echo 'Offsite alert could not be sent.'
     fi
 fi
 printf '{"completed_at":"%s","passed":true,"offsite":%s}\n' "$(date -u +%FT%TZ)" "$offsite" > "$result"
+cp "$result" "$runtime/scheduled-backup-last-success.json"
