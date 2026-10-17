@@ -28,8 +28,9 @@ services:
   ledger:
     # Dorasso's accounting database (registres comptables) : PostgreSQL 17.11, same
     # pinned image as the platform's database, but a separate instance, volume and
-    # internal network. Four least-privilege roles (infra/dorasso/ledger/init-roles.sh).
-    # Nothing else on the server can reach it; Hermes is connected only in issue #9.
+    # internal network, no host port. Four least-privilege roles (ledger/init-roles.sh).
+    # No other container can reach it over the network (host administrators and Docker
+    # socket holders still can). Hermes is connected only in issue #9.
     image: postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
     restart: unless-stopped
     environment:
@@ -92,12 +93,12 @@ volumes:
 
 secrets:
   postgres_password:
-    file: ${DORASSO_DIR}/ledger/postgres.password
+    file: ${DORASSO_DIR}/ledger/container/postgres.password
   ledger_migrator_password:
-    file: ${DORASSO_DIR}/ledger/ledger_migrator.password
+    file: ${DORASSO_DIR}/ledger/container/ledger_migrator.password
   ledger_engine_password:
-    file: ${DORASSO_DIR}/ledger/ledger_engine.password
+    file: ${DORASSO_DIR}/ledger/container/ledger_engine.password
   ledger_essai_password:
-    file: ${DORASSO_DIR}/ledger/ledger_essai.password
+    file: ${DORASSO_DIR}/ledger/container/ledger_essai.password
   ledger_dorasso_password:
-    file: ${DORASSO_DIR}/ledger/ledger_dorasso.password
+    file: ${DORASSO_DIR}/ledger/container/ledger_dorasso.password

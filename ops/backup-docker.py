@@ -58,21 +58,85 @@ def snapshot_dorasso(stage):
         (stage / 'dorasso' / 'hermes-backup.zip').write_bytes(run(hermes + ['cat', remote]))
     finally:
         run(hermes + ['rm', '-f', remote])
-    snapshot_ledger(stage)
+
+
+def ledger_installed():
+    return (LOCAL / 'Dorasso' / 'ledger').is_dir()
 
 
 def snapshot_ledger(stage):
-    """Optional accounting database of Dorasso: consistent dump plus the original documents."""
+    """Dorasso's accounting database: consistent dump, roles, secrets and original documents.
+
+    Absent installation: nothing to do. Installed but unavailable, or documents missing:
+    the backup fails rather than silently omitting the accounting. The dump is taken
+    before the documents are copied; documents are write-once (never modified or deleted),
+    so every document referenced by the dump is present in the copy. Symbolic links are refused.
+    """
+    if not ledger_installed():
+        return
     names = run([DOCKER, 'ps', '--filter', 'name=^' + LEDGER + '$', '--format', '{{.Names}}']).decode().split()
     if LEDGER not in names:
-        return
+        raise RuntimeError('Dorasso accounting database is installed but not running')
     target = stage / 'dorasso-comptabilite'
     target.mkdir()
     (target / 'comptabilite.dump').write_bytes(run([DOCKER, 'exec', LEDGER, 'pg_dump', '-U', 'postgres',
                                                     '-d', 'comptabilite', '-Fc']))
+    # Global objects (roles and their password hashes) are not part of pg_dump.
+    (target / 'roles.sql').write_bytes(run([DOCKER, 'exec', LEDGER, 'pg_dumpall', '-U', 'postgres', '--roles-only']))
+    secrets_dir = LOCAL / 'Dorasso' / 'ledger'
+    (target / 'secrets').mkdir()
+    for item in secrets_dir.glob('*.password'):
+        if item.is_symlink():
+            raise RuntimeError('Refused symbolic link in accounting secrets')
+        shutil.copy2(item, target / 'secrets' / item.name)
     store = LOCAL / 'Dorasso' / 'comptabilite'
-    if store.is_dir():
-        shutil.copytree(store, target / 'fichiers', symlinks=False)
+    if not store.is_dir():
+        raise RuntimeError('Dorasso accounting document store is missing')
+    for path in sorted(store.rglob('*')):
+        if path.is_symlink():
+            raise RuntimeError('Refused symbolic link in the accounting document store')
+        relative = path.relative_to(store)
+        if path.is_dir():
+            (target / 'fichiers' / relative).mkdir(parents=True, exist_ok=True)
+        elif path.is_file():
+            (target / 'fichiers' / relative).parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, target / 'fichiers' / relative)
+    for sub in ('pieces', 'essai'):
+        (target / 'fichiers' / sub).mkdir(parents=True, exist_ok=True)
+
+
+def verify_ledger(base, restore):
+    """Check the accounting recovery point; with restore, restore it into a throw-away database."""
+    target = base / 'dorasso-comptabilite'
+    if not target.exists():
+        if ledger_installed():
+            raise ValueError('Dorasso accounting database is installed but missing from the backup')
+        return {'included': False}
+    for name in ('comptabilite.dump', 'roles.sql'):
+        if not (target / name).is_file():
+            raise ValueError('Incomplete Dorasso accounting recovery point: ' + name)
+    if not (target / 'fichiers' / 'pieces').is_dir():
+        raise ValueError('Dorasso accounting documents missing from the recovery point')
+    cmd = [DOCKER, 'exec', '-i', LEDGER]
+    run(cmd + ['pg_restore', '--list'], data=(target / 'comptabilite.dump').read_bytes())
+    documents = sum(1 for p in (target / 'fichiers' / 'pieces').rglob('*') if p.is_file())
+    result = {'included': True, 'documents': documents, 'restored': False}
+    if restore:
+        # Roles already exist in the running instance: restore with owners and ACLs kept.
+        database = 'comptabilite_restore_' + secrets.token_hex(6)
+        run(cmd + ['createdb', '-U', 'postgres', '-O', 'ledger_migrator', database])
+        try:
+            run(cmd + ['pg_restore', '-U', 'postgres', '-d', database, '--exit-on-error'],
+                data=(target / 'comptabilite.dump').read_bytes())
+            owners = run(cmd + ['psql', '-U', 'postgres', '-d', database, '-Atc',
+                "SELECT string_agg(nspname || ':' || pg_get_userbyid(nspowner), ',' ORDER BY nspname) "
+                "FROM pg_namespace WHERE nspname IN ('ledger', 'essai')"]).decode().strip()
+            if owners != 'essai:ledger_migrator,ledger:ledger_migrator':
+                raise ValueError('Restored accounting schemas or owners are wrong')
+            result.update(restored=True, schemas=owners)
+        finally:
+            run(cmd + ['dropdb', '-U', 'postgres', database])
+    return result
 
 
 def verify_dorasso(base):
@@ -202,6 +266,7 @@ def create():
                 '-U','litellm','-d','litellm','-Fc'))
         snapshot_paperclip(stage)
         snapshot_dorasso(stage)
+        snapshot_ledger(stage)
         snapshot_messagerie(stage)
         # Include runtime env, original migration inputs and dedicated test device
         # credentials. Never include the recovery key in its own encrypted archive.
@@ -319,6 +384,7 @@ def verify(archive, restore=False):
                 compose('exec','-T','postgres','dropdb','-U','postgres',database)
         result['paperclip'] = verify_paperclip(base, restore)
         result['dorasso'] = verify_dorasso(base)
+        result['dorasso_comptabilite'] = verify_ledger(base, restore)
         return result
     finally:
         try:
