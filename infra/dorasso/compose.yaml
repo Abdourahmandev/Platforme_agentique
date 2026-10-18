@@ -10,7 +10,8 @@ services:
     restart: unless-stopped
     environment:
       HERMES_UID: '1000'
-      HERMES_GID: '1000'
+      # Primary group dorasso-drafts: the only group allowed on the Gmail draft door socket.
+      HERMES_GID: ${DORASSO_DRAFTS_GID:?Groupe dorasso-drafts requis (install-drafts)}
       TZ: America/Toronto
     volumes:
       - ${DORASSO_DATA_DIR:?Private Dorasso directory required}:/opt/data
@@ -18,6 +19,8 @@ services:
       # Dorasso cannot rewrite its own rules. Prepared by prepare-comptable.py.
       - ${DORASSO_DIR}/comptable/app:/opt/dorasso-comptable:ro
       - ${DORASSO_DIR}/comptable/skill:/opt/data/skills/comptable-decidata:ro
+      # Gmail draft door only (create/list/withdraw); never the approval door (D-010).
+      - /run/dorasso-drafts/api.sock:/run/decidata-drafts.sock
     # Hermes API server for the messagerie (key-protected), loopback only on the host.
     ports: ['127.0.0.1:8642:8642']
     # ledger: read-only role ledger_dorasso on the accounting database (no host port).
