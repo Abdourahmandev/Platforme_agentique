@@ -69,10 +69,17 @@ def pending():
     return sorted(rows, key=lambda r: r['issue']['identifier'])
 
 
+QBO_CALLBACK = '/qbo/callback'
+
+
 class Handler(BaseHTTPRequestHandler):
     server_version = 'approbations'
 
     def log_message(self, fmt, *args):
+        # The OAuth callback carries a one-time authorization code: never log its query.
+        if urlparse(getattr(self, 'path', '')).path == QBO_CALLBACK:
+            print('%s %s (requete masquee)' % (self.command, QBO_CALLBACK), flush=True)
+            return
         print('%s %s' % (self.command, fmt % args), flush=True)
 
     def allowed(self):
@@ -92,9 +99,22 @@ class Handler(BaseHTTPRequestHandler):
         self.send_header('Cache-Control', 'no-store')
         self.send_header('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'")
         self.send_header('X-Frame-Options', 'DENY')
+        self.send_header('Referrer-Policy', 'no-referrer')
         self.send_header('Content-Length', str(len(page)))
         self.end_headers()
         self.wfile.write(page)
+
+    def qbo_callback(self):
+        """Intuit OAuth redirect for Dorasso's QuickBooks connector (Decidata_accoutant #8).
+
+        Shows the full redirect address for the owner to paste into the private terminal
+        (connectors.quickbooks.owner authorize). Nothing is stored, logged or exchanged here.
+        """
+        address = PUBLIC_ORIGIN + self.path
+        self.respond(200, '<h1>QuickBooks : autorisation recue</h1>'
+                     "<p class=\"sub\">Copiez toute l'adresse ci-dessous et collez-la dans le terminal prive "
+                     '(saisie masquee). Ne la partagez avec personne ; elle expire dans quelques minutes.</p>'
+                     f'<textarea readonly rows="6" style="width:100%">{escape(address)}</textarea>')
 
     def do_GET(self):
         if not self.allowed():
@@ -105,6 +125,8 @@ class Handler(BaseHTTPRequestHandler):
             FORM_TOKENS.pop(key, None)
         if urlparse(self.path).path == '/secrets':
             return self.secrets_page(message, now)
+        if urlparse(self.path).path == QBO_CALLBACK:
+            return self.qbo_callback()
         try:
             rows = pending()
         except (urllib.error.URLError, OSError) as exc:
