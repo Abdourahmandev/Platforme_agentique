@@ -1,0 +1,38 @@
+[Unit]
+Description=Owner Gmail approval page (Tailscale /gmail)
+After=network.target
+
+[Service]
+Type=simple
+User=drafts-approver
+Group=drafts-approver
+SupplementaryGroups=dorasso-approvals
+WorkingDirectory=/opt/platforme-agentique/infra/gmail-approvals
+ExecStart=/usr/bin/python3 -B /opt/platforme-agentique/infra/gmail-approvals/server.py
+EnvironmentFile=/etc/gmail-approvals/page.env
+Environment=PYTHONUNBUFFERED=1
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectKernelLogs=true
+ProtectClock=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET
+IPAddressDeny=any
+IPAddressAllow=localhost
+UMask=0077
+TasksMax=32
+MemoryMax=768M
+
+[Install]
+WantedBy=multi-user.target
