@@ -14,9 +14,14 @@ services:
       TZ: America/Toronto
     volumes:
       - ${DORASSO_DATA_DIR:?Private Dorasso directory required}:/opt/data
+      # Accounting skill and its closed read tool (Decidata_accoutant #9), read-only:
+      # Dorasso cannot rewrite its own rules. Prepared by prepare-comptable.py.
+      - ${DORASSO_DIR}/comptable/app:/opt/dorasso-comptable:ro
+      - ${DORASSO_DIR}/comptable/skill:/opt/data/skills/comptable-decidata:ro
     # Hermes API server for the messagerie (key-protected), loopback only on the host.
     ports: ['127.0.0.1:8642:8642']
-    networks: [personal, search, outbound]
+    # ledger: read-only role ledger_dorasso on the accounting database (no host port).
+    networks: [personal, search, outbound, ledger]
     security_opt: [no-new-privileges:true]
     mem_limit: 1536m
     cpus: 2.0
@@ -30,7 +35,7 @@ services:
     # pinned image as the platform's database, but a separate instance, volume and
     # internal network, no host port. Four least-privilege roles (ledger/init-roles.sh).
     # No other container can reach it over the network (host administrators and Docker
-    # socket holders still can). Hermes is connected only in issue #9.
+    # socket holders still can). Hermes joins it with the read-only role ledger_dorasso (#9).
     # init-roles.sh applies to a new volume only; check-isolation.sh re-checks the rules it tests.
     image: postgres@sha256:3645570cccdfa447589da9f57dd740faa29b30938e861289a5574b6ca6b03826
     restart: unless-stopped
