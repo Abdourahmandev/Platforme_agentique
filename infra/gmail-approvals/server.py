@@ -107,10 +107,10 @@ class Handler(BaseHTTPRequestHandler):
         if filename is not None:
             self.send_header('Content-Disposition', "attachment; filename=\"piece\"; filename*=UTF-8''" + quote(filename, safe=''))
         self.send_header('Content-Security-Policy', "default-src 'none'; base-uri 'none'; frame-ancestors 'none'; form-action 'self'" +
-                         ("; script-src 'nonce-" + nonce + "'" if nonce else ''))
+                         ("; script-src 'nonce-" + nonce + "'; style-src 'nonce-" + nonce + "'" if nonce else ''))
         self.send_header('Cache-Control', 'no-store')
         self.send_header('X-Frame-Options', 'DENY')
-        self.send_header('Referrer-Policy', 'no-referrer')
+        self.send_header('Referrer-Policy', 'same-origin')
         self.send_header('X-Content-Type-Options', 'nosniff')
         self.send_header('Content-Length', str(len(body)))
         self.end_headers()
@@ -152,7 +152,12 @@ class Handler(BaseHTTPRequestHandler):
         expires = float(item['expires_at'])
         date = datetime.fromtimestamp(expires, ZoneInfo('America/Toronto'))
         nonce = secrets.token_urlsafe(24)
-        parts = ['<h1>Accord Gmail</h1>', f'<p>Statut : {escape(item["status"])}</p>',
+        parts = [f'<style nonce="{nonce}">body{{font-family:system-ui,sans-serif;margin:16px;line-height:1.4}}'
+                 'pre{{white-space:pre-wrap;word-break:break-word}}'
+                 'button{{display:block;width:100%;padding:18px;font-size:1.2em;border-radius:10px;border:0;margin:12px 0}}'
+                 '.ok{{background:#1a7f37;color:#fff}}.ko{{background:#fff;color:#b42318;border:2px solid #b42318}}'
+                 'button:disabled{{opacity:.4}}details{{margin-top:28px}}summary{{color:#b42318;padding:12px 0}}</style>'
+                 '<h1>Accord Gmail</h1>', f'<p>Statut : {escape(item["status"])}</p>',
                  f'<p>Échéance (Toronto) : {date:%Y-%m-%d %H:%M:%S %Z} — '
                  f'<span id="remaining">{max(0, int(expires - time.time()))} secondes</span></p>']
         for kind, label in (('to', 'To'), ('cc', 'Cc')):
@@ -170,10 +175,14 @@ class Handler(BaseHTTPRequestHandler):
         for action, label in (('approve', 'Approuver'), ('delete', 'Supprimer')):
             token = self.server.issue(item_id, sha, action)
             enabled = (item['status'] == 'pending' and expires > time.time()) if action == 'approve' else item['status'] in ('pending', 'approved_dry_run')
-            parts.append(f'<form method="post" action="/gmail/{item_id}/{action}">'
-                         f'<input type="hidden" name="t" value="{token}">'
-                         f'<input type="hidden" name="sha256" value="{sha}">'
-                         f'<button{"" if enabled else " disabled"}>{label}</button></form>')
+            form = (f'<form method="post" action="/gmail/{item_id}/{action}">'
+                    f'<input type="hidden" name="t" value="{token}">'
+                    f'<input type="hidden" name="sha256" value="{sha}">'
+                    f'<button class="{"ok" if action == "approve" else "ko"}"{"" if enabled else " disabled"}>{label}</button></form>')
+            # Deleting needs a deliberate extra tap: no accidental refusal on a phone.
+            parts.append(form if action == 'approve' else
+                         '<details><summary>Supprimer ce brouillon…</summary>'
+                         '<p>Le brouillon sera supprimé de Gmail ; rien ne sera envoyé.</p>' + form + '</details>')
         parts.append(f'<script nonce="{nonce}">const end={int(expires * 1000)};'
                      'function tick(){document.getElementById("remaining").textContent='
                      'Math.max(0,Math.ceil((end-Date.now())/1000))+" secondes";}tick();setInterval(tick,1000);</script>')

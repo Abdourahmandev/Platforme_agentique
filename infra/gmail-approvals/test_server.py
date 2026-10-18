@@ -177,7 +177,8 @@ class PageTests(unittest.TestCase):
             self.assertIn(value, text)
         self.assertEqual(headers['Cache-Control'], 'no-store')
         self.assertEqual(headers['X-Frame-Options'], 'DENY')
-        self.assertEqual(headers['Referrer-Policy'], 'no-referrer')
+        # same-origin: under no-referrer browsers send Origin: null on POST and the page refuses it.
+        self.assertEqual(headers['Referrer-Policy'], 'same-origin')
         self.assertIn("default-src 'none'", headers['Content-Security-Policy'])
         for action in ('approve', 'delete'):
             self.assertEqual(self.request(path='/gmail/draft-1/' + action)[0], 404)
