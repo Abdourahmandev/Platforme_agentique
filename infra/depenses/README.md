@@ -95,6 +95,6 @@ IPAddressAllow=%s/32
 sudo systemctl daemon-reload && sudo systemctl restart depenses
 ```
 
-`LEDGER_DSN` s'écrit sous forme d'URI sans espace (`postgresql://ledger_dorasso:MOT_DE_PASSE@IP:5432/comptabilite`) :
+`LEDGER_DSN` s'écrit sous forme d'URI sans espace (schéma `postgresql`, rôle `ledger_dorasso`, adresse de la base, port 5432, base `comptabilite` ; le mot de passe est inséré par le script d'installation depuis le fichier privé, jamais écrit dans Git) :
 une forme `cle=valeur` avec espaces est mal lue. Le service tourne avec son propre environnement Python
 (`/opt/depenses/venv`, `psycopg[binary]==3.2.10`), le Python système n'ayant pas le pilote.
