@@ -1,0 +1,39 @@
+[Unit]
+Description=Owner expense page (Tailscale /depenses)
+After=network.target
+
+[Service]
+Type=simple
+User=depenses-viewer
+Group=depenses-viewer
+WorkingDirectory=/opt/platforme-agentique/infra/depenses
+ExecStart=/usr/bin/python3 -B /opt/platforme-agentique/infra/depenses/server.py
+EnvironmentFile=/etc/depenses/page.env
+Environment=PYTHONUNBUFFERED=1
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+ProtectKernelLogs=true
+ProtectClock=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+CapabilityBoundingSet=
+AmbientCapabilities=
+RestrictAddressFamilies=AF_UNIX AF_INET AF_INET6
+IPAddressDeny=any
+IPAddressAllow=localhost
+UMask=0077
+TasksMax=32
+MemoryMax=512M
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target

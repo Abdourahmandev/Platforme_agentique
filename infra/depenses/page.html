@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Dépenses</title>
+<style nonce="__NONCE__">
+/* Layout: one column on phone (period bar, donut, legend, detail); two columns on wide screens (chart | detail). */
+:root {
+  --bg: #f4f6f5; --surface: #ffffff; --ink: #14211d; --muted: #5b6b66; --line: #dbe2df;
+  --accent: #0f6b5c;
+  --f1: #3b5b8c; --f2: #d9822b; --f3: #c2453f; --f4: #2f8f6f; --f5: #8a63b8; --off: #9aa6a2;
+  --warn-bg: #fdf1dc; --warn-fg: #8a5300;
+  --display: "Bricolage Grotesque", "Segoe UI", system-ui, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0f1614; --surface: #17211e; --ink: #e6eeeb; --muted: #9aaba5; --line: #2a3733;
+  --accent: #4fc2a9; --f1: #7f9fd6; --f2: #f0a35a; --f3: #e57a73; --f4: #5cc29a; --f5: #b394dd; --off: #6d7a76;
+  --warn-bg: #3a2c12; --warn-fg: #f3c27a; color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #0f1614; --surface: #17211e; --ink: #e6eeeb; --muted: #9aaba5; --line: #2a3733;
+  --accent: #4fc2a9; --f1: #7f9fd6; --f2: #f0a35a; --f3: #e57a73; --f4: #5cc29a; --f5: #b394dd; --off: #6d7a76;
+  --warn-bg: #3a2c12; --warn-fg: #f3c27a; color-scheme: dark }
+
+body { background: var(--bg); color: var(--ink); font-family: var(--body); font-size: 15px; line-height: 1.45;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 16px 32px; }
+.wrap { max-width: 1080px; margin: 0 auto; display: grid; gap: 16px; }
+.notice { background: var(--warn-bg); color: var(--warn-fg); border-radius: 8px; padding: 8px 12px; font-size: 13px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px; }
+h1 { font-family: var(--display); font-size: 1.7rem; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); font-size: 13px; }
+.bar { display: grid; gap: 10px; }
+.seg { display: grid; grid-template-columns: repeat(4, 1fr); background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 4px; gap: 4px; }
+.seg button { font: 500 14px var(--body); border: 0; border-radius: 7px; padding: 10px 4px; background: transparent; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: var(--bg); }
+.nav { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.nav button { font: 600 18px var(--body); width: 44px; height: 44px; border-radius: 10px; border: 1px solid var(--line); background: var(--surface); color: var(--ink); cursor: pointer; }
+.nav .lbl { font-family: var(--display); font-size: 1.15rem; text-align: center; flex: 1; }
+.toggle { display: flex; align-items: center; gap: 8px; font-size: 14px; color: var(--muted); }
+.toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+.grid { display: grid; gap: 16px; grid-template-columns: 1fr; }
+@media (min-width: 860px) { .grid { grid-template-columns: minmax(0, 5fr) minmax(0, 6fr); align-items: start; } }
+.panel { background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 16px; min-width: 0; display: grid; gap: 14px; }
+.chart { position: relative; width: 100%; max-width: 300px; margin: 0 auto; aspect-ratio: 1; }
+.chart svg { width: 100%; height: 100%; display: block; }
+.chart path { cursor: pointer; transition: opacity .15s; }
+.chart path:focus-visible { outline: none; stroke: var(--ink); stroke-width: 3; }
+.center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; pointer-events: none; }
+.center .k { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+.center .v { font-family: var(--mono); font-size: 1.35rem; font-weight: 500; font-variant-numeric: tabular-nums; }
+.legend { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.legend button { width: 100%; display: grid; grid-template-columns: 14px 1fr auto auto; gap: 10px; align-items: center; text-align: left;
+  font: 14px var(--body); color: var(--ink); background: transparent; border: 1px solid transparent; border-radius: 9px; padding: 9px 10px; cursor: pointer; }
+.legend button[aria-pressed="true"] { border-color: var(--line); background: var(--bg); font-weight: 600; }
+.dot { width: 14px; height: 14px; border-radius: 4px; }
+.num { font-family: var(--mono); font-variant-numeric: tabular-nums; }
+.pct { color: var(--muted); font-size: 13px; min-width: 3.2em; text-align: right; }
+.kind { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+.off { border-top: 1px dashed var(--line); padding-top: 12px; display: grid; gap: 6px; }
+.off h3, .detail h2 { margin: 0; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); font-weight: 600; }
+.offrow { display: flex; justify-content: space-between; gap: 8px; font-size: 14px; }
+.chip { display: inline-block; font-size: 11.5px; padding: 2px 8px; border-radius: 99px; background: var(--warn-bg); color: var(--warn-fg); white-space: nowrap; }
+.chip.ok { background: var(--bg); color: var(--muted); border: 1px solid var(--line); }
+
+.detail h2 { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.detail .title { font-family: var(--display); font-size: 1.3rem; color: var(--ink); text-transform: none; letter-spacing: 0; }
+.subs { display: grid; gap: 8px; }
+.subrow { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px; font-size: 14px; }
+.subrow .track { grid-column: 1 / -1; height: 8px; border-radius: 99px; background: var(--bg); overflow: hidden; }
+.subrow .fill { height: 100%; border-radius: 99px; }
+.tablewrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 10px; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 12px; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: .05em; background: var(--bg); }
+td.amt, th.amt { text-align: right; font-family: var(--mono); font-variant-numeric: tabular-nums; }
+td.m { white-space: normal; min-width: 9em; }
+td .s { display: block; font-size: 12px; color: var(--muted); }
+tr:last-child td { border-bottom: 0; }
+.empty { color: var(--muted); font-size: 14px; padding: 12px 0; }
+@media (prefers-reduced-motion: reduce) { .chart path { transition: none; } }
+
+.tabletitle {margin-bottom:8px} .subrow button,.offrow {font:inherit;color:inherit;background:transparent;border:0;text-align:left;cursor:pointer} .subrow button[aria-pressed="true"] {font-weight:bold;text-decoration:underline} .track svg {display:block;width:100%;height:8px} .notice {margin:0} .exception {margin-top:16px} </style></head><body><div class="wrap"><header>
+    <h1>Dépenses</h1>
+    <span class="sub">ESSAI · CAD · classement provisoire</span>
+  </header><p class="notice" id="notice" role="status">Chargement…</p><noscript>Activez JavaScript pour consulter les dépenses.</noscript>
+
+  <div class="bar">
+    <div class="seg" role="group" aria-label="Période">
+      <button type="button" id="p-semaine" data-p="semaine">Semaine</button>
+      <button type="button" id="p-mois" data-p="mois">Mois</button>
+      <button type="button" id="p-trimestre" data-p="trimestre">Trimestre</button>
+      <button type="button" id="p-annee" data-p="annee">Année</button>
+    </div>
+    <div class="nav">
+      <button type="button" id="prev" aria-label="Période précédente">‹</button>
+      <div class="lbl" id="plabel"></div>
+      <button type="button" id="next" aria-label="Période suivante">›</button>
+    </div>
+    <label class="toggle" for="varonly"><input type="checkbox" id="varonly"> Masquer les dépenses fixes (variables seulement)</label>
+  </div>
+
+  <div class="grid">
+    <section class="panel" aria-label="Répartition par famille">
+      <div class="chart">
+        <svg id="pie" viewBox="0 0 200 200" role="img" aria-label="Diagramme circulaire des dépenses par famille"></svg>
+        <div class="center"><span class="k">Classé provisoire</span><span class="v" id="total"></span><span class="k" id="count"></span></div>
+      </div>
+      <ul class="legend" id="legend"></ul>
+      <p class="sub" id="uncertainties"></p>
+      <details><summary class="sub">Couverture de collecte</summary><div id="coverage" class="sub"></div></details>
+      <div class="off" id="off"></div>
+    </section>
+
+    <section class="panel detail" aria-live="polite">
+      <h2><span class="title" id="dtitle"></span><span class="num" id="dtotal"></span></h2>
+      <div class="subs" id="subs"></div>
+      <div>
+        <h2 class="tabletitle">Dépenses, de la plus élevée à la plus basse</h2>
+        <div class="tablewrap"><table>
+          <thead><tr><th>Date</th><th>Marchand</th><th>Sous-catégorie</th><th class="amt">Montant</th><th>Statut</th></tr></thead>
+          <tbody id="rows"></tbody>
+        </table></div>
+      </div>
+      <div id="exceptions"></div>
+    </section>
+  </div>
+</div>
+
+<script nonce="__NONCE__">
+'use strict';
+const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const todayParts = new Intl.DateTimeFormat('en-CA', {timeZone:'America/Toronto', year:'numeric', month:'2-digit', day:'2-digit'}).formatToParts(new Date());
+const part = k => Number(todayParts.find(p => p.type === k).value);
+let state = {p:'mois', anchor:new Date(part('year'),part('month')-1,part('day')), sel:null, sub:null, varOnly:false};
+let data = null, request = 0;
+const el = id => document.getElementById(id);
+// Monetary display never converts a decimal to Number or rounds its digits.
+function money(value) {
+  if (value == null) return 'n.d.';
+  const [whole, fraction = ''] = String(value).split('.');
+  return whole.replace(/\B(?=(\d{3})+(?!\d))/g, '\u00a0') + ',' + fraction.padEnd(2,'0') + ' $';
+}
+function node(tag, text, cls) { const n=document.createElement(tag); if(text!=null)n.textContent=text; if(cls)n.className=cls; return n; }
+function iso(d) {return `${String(d.getFullYear()).padStart(4,'0')}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+const colors = ['Dépenses fixes','Déplacements & auto','Repas & représentation','Bureau, logiciels & formation','Frais & services'];
+function color(f) {const i=colors.indexOf(f); return css(i<0?'--off':`--f${i+1}`);}
+function select(f) {state.sel=f; state.sub=null; render();}
+function mondayOf(d) { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; }
+function range() {
+  const a = state.anchor;
+  if (state.p === 'semaine') { const s = mondayOf(a); const e = new Date(s); e.setDate(s.getDate() + 7); return [s, e]; }
+  if (state.p === 'mois') return [new Date(a.getFullYear(), a.getMonth(), 1), new Date(a.getFullYear(), a.getMonth() + 1, 1)];
+  if (state.p === 'trimestre') { const q = Math.floor(a.getMonth() / 3) * 3; return [new Date(a.getFullYear(), q, 1), new Date(a.getFullYear(), q + 3, 1)]; }
+  return [new Date(a.getFullYear(), 0, 1), new Date(a.getFullYear() + 1, 0, 1)];
+}
+function label() {
+  const [s, e] = range(); const a = state.anchor;
+  if (state.p === 'semaine') { const l = new Date(e); l.setDate(e.getDate() - 1); return `Semaine du ${s.getDate()} ${MONTHS[s.getMonth()]} au ${l.getDate()} ${MONTHS[l.getMonth()]} ${l.getFullYear()}`; }
+  if (state.p === 'mois') return `${MONTHS[a.getMonth()][0].toUpperCase()}${MONTHS[a.getMonth()].slice(1)} ${a.getFullYear()}`;
+  if (state.p === 'trimestre') return `T${Math.floor(a.getMonth() / 3) + 1} ${a.getFullYear()}`;
+  return `Année ${a.getFullYear()}`;
+}
+function shift(dir) {
+  const a = range()[0];
+  if (state.p === 'semaine') a.setDate(a.getDate() + 7 * dir);
+  else if (state.p === 'mois') a.setMonth(a.getMonth() + dir);
+  else if (state.p === 'trimestre') a.setMonth(a.getMonth() + 3 * dir);
+  else a.setFullYear(a.getFullYear() + dir);
+  state.anchor = a; load();
+}
+function arc(cx, cy, r, ri, a0, a1) {
+  const p = (rad, ang) => [cx + rad * Math.cos(ang), cy + rad * Math.sin(ang)];
+  const large = a1 - a0 > Math.PI ? 1 : 0;
+  const [x0, y0] = p(r, a0), [x1, y1] = p(r, a1), [x2, y2] = p(ri, a1), [x3, y3] = p(ri, a0);
+  return `M${x0} ${y0}A${r} ${r} 0 ${large} 1 ${x1} ${y1}L${x2} ${y2}A${ri} ${ri} 0 ${large} 0 ${x3} ${y3}Z`;
+}
+function tableRows(target, rows) {
+  target.replaceChildren();
+  if (!rows.length) { const tr=node('tr'); const td=node('td','Aucune ligne disponible ; n.d.','empty'); td.colSpan=5; tr.append(td); target.append(tr); }
+  rows.forEach(t => {
+    const tr=node('tr'); tr.append(node('td', t.date_transaction || 'n.d.'));
+    const merchant=node('td',t.marchand || 'n.d.','m');
+    [t.memo,t.motif,t.decision].filter(Boolean).forEach(s=>merchant.append(node('span',s,'s')));
+    tr.append(merchant,node('td',t.libelle_sous_categorie || 'n.d.'),node('td',money(t.montant_cad),'amt'));
+    const status=node('td'); status.append(node('span',t.statut || 'n.d.',t.statut==='provisoire'?'chip ok':'chip')); tr.append(status); target.append(tr);
+  });
+}
+function exceptionTable(title, rows) {
+  const section=node('section',null,'exception'); section.append(node('h2',title));
+  const wrap=node('div',null,'tablewrap'), table=node('table'), head=node('thead'), tr=node('tr');
+  ['Date','Marchand / motif','Sous-catégorie','Montant','Statut'].forEach(s=>tr.append(node('th',s)));
+  head.append(tr); const body=node('tbody'); tableRows(body,rows); table.append(head,body); wrap.append(table); section.append(wrap); return section;
+}
+function render() {
+  if (!data) return;
+  const fams=data.familles.filter(f=>!f.hors_total && f.debit_bancaire);
+  const groups=data.familles;
+  if(!groups.some(f=>f.famille===state.sel)) state.sel=fams[0]?.famille || groups[0]?.famille || null;
+  // Numbers below are only drawing coordinates/proportions, never financial totals.
+  const drawingTotal=fams.reduce((s,f)=>s+Math.max(0,Number(f.total_cad)),0);
+  el('total').textContent=money(data.total.total_cad);
+  el('count').textContent=`${data.total.nombre_transactions ?? 'n.d.'} transactions`;
+  el('uncertainties').textContent=`Montants inconnus : ${data.total.montants_inconnus ?? 'n.d.'} · À revoir : ${data.total.nombre_a_revoir ?? 'n.d.'} (dans le périmètre du graphique).`;
+  const coverage=el('coverage'); coverage.replaceChildren();
+  const c=data.calcul?.couverture;
+  coverage.append(node('p',c?`${c.debut} au ${c.fin} : ${c.jours_couverts} / ${c.jours_attendus} jours couverts.`:'n.d.'));
+  (c?.segments||[]).forEach(s=>coverage.append(node('p',`${s.debut} au ${s.fin} : ${s.instantane==null?'non collecté':'collecté'}`)));
+  const svg=el('pie'); svg.replaceChildren(); let angle=-Math.PI/2;
+  if(!drawingTotal) {const circle=document.createElementNS('http://www.w3.org/2000/svg','circle'); Object.entries({cx:100,cy:100,r:80,fill:'none',stroke:css('--line'),'stroke-width':30}).forEach(([k,v])=>circle.setAttribute(k,v)); svg.append(circle);}
+  const legend=el('legend'); legend.replaceChildren();
+  fams.forEach(f=>{
+    const ratio=drawingTotal?Math.max(0,Number(f.total_cad))/drawingTotal:0;
+    if(ratio>0) {
+      const path=document.createElementNS('http://www.w3.org/2000/svg','path');
+      const span=ratio*Math.PI*2;
+      Object.entries({d:arc(100,100,state.sel===f.famille?96:92,58,angle,angle+Math.min(Math.PI*1.999,Math.max(span-.012,.001))),fill:color(f.famille),opacity:state.sel===f.famille?'1':'.45',tabindex:'0',role:'button','aria-label':`${f.famille}, ${money(f.total_cad)}`,'aria-pressed':String(state.sel===f.famille)}).forEach(([k,v])=>path.setAttribute(k,v));
+      path.addEventListener('click',()=>select(f.famille)); path.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(f.famille);}}); svg.append(path); angle+=span;
+    }
+    const li=node('li'), b=node('button'); b.type='button'; b.setAttribute('aria-pressed',String(state.sel===f.famille));
+    const dot=document.createElementNS('http://www.w3.org/2000/svg','svg'); dot.setAttribute('class','dot'); dot.setAttribute('viewBox','0 0 14 14'); const rect=document.createElementNS(dot.namespaceURI,'rect'); Object.entries({width:14,height:14,rx:4,fill:color(f.famille)}).forEach(([k,v])=>rect.setAttribute(k,v)); dot.append(rect);
+    b.append(dot,node('span',f.famille),node('span',money(f.total_cad),'num'),node('span',f.total_cad==null?'n.d.':`${Math.round(ratio*100)} %`,'pct'));
+    b.addEventListener('click',()=>select(f.famille)); li.append(b); legend.append(li);
+  });
+  const off=el('off'); off.replaceChildren(node('h3','Hors total, à surveiller'));
+  groups.filter(f=>f.hors_total||!f.debit_bancaire).forEach(f=>{
+    const b=node('button',null,'offrow'); b.type='button';
+    const name=node('span',f.famille+(!f.debit_bancaire?' · flux non attesté / entrée':'')+' ');
+    name.append(node('span',`${f.nombre_transactions ?? 'n.d.'} transactions`,'chip'));
+    name.append(node('span',` · ${f.montants_inconnus ?? 'n.d.'} montants inconnus · ${f.nombre_a_revoir ?? 'n.d.'} à revoir`,'sub'));
+    b.append(name,node('span',money(f.total_cad),'num')); b.addEventListener('click',()=>select(f.famille)); off.append(b);
+  });
+  if(!groups.some(f=>f.hors_total||!f.debit_bancaire))off.append(node('p','Aucun groupe disponible ; n.d.','empty'));
+  const selected=groups.filter(f=>f.famille===state.sel);
+  el('dtitle').textContent=state.sel||'Aucune dépense disponible';
+  // Distinct debit/non-debit groups must never be netted together.
+  el('dtotal').textContent=selected.length===1?money(selected[0].total_cad):'n.d.';
+  const subs=el('subs'); subs.replaceChildren();
+  const subgroups=data.sous_categories.filter(s=>s.famille===state.sel);
+  const maximum=Math.max(0,...subgroups.map(s=>Number(s.total_cad)));
+  subgroups.forEach(s=>{
+    const row=node('div',null,'subrow'), b=node('button',s.libelle_sous_categorie); b.type='button'; b.setAttribute('aria-pressed',String(state.sub===s.sous_categorie));
+    b.addEventListener('click',()=>{state.sub=state.sub===s.sous_categorie?null:s.sous_categorie;render();});
+    row.append(b,node('span',money(s.total_cad),'num'));
+    const track=node('div',null,'track'), bar=document.createElementNS('http://www.w3.org/2000/svg','svg'); bar.setAttribute('viewBox','0 0 100 8'); bar.setAttribute('preserveAspectRatio','none');
+    const rect=document.createElementNS(bar.namespaceURI,'rect'); Object.entries({width:maximum?Math.max(0,Number(s.total_cad))/maximum*100:0,height:8,rx:4,fill:color(s.famille)}).forEach(([k,v])=>rect.setAttribute(k,v)); bar.append(rect); track.append(bar); row.append(track); subs.append(row);
+  });
+  tableRows(el('rows'),data.detail.filter(t=>t.date_transaction&&!t.doublon&&!t.hors_total&&t.debit_bancaire&&t.famille===state.sel&&(!state.sub||t.sous_categorie===state.sub)));
+  const exceptions=el('exceptions'); exceptions.replaceChildren();
+  const inSelection=t=>t.famille===state.sel&&(!state.sub||t.sous_categorie===state.sub);
+  const excluded=data.detail.filter(t=>t.date_transaction&&!t.doublon&&(t.hors_total||!t.debit_bancaire)&&inSelection(t));
+  if(excluded.length)exceptions.append(exceptionTable('Hors total / flux non attestés — sélection',excluded));
+  const duplicates=data.detail.filter(t=>t.date_transaction&&t.doublon);
+  if(duplicates.length)exceptions.append(exceptionTable('Doublons de la période — exclus des agrégats',duplicates));
+  const undated=data.detail.filter(t=>!t.date_transaction);
+  if(undated.length)exceptions.append(exceptionTable('Date inconnue — toutes périodes, hors graphique',undated));
+}
+async function load() {
+  const current=++request; data=null;
+  document.querySelectorAll('.seg button').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.p===state.p)));
+  el('plabel').textContent=label(); el('notice').textContent='Chargement…';
+  ['pie','legend','off','subs','rows','exceptions','coverage','uncertainties'].forEach(id=>el(id).replaceChildren());
+  ['total','count','dtitle','dtotal'].forEach(id=>el(id).textContent='');
+  try {
+    const response=await fetch('/depenses/api?'+new URLSearchParams({periode:state.p,debut:iso(range()[0]),variables:state.varOnly?'1':'0'}),{cache:'no-store',credentials:'same-origin'});
+    if(!response.ok)throw new Error('unavailable');
+    const result=await response.json(); if(current!==request)return; data=result;
+    const c=data.calcul;
+    el('notice').textContent=`Total complet : n.d. · Confirmation bancaire absente du contrat de lecture. Dernière collecte : n.d. (horodatage non exposé). ${c?`Calcul du ${c.date_calcul} (${c.calcule_le})${c.date_calcul<data.jour_attendu?' — obsolète':''}. Couverture ${c.couverture?.complete?'complète':'incomplète'} ; revue non attestée.`:'Aucun calcul disponible.'} Le graphique représente les montants classés provisoires uniquement.`;
+    render();
+  } catch(e) { if(current===request)el('notice').textContent='Lecture indisponible. Changez de période pour réessayer. Aucun montant confirmé.'; }
+}
+document.querySelectorAll('.seg button').forEach(b=>b.addEventListener('click',()=>{state.p=b.dataset.p;state.sub=null;load();}));
+el('prev').addEventListener('click',()=>shift(-1)); el('next').addEventListener('click',()=>shift(1));
+el('varonly').addEventListener('change',e=>{state.varOnly=e.target.checked;load();});
+matchMedia('(prefers-color-scheme: dark)').addEventListener('change',render);
+load();
+</script></body></html>
