@@ -191,15 +191,25 @@ function combined(groups) {
   return {total_cad:amounts.some(v=>v==null)?null:(sum<0n?'-':'')+digits.slice(0,-scale)+'.'+digits.slice(-scale),
     nombre_transactions:groups.reduce((n,f)=>n+(f.nombre_transactions ?? 0),0)};
 }
+function nature(t) {
+  // Most QuickBooks lines have no merchant: the bank text is the real nature. Drop Interac reference codes
+  // (6-10 characters mixing at least two capitals and a lowercase letter, e.g. CAXkjMzW), keep ordinary words.
+  const isRef=w=>/^[A-Za-z0-9]{6,10}$/.test(w) && (w.match(/[A-Z]/g)||[]).length>=2 && /[a-z]/.test(w);
+  const memo=(t.memo||'').split(/\s+/).filter(w=>w && !isRef(w)).join(' ');
+  return memo || t.marchand || 'Sans libellé';
+}
+function plural(n, one, many) { const v=Number(n ?? 0); return `${v} ${v>1?many:one}`; }
 function tableRows(target, rows) {
   target.replaceChildren();
   if (!rows.length) { const tr=node('tr'); const td=node('td','Aucune transaction disponible','empty'); td.colSpan=2; tr.append(td); target.append(tr); }
   rows.forEach(t => {
     const tr=node('tr');
     const merchant=node('td',null,'m');
-    merchant.append(node('strong',t.marchand || 'Marchand inconnu'));
-    merchant.append(node('span',[t.libelle_sous_categorie,t.date_transaction || 'Date inconnue'].filter(Boolean).join(' · '),'s'));
-    if(t.statut!=='confirme') merchant.append(node('span','à confirmer','s'));
+    const label=nature(t);
+    merchant.append(node('strong',label));
+    const other=t.marchand && !label.toLowerCase().includes(t.marchand.toLowerCase()) ? t.marchand : null;
+    merchant.append(node('span',[other,t.libelle_sous_categorie,t.date_transaction || 'Date inconnue'].filter(Boolean).join(' · '),'s'));
+    if(t.statut==='catégorie QBO à confirmer' || t.statut==='à revoir') merchant.append(node('span',t.statut==='à revoir'?'à revoir':'à confirmer','s'));
     tr.append(merchant,node('td',money(t.montant_cad),'amt')); target.append(tr);
   });
 }
@@ -221,7 +231,7 @@ function render() {
   // Numbers below are only drawing coordinates/proportions, never financial totals.
   const drawingTotal=fams.reduce((s,f)=>s+Math.max(0,Number(f.total_cad)),0);
   el('total').textContent=money(summary.total_cad);
-  el('count').textContent=`${summary.nombre_transactions ?? 0} transactions`;
+  el('count').textContent=plural(summary.nombre_transactions,'transaction','transactions');
   el('uncertainties').textContent=`Montants inconnus : ${data.total.montants_inconnus ?? 'Non disponible'} · À revoir : ${data.total.nombre_a_revoir ?? 'Non disponible'} (dans le périmètre du graphique).`;
   const coverage=el('coverage'); coverage.replaceChildren();
   const c=data.calcul?.couverture;
@@ -251,7 +261,7 @@ function render() {
   });
   excludedGroups.forEach((entries,family)=>{
     const f=combined(entries), b=node('div',null,'offrow');
-    b.append(node('span',`${family} · ${f.nombre_transactions} transactions`),node('span',money(f.total_cad),'num'));
+    b.append(node('span',`${family} · ${plural(f.nombre_transactions,'transaction','transactions')}`),node('span',money(f.total_cad),'num'));
     off.append(b);
   });
   if(!excludedGroups.size)off.append(node('p','Aucun groupe hors total','empty'));
