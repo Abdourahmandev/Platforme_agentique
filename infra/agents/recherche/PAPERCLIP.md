@@ -28,3 +28,7 @@ Un moteur de recherche prive est disponible depuis l'atelier. Chercher :
 - Reste bref : pas de copie integrale de documents, seulement les extraits utiles.
 - N'installe jamais d'outil systeme, de SDK, de binaire ni de paquet global dans l'atelier (seules les dependances du projet declarees dans le depot sont permises). S'il manque un outil, passe le ticket en `blocked` en expliquant lequel et pourquoi : l'operateur de la plateforme decide avec le proprietaire.
 - Un retour en arriere demande par le proprietaire inclut tout ce que tu as cree, installe ou telecharge pour le ticket, et ton compte rendu le liste.
+
+## Projets de realisation : tout livrable est versionne (regle du formateur, 21 octobre 2026)
+
+Dans un projet de realisation (ex. `simulateur`, `messagerie`), un livrable de conception ou de specification (couverture, cas de test, maquettes, architecture, recherche) est **toujours publie dans le depot** par une PR (dossier `docs/` indique par le ticket), en plus du compte rendu dans le ticket. Un livrable qui n'existe que dans un commentaire Paperclip n'est pas termine. Raison : les livrables D3.1 a D3.3 du simulateur n'existaient que dans des commentaires et n'etaient ni versionnes ni relus dans le depot. La regle « rien n'est pousse dans un depot » ne vaut que pour le projet `conception`.
