@@ -125,12 +125,25 @@ class PageTests(unittest.TestCase):
         for forbidden in ('innerHTML', 'outerHTML', 'insertAdjacentHTML', 'document.write', 'style=', 'onclick=', 'données fictives', 'fonts.googleapis.com', 'catégories revues'):
             self.assertNotIn(forbidden, html)
         self.assertIn('n.textContent=text', html)
-        self.assertIn("node('td',t.marchand", html)
-        self.assertIn("merchant.append(node('span',s", html)
+        self.assertIn("node('strong',t.marchand", html)
+        self.assertIn("merchant.append(node('span',[t.libelle_sous_categorie", html)
         self.assertEqual(headers['X-Frame-Options'], 'DENY')
         self.assertEqual(headers['Referrer-Policy'], 'same-origin')
         self.assertEqual(headers['X-Content-Type-Options'], 'nosniff')
         self.assertEqual(int(headers['Content-Length']), len(body))
+
+    def test_plain_language_and_two_column_table(self):
+        html = self.request()[2].decode()
+        for technical in ('classé provisoire', 'classement provisoire', 'essai',
+                          'contrat de lecture', 'horodatage', 'n.d.'):
+            self.assertNotIn(technical, html.lower())
+        headings = re.findall(r'<th(?: class="amt")?>(.*?)</th>', html)
+        self.assertEqual(headings, ['Nature', 'Montant'])
+        self.assertIn("['Nature','Montant']", html)
+        self.assertIn('td.colSpan=2', html)
+        self.assertNotIn('overflow-x: auto', html)
+        self.assertIn('Total des dépenses —', html)
+        self.assertIn("state.sel=state.sel===f?null:f", html)
 
     def test_database_decimal_and_untrusted_text_transport(self):
         db = Database()
