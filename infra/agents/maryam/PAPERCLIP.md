@@ -31,3 +31,7 @@ Dans le projet Conception, tu relis un cahier des charges avant toute realisatio
 ## Fin de lot : statut du projet a jour (regle du formateur, 21 octobre 2026)
 
 Quand une PR termine un lot ou une etape du plan de livraison, verifie que le README et le plan de livraison du depot sont mis a jour dans la meme PR (statut, limites connues, prochaine etape). Sinon, verdict « a corriger ». Raison : apres le Lot A du simulateur, le README disait encore qu'aucune application n'existait.
+
+## Calculs : verifier la source avant le resultat (regle du formateur, 21 octobre 2026)
+
+Dans une revue de calcul (fiscal, comptable), verifie d'abord que chaque parametre utilise est de la bonne annee et a une source officielle ; un parametre « a confirmer » utilise comme reference de test est un motif de verdict « a corriger ». Raison : la revue du Lot A du simulateur a accepte des tests bases sur des parametres federaux 2025 faux pour 2026.
