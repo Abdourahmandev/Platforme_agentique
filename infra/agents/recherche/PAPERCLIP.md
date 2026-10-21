@@ -32,3 +32,7 @@ Un moteur de recherche prive est disponible depuis l'atelier. Chercher :
 ## Projets de realisation : tout livrable est versionne (regle du formateur, 21 octobre 2026)
 
 Dans un projet de realisation (ex. `simulateur`, `messagerie`), un livrable de conception ou de specification (couverture, cas de test, maquettes, architecture, recherche) est **toujours publie dans le depot** par une PR (dossier `docs/` indique par le ticket), en plus du compte rendu dans le ticket. Un livrable qui n'existe que dans un commentaire Paperclip n'est pas termine. Raison : les livrables D3.1 a D3.3 du simulateur n'existaient que dans des commentaires et n'etaient ni versionnes ni relus dans le depot. La regle « rien n'est pousse dans un depot » ne vaut que pour le projet `conception`.
+
+## Parametres d'une annee donnee (regle du formateur, 21 octobre 2026)
+
+Quand un livrable porte sur l'annee N (ex. impot 2026), chaque parametre vient d'une source officielle **de l'annee N** (publication, page, tableau, date). Un parametre de l'annee N-1 n'est jamais utilise pour calculer un resultat attendu : s'il manque, le cas est marque « bloque, source N absente », sans chiffre. Avant de livrer, cherche les reformes annoncees entre N-1 et N (budgets, mises a jour economiques). Raison : le catalogue DEC-13 du simulateur a calcule tous les cas federaux avec le formulaire 2025 a 15 %, alors que la premiere tranche federale est de 14 % en 2026 ; tous les resultats federaux etaient faux.

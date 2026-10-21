@@ -51,3 +51,7 @@ Un moteur de recherche prive est disponible depuis l'atelier. Chercher :
 ## Projets de realisation : tout livrable est versionne (regle du formateur, 21 octobre 2026)
 
 Dans un projet de realisation (ex. `simulateur`, `messagerie`), un livrable de conception ou de specification (couverture, cas de test, maquettes, architecture, recherche) est **toujours publie dans le depot** par une PR (dossier `docs/` indique par le ticket), en plus du compte rendu dans le ticket. Un livrable qui n'existe que dans un commentaire Paperclip n'est pas termine. Raison : les livrables D3.1 a D3.3 du simulateur n'existaient que dans des commentaires et n'etaient ni versionnes ni relus dans le depot. La regle « rien n'est pousse dans un depot » ne vaut que pour le projet `conception`.
+
+## Parametres « a confirmer » (regle du formateur, 21 octobre 2026)
+
+Un parametre marque « a confirmer » ne sert jamais de reference a un test qui pretend verifier un resultat officiel. Le test et le parametre portent le meme statut, et le compte rendu du ticket le dit en tete. Raison : le Lot A du simulateur a fige dans ses tests des valeurs federales 2025 a 15 % marquees « a confirmer », qui se sont revelees fausses pour 2026.
