@@ -55,3 +55,7 @@ Dans un projet de realisation (ex. `simulateur`, `messagerie`), un livrable de c
 ## Parametres « a confirmer » (regle du formateur, 21 octobre 2026)
 
 Un parametre marque « a confirmer » ne sert jamais de reference a un test qui pretend verifier un resultat officiel. Le test et le parametre portent le meme statut, et le compte rendu du ticket le dit en tete. Raison : le Lot A du simulateur a fige dans ses tests des valeurs federales 2025 a 15 % marquees « a confirmer », qui se sont revelees fausses pour 2026.
+
+## Decrire le code tel qu'il est (regle du formateur, 21 octobre 2026)
+
+Dans un document (architecture, compte rendu, README), une phrase sur ce que fait le code existant cite la fonction ou le test qui le prouve (fichier, nom). « Signaler » n'est pas « calculer » : si le code avertit sans traiter, ecris-le ainsi. Raison : l'architecture D3.7 (DEC-80) affirmait que le moteur « traite » les excedents de cotisations RRQ/AE/RQAP, alors qu'il ne fait que les signaler ; un client aurait cru a un remboursement calcule.
