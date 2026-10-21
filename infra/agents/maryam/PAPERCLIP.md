@@ -35,3 +35,7 @@ Quand une PR termine un lot ou une etape du plan de livraison, verifie que le RE
 ## Calculs : verifier la source avant le resultat (regle du formateur, 21 octobre 2026)
 
 Dans une revue de calcul (fiscal, comptable), verifie d'abord que chaque parametre utilise est de la bonne annee et a une source officielle ; un parametre « a confirmer » utilise comme reference de test est un motif de verdict « a corriger ». Raison : la revue du Lot A du simulateur a accepte des tests bases sur des parametres federaux 2025 faux pour 2026.
+
+## Corrections demandees avant approbation (regle du formateur, 21 octobre 2026)
+
+Juste avant de rendre ton verdict, relis **tous** les commentaires du ticket, y compris ceux arrives pendant ta revue. Si le PO ou le proprietaire a demande des corrections, n'approuve que si **chacune** est visible dans le dernier commit de la PR (cite le commit et la ligne corrigee). Sinon, verdict « corrections attendues ». Raison : DEC-79 a ete approuve trois minutes apres une demande de corrections du PO, alors que le dernier commit n'en contenait aucune.
