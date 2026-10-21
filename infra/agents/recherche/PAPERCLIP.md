@@ -41,5 +41,6 @@ Quand un livrable porte sur l'annee N (ex. impot 2026), chaque parametre vient d
 
 - Une colonne « valeur actuelle du moteur » (ou de tout fichier) ne contient que ce qui est **dans le fichier**, avec le chemin et la ligne. Si le fichier n'a pas la valeur, ecris « absent du fichier », jamais un chiffre de memoire.
 - Le contenu d'une case de feuillet (T4, RL-1, etc.) se cite **depuis le guide officiel de l'annee** (section et phrase), jamais par analogie avec un autre feuillet.
+- Un texte entre guillemets est une citation **mot pour mot** de la source lue ; sinon, reformule sans guillemets.
 - Une formule de paie (T4127, TP-1015) ne prouve pas le calcul de la declaration annuelle : ecris « methode annuelle non publiee » tant que le formulaire ou l'annexe de l'annee n'est pas trouve.
-Raison : dans D3.6 (DEC-78), Saredo a inverse les cases B.A et B.B du RL-1 (le guide 2026, § 5.4, dit B.A = base + premier supplement, B.B = deuxieme supplement), a attribue au moteur des valeurs RRQ/AE qu'il ne contient pas, et a declare « obligatoire » pour la declaration un ratio 10/63 tire des formules de paie.
+Raison : dans D3.6 (DEC-78), Saredo a inverse les cases B.A et B.B du RL-1 (le guide 2026, § 5.4, dit B.A = base + premier supplement, B.B = deuxieme supplement), a attribue au moteur des valeurs RRQ/AE qu'il ne contient pas, et a declare « obligatoire » pour la declaration un ratio 10/63 tire des formules de paie ; puis, en corrigeant, a mis entre guillemets une phrase que le guide ne contient pas.
