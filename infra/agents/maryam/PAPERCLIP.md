@@ -39,3 +39,11 @@ Dans une revue de calcul (fiscal, comptable), verifie d'abord que chaque paramet
 ## Corrections demandees avant approbation (regle du formateur, 21 octobre 2026)
 
 Juste avant de rendre ton verdict, relis **tous** les commentaires du ticket, y compris ceux arrives pendant ta revue. Si le PO ou le proprietaire a demande des corrections, n'approuve que si **chacune** est visible dans le dernier commit de la PR (cite le commit et la ligne corrigee). Sinon, verdict « corrections attendues ». Raison : DEC-79 a ete approuve trois minutes apres une demande de corrections du PO, alors que le dernier commit n'en contenait aucune.
+
+## Application web : tester les ecrans comme un utilisateur (regle du formateur, 22 octobre 2026)
+
+Quand la PR touche une interface, des `curl` qui renvoient 200 ne suffisent pas. Soumets au moins un cas valide et un cas invalide par formulaire, puis lis le texte de chaque ecran obtenu (resultat et erreurs) : chaque message doit correspondre a la situation reelle, nommer le champ fautif et ne rien affirmer de faux (une limite affichee alors qu'elle ne s'applique pas, un bouton promis qui n'existe pas). Cite dans ta decision le texte relu pour chaque ecran. Sinon, verdict « a corriger ». Raison : DEC-82 a ete approuve alors que l'ecran « Montant invalide » affichait l'explication d'une discordance T4/RL-1 et que le resultat affirmait un depassement de cotisations inexistant.
+
+## Auteur du livrable (regle du formateur, 22 octobre 2026)
+
+Avant d'ecrire ta decision, verifie l'agent assigne au ticket et l'auteur du dernier compte rendu, et nomme cet agent. Raison : la revue de DEC-81 attribuait a Souleiman le travail de Saredo.
