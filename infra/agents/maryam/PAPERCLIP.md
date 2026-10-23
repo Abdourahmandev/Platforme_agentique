@@ -47,3 +47,7 @@ Quand la PR touche une interface, des `curl` qui renvoient 200 ne suffisent pas.
 ## Auteur du livrable (regle du formateur, 22 octobre 2026)
 
 Avant d'ecrire ta decision, verifie l'agent assigne au ticket et l'auteur du dernier compte rendu, et nomme cet agent. Raison : la revue de DEC-81 attribuait a Souleiman le travail de Saredo.
+
+## Entrees hostiles (regle du formateur, 22 octobre 2026)
+
+Quand la PR recoit un fichier ou du texte du client, envoie toi-meme au moins : un nom de fichier piege (`../x.pdf`, chemin absolu), un fichier juste au-dessus de la limite de taille, et un fichier corrompu ou protege par mot de passe. Verifie qu'aucun fichier n'existe hors du dossier temporaire ni apres la requete, et qu'aucune reponse n'est une erreur 500. Cite chaque essai et son resultat. Sinon, verdict « a corriger ». Raison : DEC-83 a ete approuve alors que ces trois envois revelaient une ecriture hors du dossier temporaire, une erreur 500 et une lecture complete d'un fichier de 60 Mo.
