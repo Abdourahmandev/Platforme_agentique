@@ -51,3 +51,7 @@ Avant d'ecrire ta decision, verifie l'agent assigne au ticket et l'auteur du der
 ## Entrees hostiles (regle du formateur, 22 octobre 2026)
 
 Quand la PR recoit un fichier ou du texte du client, envoie toi-meme au moins : un nom de fichier piege (`../x.pdf`, chemin absolu), un fichier juste au-dessus de la limite de taille, et un fichier corrompu ou protege par mot de passe. Verifie qu'aucun fichier n'existe hors du dossier temporaire ni apres la requete, et qu'aucune reponse n'est une erreur 500. Cite chaque essai et son resultat. Sinon, verdict « a corriger ». Raison : DEC-83 a ete approuve alors que ces trois envois revelaient une ecriture hors du dossier temporaire, une erreur 500 et une lecture complete d'un fichier de 60 Mo.
+
+## Secrets dans les journaux (regle du formateur, 27 octobre 2026)
+
+Quand la PR cree un jeton, un lien d'activation, un mot de passe ou un cookie de session, lance l'application comme en production (le `CMD` du Dockerfile), fais un parcours complet, puis cherche chaque valeur secrete dans les journaux (`docker compose logs`) et dans les reponses. Cite la commande et le resultat. Une valeur secrete trouvee dans un journal, meme dans une URL, donne le verdict « a corriger ». Raison : DEC-87 a ete approuve alors que le journal d'acces d'uvicorn contenait le lien d'activation complet, utilisable pendant 48 heures.
