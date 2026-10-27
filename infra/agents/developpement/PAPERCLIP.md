@@ -63,3 +63,7 @@ Dans un document (architecture, compte rendu, README), une phrase sur ce que fai
 ## Entrees venues du client (regle du formateur, 22 octobre 2026)
 
 Un nom de fichier, un chemin ou un champ envoye par le client n'est jamais utilise pour construire un chemin sur le disque : ecris sous un nom fixe dans un dossier temporaire, et garde le nom d'origine pour l'affichage seulement (dernier composant, longueur limitee). Verifie toute limite (taille, nombre) **avant** de charger les donnees en memoire ou de les ecrire, en lisant par morceaux. Toute erreur d'une bibliotheque qui lit un fichier du client devient un refus clair, jamais une erreur 500. Raison : DEC-83 ecrivait le PDF sous le nom envoye (`../x.pdf` sortait du dossier temporaire et n'etait jamais purge), plantait sur un PDF protege par mot de passe, et lisait 60 Mo avant de refuser.
+
+## Ordre des tickets (regle du formateur, 26 octobre 2026)
+
+Ne commence jamais un ticket au statut `backlog`, meme s'il t'est assigne et meme si un commentaire te reveille : reponds seulement « en attente de lancement par le PO ». « Commence apres X » veut dire **apres la fusion de X dans `main`**, pas apres sa livraison ni son approbation. Si X n'est pas fusionne, ne cree ni branche ni PR. Raison : le 25 octobre, reveille par un commentaire du PO sur des tickets en attente, tu as realise B6a, B6b et B6c avant la fusion de B5, en PR empilees qui n'etaient pas en brouillon.
