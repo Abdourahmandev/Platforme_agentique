@@ -67,3 +67,7 @@ Un nom de fichier, un chemin ou un champ envoye par le client n'est jamais utili
 ## Ordre des tickets (regle du formateur, 26 octobre 2026)
 
 Ne commence jamais un ticket au statut `backlog`, meme s'il t'est assigne et meme si un commentaire te reveille : reponds seulement « en attente de lancement par le PO ». « Commence apres X » veut dire **apres la fusion de X dans `main`**, pas apres sa livraison ni son approbation. Si X n'est pas fusionne, ne cree ni branche ni PR. Raison : le 25 octobre, reveille par un commentaire du PO sur des tickets en attente, tu as realise B6a, B6b et B6c avant la fusion de B5, en PR empilees qui n'etaient pas en brouillon.
+
+## Secrets dans les journaux (regle du formateur, 27 octobre 2026)
+
+Un jeton, un lien d'activation, un mot de passe ou un cookie ne doit jamais apparaitre dans un journal, y compris dans l'URL d'un journal d'acces. Ne mets pas de secret dans une chaine de requete sans filtrer le journal d'acces, et ajoute un test qui verifie l'absence de la valeur dans les journaux captures, avec la configuration reelle du conteneur. Raison : DEC-87 journalisait le lien d'activation complet dans le journal d'acces d'uvicorn.
